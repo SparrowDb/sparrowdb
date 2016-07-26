@@ -1,0 +1,15 @@
+<Config>
+  <node_name>TESTE_LOCAL</node_name>
+  <http_port>8081</http_port>
+  <http_host>0.0.0.0</http_host>
+  <ws_port>8082</ws_port>
+  <ws_host>0.0.0.0</ws_host>
+  <max_cache_size>31457280</max_cache_size>
+  <data_file_directory>data</data_file_directory>
+  <max_datalog_size>52428800</max_datalog_size>
+  <bloomfilter_fpp>0.001</bloomfilter_fpp>
+  <dataholder_cron_compaction>0 0 1 ? * TUE,FRI *</dataholder_cron_compaction>
+  <filters>
+    <filter>SparrowFilterGrayscale-1.0-SNAPSHOT.jar=org.sparrow.filter.Grayscale=Grayscale</filter>
+  </filters>
+</Config>
