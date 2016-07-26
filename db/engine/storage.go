@@ -56,7 +56,7 @@ func (s *Storage) Append(bs *ByteStream) error {
 	buf := bs.Bytes()
 
 	bout := NewByteStream(LittleEndian)
-	bout.PutInt32(uint32(len(buf)))
+	bout.PutUInt32(uint32(len(buf)))
 
 	if _, err := w.Append(bout.Bytes()); err != nil {
 		return err
@@ -91,7 +91,7 @@ func (s *Storage) Get(offset int64) (*ByteStream, error) {
 	}
 
 	bs := NewByteStreamFromBytes(bSize, LittleEndian)
-	size := bs.GetInt32()
+	size := bs.GetUInt32()
 
 	// Skip 4 bytes of the size mark
 	offset += 4

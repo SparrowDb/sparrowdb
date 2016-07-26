@@ -12,6 +12,6 @@ type Entry struct {
 // Bytes returns byte array with index entry data
 func (e *Entry) Bytes() []byte {
 	bs := engine.NewByteStream(engine.LittleEndian)
-	bs.PutInt32(e.Key)
+	bs.PutUInt32(e.Key)
 	return bs.Bytes()
 }

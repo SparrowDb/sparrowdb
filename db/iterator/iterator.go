@@ -15,7 +15,7 @@ func Iterate(iter *DataIterator) (*model.DataDefinition, bool, error) {
 
 	df := model.DataDefinition{}
 	df.Key = bs.GetString()
-	df.Size = bs.GetInt32()
+	df.Size = bs.GetUInt32()
 	df.Ext = bs.GetString()
 	df.Buf = bs.GetBytes()
 

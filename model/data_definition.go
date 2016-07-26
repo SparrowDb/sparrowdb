@@ -14,7 +14,7 @@ type DataDefinition struct {
 func (df *DataDefinition) ToByteStream() *engine.ByteStream {
 	byteStream := engine.NewByteStream(engine.LittleEndian)
 	byteStream.PutString(df.Key)
-	byteStream.PutInt32(df.Size)
+	byteStream.PutUInt32(df.Size)
 	byteStream.PutString(df.Ext)
 	byteStream.PutBytes(df.Buf)
 	return byteStream
@@ -24,7 +24,7 @@ func (df *DataDefinition) ToByteStream() *engine.ByteStream {
 func NewDataDefinitionFromByteStream(bs *engine.ByteStream) *DataDefinition {
 	df := DataDefinition{}
 	df.Key = bs.GetString()
-	df.Size = bs.GetInt32()
+	df.Size = bs.GetUInt32()
 	df.Ext = bs.GetString()
 	df.Buf = bs.GetBytes()
 	return &df

@@ -49,22 +49,22 @@ func (bs *ByteStream) appendBytes(buf []byte) {
 	bs.cur += uint32(len(buf))
 }
 
-// PutInt16 append uint16 to ByteStream
-func (bs *ByteStream) PutInt16(x uint16) {
+// PutUInt16 append uint16 to ByteStream
+func (bs *ByteStream) PutUInt16(x uint16) {
 	b := make([]byte, uint16Size)
 	bs.order.PutUint16(b, x)
 	bs.appendBytes(b)
 }
 
-// PutInt32 append uint32 to ByteStream
-func (bs *ByteStream) PutInt32(x uint32) {
+// PutUInt32 append uint32 to ByteStream
+func (bs *ByteStream) PutUInt32(x uint32) {
 	b := make([]byte, uint32Size)
 	bs.order.PutUint32(b, x)
 	bs.appendBytes(b)
 }
 
-// PutInt64 append uint64 to ByteStream
-func (bs *ByteStream) PutInt64(x uint64) {
+// PutUInt64 append uint64 to ByteStream
+func (bs *ByteStream) PutUInt64(x uint64) {
 	b := make([]byte, uint64Size)
 	bs.order.PutUint64(b, x)
 	bs.appendBytes(b)
@@ -72,34 +72,34 @@ func (bs *ByteStream) PutInt64(x uint64) {
 
 // PutString append string to ByteStream
 func (bs *ByteStream) PutString(x string) {
-	bs.PutInt32(uint32(len(x)))
+	bs.PutUInt32(uint32(len(x)))
 	bs.appendBytes([]byte(x))
 }
 
 // PutBytes append []byte to ByteStream
 func (bs *ByteStream) PutBytes(x []byte) {
-	bs.PutInt32(uint32(len(x)))
+	bs.PutUInt32(uint32(len(x)))
 	bs.appendBytes(x)
 }
 
-// GetInt16 returns uint16 from ByteStream
-func (bs *ByteStream) GetInt16() uint16 {
+// GetUInt16 returns uint16 from ByteStream
+func (bs *ByteStream) GetUInt16() uint16 {
 	x := bs.buf[bs.cur : bs.cur+uint16Size]
 	y := bs.order.Uint16(x)
 	bs.cur += uint16Size
 	return y
 }
 
-// GetInt32 returns uint32 from ByteStream
-func (bs *ByteStream) GetInt32() uint32 {
+// GetUInt32 returns uint32 from ByteStream
+func (bs *ByteStream) GetUInt32() uint32 {
 	x := bs.buf[bs.cur : bs.cur+4]
 	y := bs.order.Uint32(x)
 	bs.cur += uint32Size
 	return y
 }
 
-// GetInt64 returns uint64 from ByteStream
-func (bs *ByteStream) GetInt64() uint64 {
+// GetUInt64 returns uint64 from ByteStream
+func (bs *ByteStream) GetUInt64() uint64 {
 	x := bs.buf[bs.cur : bs.cur+uint64Size]
 	y := bs.order.Uint64(x)
 	bs.cur += uint64Size
@@ -108,7 +108,7 @@ func (bs *ByteStream) GetInt64() uint64 {
 
 // GetString returns string from ByteStream
 func (bs *ByteStream) GetString() string {
-	len := bs.GetInt32()
+	len := bs.GetUInt32()
 	x := bs.buf[bs.cur : bs.cur+len]
 	bs.cur += len
 	return string(x)
@@ -116,7 +116,7 @@ func (bs *ByteStream) GetString() string {
 
 // GetBytes returns []byte from ByteStream
 func (bs *ByteStream) GetBytes() []byte {
-	len := bs.GetInt32()
+	len := bs.GetUInt32()
 	x := bs.buf[bs.cur : bs.cur+len]
 	bs.cur += len
 	return x
