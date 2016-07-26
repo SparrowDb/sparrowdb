@@ -8,6 +8,7 @@ import (
 const (
 	uint16Size = 2
 	uint32Size = 4
+	uint64Size = 8
 )
 
 // LittleEndian byte order
@@ -62,6 +63,13 @@ func (bs *ByteStream) PutInt32(x uint32) {
 	bs.appendBytes(b)
 }
 
+// PutInt64 append uint64 to ByteStream
+func (bs *ByteStream) PutInt64(x uint64) {
+	b := make([]byte, uint64Size)
+	bs.order.PutUint64(b, x)
+	bs.appendBytes(b)
+}
+
 // PutString append string to ByteStream
 func (bs *ByteStream) PutString(x string) {
 	bs.PutInt32(uint32(len(x)))
@@ -87,6 +95,14 @@ func (bs *ByteStream) GetInt32() uint32 {
 	x := bs.buf[bs.cur : bs.cur+4]
 	y := bs.order.Uint32(x)
 	bs.cur += uint32Size
+	return y
+}
+
+// GetInt64 returns uint64 from ByteStream
+func (bs *ByteStream) GetInt64() uint64 {
+	x := bs.buf[bs.cur : bs.cur+uint64Size]
+	y := bs.order.Uint64(x)
+	bs.cur += uint64Size
 	return y
 }
 
