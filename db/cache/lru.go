@@ -3,112 +3,84 @@ package cache
 import "sync"
 
 type lru struct {
-	used     int64
-	capacity int64
-	count    int64
+	used     int64 // Used size of cache in bytes
+	capacity int64 // Max size of cache in bytes
+	count    int64 // Itens in cache
 	lock     sync.RWMutex
 	head     *lruNode
-	tail     *lruNode
 }
 
 type lruNode struct {
-	n *Node
-
+	n          *Node
+	refs       uint32 // Keeps the reference count
 	prev, next *lruNode
 }
 
 func (c *lru) insertHead(n *lruNode) {
-	n.prev = nil
 	n.next = c.head
-	c.head.prev = n
-	c.head = n
+	n.prev = c.head.prev
+	n.prev.next = n
+	n.next.prev = n
 }
 
-func (c *lru) moveToFront(n *lruNode) {
-	c.lock.RLock()
-	defer c.lock.RUnlock()
+func (c *lru) removeNode(n *lruNode) {
+	n.next.prev = n.prev
+	n.prev.next = n.next
+}
 
-	if c.count > 1 {
-		if n.next == nil {
-			c.Ban()
-			c.insertHead(n)
-		} else {
-			n.prev.next = n.next
-			n.next.prev = n.prev
-			c.insertHead(n)
-		}
+func (c *lru) unref(n *lruNode) {
+	if n.refs > 0 {
+		n.refs--
+	} else if n.refs <= 0 {
+		c.decUsed(n.n.size)
+		c.removeNode(n)
 	}
 }
 
-func (c *lru) IncUsed(size int32) {
+func (c *lru) incUsed(size int32) {
 	c.used += int64(size)
 	c.count++
 }
 
-func (c *lru) DecUsed(size int32) {
+func (c *lru) decUsed(size int32) {
 	c.used -= int64(size)
 	c.count--
 }
 
-func (c *lru) Capactity() int64 {
-	return c.capacity
+func (c *lru) Usage() (int64, int64, int64) {
+	return c.capacity, c.used, c.count
 }
 
-func (c *lru) Promote(n *Node) {
+func (c *lru) Insert(n *Node) {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 
-	new := &lruNode{n: n, prev: nil, next: nil}
+	ln := &lruNode{n: n, refs: 2}
+	c.insertHead(ln)
+	c.incUsed(n.size)
 
-	if c.count == 0 {
-		c.head = new
-		c.tail = c.head
-		c.IncUsed(new.n.size)
-		return
-	}
-
-	if (c.used + int64(n.size)) > c.capacity {
-		c.Ban()
-		c.DecUsed(n.size)
-		c.Promote(n)
-	} else {
-		c.insertHead(new)
-		c.IncUsed(new.n.size)
+	for c.used > c.capacity && c.head.next != c.head {
+		old := c.head.next
+		c.removeNode(old)
+		c.decUsed(old.n.size)
 	}
 }
 
-func (c *lru) Ban() {
+func (c *lru) LookUp(key uint32) *Node {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
-	if c.count > 1 {
-		k := c.tail.prev
-		c.tail.prev.next = nil
-		c.tail = k
-	}
-}
 
-func (c *lru) Search(key uint32) []byte {
-	var cur *lruNode
-	cur = c.head
-
-	for {
-		if cur == nil {
+	var n *Node
+	for cur := c.head.prev; cur != c.head; cur = cur.prev {
+		if key == cur.n.key {
+			cur.refs++
+			c.removeNode(cur)
+			c.insertHead(cur)
+			n = cur.n
 			break
 		}
-
-		if cur.n.key == key {
-			v := cur.n.value
-			c.moveToFront(cur)
-			return v
-		}
-
-		cur = cur.next
 	}
-	return nil
-}
-
-func (c *lru) Close() {
-
+	return n
 }
 
 // NewLRU returns new Cacheable of LRU
@@ -116,6 +88,12 @@ func NewLRU(capacity int64) Cacheable {
 	c := &lru{
 		capacity: capacity,
 	}
+
+	// Make empty node
+	n := &lruNode{}
+	n.next = n
+	n.prev = n
+	c.head = n
 
 	return c
 }

@@ -1,7 +1,10 @@
 package util
 
+import "hash/fnv"
+
 // Hash32 hashes string into uint32
 func Hash32(s string) uint32 {
-	b := []byte(s)
-	return Murmurhash3_x86_32(b, len(b), 0)
+	h := fnv.New32a()
+	h.Write([]byte(s))
+	return h.Sum32()
 }

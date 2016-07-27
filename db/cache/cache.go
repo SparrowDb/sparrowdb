@@ -2,15 +2,13 @@ package cache
 
 // Cacheable interface
 type Cacheable interface {
-	Capactity() int64
+	// Returns cache capacity, cache used in bytes
+	// and total itens in cache
+	Usage() (int64, int64, int64)
 
-	Promote(n *Node)
+	Insert(n *Node)
 
-	Ban()
-
-	Search(key uint32) []byte
-
-	Close()
+	LookUp(key uint32) *Node
 }
 
 // Cache holds cache operations
@@ -20,21 +18,25 @@ type Cache struct {
 
 // Get gets data from cache
 func (c *Cache) Get(key uint32) []byte {
-	return c.cacheable.Search(key)
+	if v := c.cacheable.LookUp(key); v != nil {
+		return v.value
+	}
+	return nil
 }
 
 // Put puts data in cache
 func (c *Cache) Put(key uint32, value []byte) {
-	c.cacheable.Promote(&Node{
+	c.cacheable.Insert(&Node{
 		key:   key,
 		value: value,
 		size:  int32(len(value)),
 	})
 }
 
-// Capactity returns cache capacity
-func (c *Cache) Capactity() int64 {
-	return c.cacheable.Capactity()
+// Usage rseturns cache capacity, cache used in bytes
+// and total itens in cache
+func (c *Cache) Usage() (int64, int64, int64) {
+	return c.cacheable.Usage()
 }
 
 // NewCache returns new Cache
