@@ -34,10 +34,14 @@ func NewDataIterator(filepath string) (*DataIterator, error) {
 		return nil, err
 	}
 
+	// When data is written to disk, it always skip 4 bytes
+	// to keep the length of next data block
+	start := engine.DataHeaderSize() + 4
+
 	return &DataIterator{
 		filepath: filepath,
-		current:  0,
-		offset:   0,
+		current:  start,
+		offset:   start,
 		storage:  engine.NewStorage(filepath),
 		fsize:    stat.Size(),
 	}, nil

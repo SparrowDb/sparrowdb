@@ -71,7 +71,9 @@ func NewCommitLog(path string) *Commitlog {
 
 	c := Commitlog{}
 	c.filepath = fpath
-	c.sto = engine.NewStorage(fpath)
 	c.summary = index.NewSummary()
+	c.sto = engine.NewStorage(fpath)
+	c.sto.CheckHeader()
+
 	return &c
 }

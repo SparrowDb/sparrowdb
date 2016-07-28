@@ -39,8 +39,9 @@ func NextDataFile(filepath string) int {
 
 // Storage holds storage information
 type Storage struct {
-	Filepath string
-	lock     sync.RWMutex
+	Filepath   string
+	dataHeader *DataHeader
+	lock       sync.RWMutex
 }
 
 // Append appends ByteStream to file
@@ -109,10 +110,25 @@ func (s *Storage) Get(offset int64) (*ByteStream, error) {
 	return NewByteStreamFromBytes(bufData, LittleEndian), nil
 }
 
+// CheckHeader checks if the file has the header
+// if not, write it
+func (s *Storage) CheckHeader() {
+	if f, err := os.Stat(s.Filepath); err == nil {
+		if f.Size() == 0 {
+			dh := &DataHeader{
+				Index:       0,
+				BloomFilter: 0,
+			}
+			s.Append(dh.ToByteStream())
+		}
+	}
+}
+
 // NewStorage returns new Storage passing full
 // file path
 func NewStorage(filepath string) *Storage {
-	return &Storage{
+	sto := &Storage{
 		Filepath: filepath,
 	}
+	return sto
 }
