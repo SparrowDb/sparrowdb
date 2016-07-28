@@ -62,7 +62,6 @@ func NewCommitLog(path string) *Commitlog {
 	fpath := filepath.Join(path, commitlogFileFmt)
 
 	if _, err := os.Stat(fpath); err != nil {
-		log.Printf("%s not found, creating", path)
 		util.CreateEmptyFile(fpath)
 	}
 
