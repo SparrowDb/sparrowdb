@@ -72,6 +72,7 @@ func (sh *ServeHandler) get(request *RequestData) {
 
 	if result == nil {
 		request.responseWriter.WriteHeader(404)
+		request.responseWriter.Write([]byte("ERROOOOOOOOOOOOOOOOOOOOOOOOO"))
 		return
 	}
 

@@ -13,14 +13,8 @@ func Iterate(iter *DataIterator) (*model.DataDefinition, bool, error) {
 		return nil, false, err
 	}
 
-	df := model.DataDefinition{}
-	df.Key = bs.GetString()
-	df.Size = bs.GetUInt32()
-	df.Ext = bs.GetString()
-	df.Buf = bs.GetBytes()
-
 	iter.offset = iter.current
 	iter.current = iter.current + int64(len(bs.Bytes())) + 4
 
-	return &df, true, nil
+	return model.NewDataDefinitionFromByteStream(bs), true, nil
 }

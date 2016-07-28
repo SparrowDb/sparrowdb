@@ -47,15 +47,7 @@ func (db *Database) GetDataByKey(key uint32) (*model.DataDefinition, bool) {
 		return model.NewDataDefinitionFromByteStream(bs), true
 	}
 
-	// Search in commitlog if found, put in cache
-	if v, e := db.commitlog.GetIndex(key); e == false {
-		return nil, false
-	} else {
-		bs, err := db.commitlog.Get(v.Offset)
-		if err != nil {
-			log.Fatalf(err.Error())
-		}
-
+	if bs := db.commitlog.Get(key); bs != nil {
 		db.cache.Put(key, bs.Bytes())
 		return model.NewDataDefinitionFromByteStream(bs), true
 	}

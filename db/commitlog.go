@@ -17,20 +17,26 @@ var (
 
 // Commitlog holds commitlog information
 type Commitlog struct {
-	engine.Storage
-	summary *index.Summary
+	filepath string
+	sto      *engine.Storage
+	summary  *index.Summary
 }
 
-// GetIndex returns offset in data file of the key
-func (c *Commitlog) GetIndex(key uint32) (*index.Entry, bool) {
-	v, ok := c.summary.LookUp(key)
-	return v, ok
+// Get returns ByteStream with requested data, nil if not found
+func (c *Commitlog) Get(key uint32) *engine.ByteStream {
+	// Search in index if found, get from data file
+	if idx, ok := c.summary.LookUp(key); ok == true {
+		if bs, err := c.sto.Get(idx.Offset); err == nil {
+			return bs
+		}
+	}
+	return nil
 }
 
 // Add add entry to commitlog
 func (c *Commitlog) Add(key uint32, bs *engine.ByteStream) error {
-	pos := c.GetSize()
-	if err := c.Append(bs); err != nil {
+	pos := c.sto.GetSize()
+	if err := c.sto.Append(bs); err != nil {
 		return err
 	}
 	c.summary.Add(&index.Entry{
@@ -42,18 +48,16 @@ func (c *Commitlog) Add(key uint32, bs *engine.ByteStream) error {
 
 // LoadData loads commitlog data file
 func (c *Commitlog) LoadData() {
-	iter, err := iterator.NewDataIterator(c.Filepath)
+	iter, err := iterator.NewDataIterator(c.filepath)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	df, h, _ := iterator.Iterate(iter)
-	for h == true {
+	for df, h, _ := iterator.Iterate(iter); h == true; df, h, _ = iter.Next() {
 		c.summary.Add(&index.Entry{
 			Key:    util.Hash32(df.Key),
 			Offset: iter.GetOffset(),
 		})
-		df, h, _ = iter.Next()
 	}
 }
 
@@ -66,7 +70,8 @@ func NewCommitLog(path string) *Commitlog {
 	}
 
 	c := Commitlog{}
-	c.Filepath = fpath
+	c.filepath = fpath
+	c.sto = engine.NewStorage(fpath)
 	c.summary = index.NewSummary()
 	return &c
 }
