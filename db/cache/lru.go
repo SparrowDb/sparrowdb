@@ -52,23 +52,23 @@ func (c *lru) Usage() (int64, int64, int64) {
 }
 
 func (c *lru) Insert(n *Node) {
-	c.lock.RLock()
-	defer c.lock.RUnlock()
+	c.lock.Lock()
+	defer c.lock.Unlock()
 
 	ln := &lruNode{n: n, refs: 2}
 	c.insertHead(ln)
 	c.incUsed(n.size)
 
-	for c.used > c.capacity && c.head.next != c.head {
+	for c.used > 524288000 && c.head.next != c.head {
 		old := c.head.next
-		c.removeNode(old)
 		c.decUsed(old.n.size)
+		c.removeNode(old)
 	}
 }
 
 func (c *lru) LookUp(key uint32) *Node {
-	c.lock.RLock()
-	defer c.lock.RUnlock()
+	c.lock.Lock()
+	defer c.lock.Unlock()
 
 	var n *Node
 	for cur := c.head.prev; cur != c.head; cur = cur.prev {
