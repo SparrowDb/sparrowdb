@@ -2,6 +2,7 @@ package http
 
 import (
 	"log"
+	"net"
 	"net/http"
 	"strings"
 
@@ -17,6 +18,7 @@ type HTTPServer struct {
 	dbManager     *db.DBManager
 	routers       map[string]*controllerInfo
 	queryExecutor *spql.QueryExecutor
+	listener      net.Listener
 }
 
 type controllerInfo struct {
@@ -51,6 +53,12 @@ func (httpServer *HTTPServer) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 
 // Start starts HTTP server listener
 func (httpServer *HTTPServer) Start() {
+	var err error
+	httpServer.listener, err = net.Listen("tcp", ":"+httpServer.Config.HTTPPort)
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
+
 	log.Printf("Starting HTTP Server %s:%s", httpServer.Config.HTTPHost, httpServer.Config.HTTPPort)
 
 	handler := NewServeHandler(httpServer.dbManager, httpServer.queryExecutor)
@@ -61,12 +69,13 @@ func (httpServer *HTTPServer) Start() {
 
 	httpServer.mux.Handle("/", httpServer)
 
-	http.ListenAndServe(":"+httpServer.Config.HTTPPort, httpServer.mux)
+	http.Serve(httpServer.listener, httpServer.mux)
 }
 
 // Stop stops HTTP server listener
 func (httpServer *HTTPServer) Stop() {
 	log.Printf("Stopping HTTP Server")
+	httpServer.listener.Close()
 }
 
 // NewHTTPServer returns new HTTPServer
