@@ -1,7 +1,6 @@
 language: go
-go_import_path: github.com/SparrowDb/sparrowdb
+
 go:
   - 1.6.2
-
 os:
   - linux
