@@ -79,7 +79,7 @@ func main() {
 	instance = &Instance{}
 	instance.sparrowConfig = db.NewSparrowConfig(*configPathFlag)
 	instance.databaseConfig = db.NewDatabaseConfig(*configPathFlag)
-	log.Printf("Database Mode: %s", instance.sparrowConfig.GetMode())
+	log.Printf("Database Mode: %s", instance.sparrowConfig.GetStringMode())
 
 	instance.dbManager = db.NewDBManager(instance.sparrowConfig, instance.databaseConfig)
 	instance.dbManager.LoadDatabases()

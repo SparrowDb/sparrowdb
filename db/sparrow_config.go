@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"regexp"
+	"strings"
 )
 
 const (
@@ -24,21 +25,40 @@ type SparrowConfig struct {
 }
 
 func (sc *SparrowConfig) isValid() bool {
-	reg := regexp.MustCompile("^(WR|RW|R|W)$")
+	reg := regexp.MustCompile("^([Q])|([W])|([R])$")
 	return reg.MatchString(sc.Mode)
 }
 
-// GetMode returns string describind SparrowDB
+// GetMode returns bool for each SparrowDB mode
+func (sc *SparrowConfig) GetMode() (read bool, write bool, query bool) {
+	if strings.Contains(sc.Mode, "R") {
+		read = true
+	}
+
+	if strings.Contains(sc.Mode, "W") {
+		write = true
+	}
+
+	if strings.Contains(sc.Mode, "Q") {
+		query = true
+	}
+	return
+}
+
+// GetStringMode returns string describind SparrowDB
 // storage mode
-func (sc *SparrowConfig) GetMode() string {
+func (sc *SparrowConfig) GetStringMode() string {
 	var r string
-	switch sc.Mode {
-	case "R":
-		r = "Read"
-	case "W":
-		r = "Write"
-	case "RW", "WR":
-		r = "Read and Write"
+	if strings.Contains(sc.Mode, "R") {
+		r += "Read "
+	}
+
+	if strings.Contains(sc.Mode, "W") {
+		r += "Write "
+	}
+
+	if strings.Contains(sc.Mode, "Q") {
+		r += "Query "
 	}
 	return r
 }

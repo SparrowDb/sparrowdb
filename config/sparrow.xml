@@ -9,5 +9,5 @@
   <max_datalog_size>52428800</max_datalog_size>
   <bloomfilter_fpp>0.001</bloomfilter_fpp>
   <dataholder_cron_compaction>0 0 1 ? * TUE,FRI *</dataholder_cron_compaction>
-  <mode>RW</mode>
+  <mode>RWQ</mode>
 </Config>

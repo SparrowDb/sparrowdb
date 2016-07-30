@@ -63,9 +63,16 @@ func (httpServer *HTTPServer) Start() {
 
 	handler := NewServeHandler(httpServer.dbManager, httpServer.queryExecutor)
 
-	httpServer.add(&controllerInfo{route: "/g", httpMethod: "GET", method: handler.get})
-	httpServer.add(&controllerInfo{route: "/upload", httpMethod: "POST", method: handler.upload})
-	httpServer.add(&controllerInfo{route: "/query", httpMethod: "POST", method: handler.serveQuery})
+	r, w, q := httpServer.Config.GetMode()
+	if r == true {
+		httpServer.add(&controllerInfo{route: "/g", httpMethod: "GET", method: handler.get})
+	}
+	if w == true {
+		httpServer.add(&controllerInfo{route: "/upload", httpMethod: "POST", method: handler.upload})
+	}
+	if q == true {
+		httpServer.add(&controllerInfo{route: "/query", httpMethod: "POST", method: handler.serveQuery})
+	}
 
 	httpServer.mux.Handle("/", httpServer)
 
