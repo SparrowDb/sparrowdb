@@ -22,9 +22,19 @@ const (
 )
 
 var (
-	//configPathFlag = flag.String("config", "/home/mauricio/Sources/sparrow/sparrow_conf/conf1/", "Description")
 	configPathFlag = flag.String("config", "./config/", "Description")
+	instance       *Instance
 )
+
+// Instance holds SparrowDb instance configuration
+type Instance struct {
+	sparrowConfig  *db.SparrowConfig
+	databaseConfig *db.DatabaseConfig
+	dbManager      *db.DBManager
+	httpServer     http.HTTPServer
+	wsServer       monitor.WSServer
+	serviceManager db.ServiceManager
+}
 
 func checkAndCreateDefaultDirs() {
 	dirs := []string{"log", "config", "data", "plugin"}
@@ -47,6 +57,7 @@ func init() {
 
 func handleSignal(c chan os.Signal) {
 	<-c
+	instance.serviceManager.StopAll()
 	log.Printf("Quinting SparrowDB")
 	os.Exit(1)
 }
@@ -65,19 +76,20 @@ func main() {
 	log.Printf("Cores: %d", runtime.NumCPU())
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
-	sparrowConfig := db.NewSparrowConfig(*configPathFlag)
-	databaseConfig := db.NewDatabaseConfig(*configPathFlag)
+	instance = &Instance{}
+	instance.sparrowConfig = db.NewSparrowConfig(*configPathFlag)
+	instance.databaseConfig = db.NewDatabaseConfig(*configPathFlag)
 
-	dbManager := db.NewDBManager(sparrowConfig, databaseConfig)
-	dbManager.LoadDatabases()
+	instance.dbManager = db.NewDBManager(instance.sparrowConfig, instance.databaseConfig)
+	instance.dbManager.LoadDatabases()
 
 	monitor.StartMonitor()
 
-	httpServer := http.NewHTTPServer(sparrowConfig, dbManager)
-	wsServer := monitor.NewWebSocketServer(sparrowConfig)
+	instance.httpServer = http.NewHTTPServer(instance.sparrowConfig, instance.dbManager)
+	instance.wsServer = monitor.NewWebSocketServer(instance.sparrowConfig)
 
-	serviceManager := db.NewServiceManager()
-	serviceManager.AddService("wsServer", &wsServer)
-	serviceManager.AddService("httpServer", &httpServer)
-	serviceManager.StartAll()
+	instance.serviceManager = db.NewServiceManager()
+	instance.serviceManager.AddService("wsServer", &instance.wsServer)
+	instance.serviceManager.AddService("httpServer", &instance.httpServer)
+	instance.serviceManager.StartAll()
 }
