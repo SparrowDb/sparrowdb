@@ -1,10 +1,14 @@
 package util
 
-import "hash/fnv"
+import "github.com/sparrowdb/util/murmurhash3"
 
-// Hash32 hashes string into uint32
+// Hash32 hashes string with default seed = 0 into uint32
 func Hash32(s string) uint32 {
-	h := fnv.New32a()
-	h.Write([]byte(s))
-	return h.Sum32()
+	return Hash32Seed(s, 0)
+}
+
+// Hash32Seed hashes string with seed into uint32
+func Hash32Seed(s string, seed uint32) uint32 {
+	b := []byte(s)
+	return murmurhash3.Murmurhash3_x86_32(b, seed)
 }

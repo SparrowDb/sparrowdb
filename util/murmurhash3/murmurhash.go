@@ -1,4 +1,4 @@
-package util
+package murmurhash3
 
 import "unsafe"
 
@@ -30,9 +30,10 @@ func finalization32(hash uint32) uint32 {
 	return hash
 }
 
-func Murmurhash3_x86_32(data []byte, length int, seed uint32) uint32 {
+func Murmurhash3_x86_32(data []byte, seed uint32) uint32 {
 	var (
 		hash    = uint32(seed)
+		length  = len(data)
 		nblocks = length / 4
 	)
 

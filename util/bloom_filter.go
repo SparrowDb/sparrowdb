@@ -21,9 +21,8 @@ func (bf *BloomFilter) calculateHashCount(elements uint32, bitSetSize float64) u
 func (bf *BloomFilter) getHashes(key string) []uint32 {
 	r := make([]uint32, bf.hashCount)
 
-	k := []byte(key)
-	h1 := Murmurhash3_x86_32(k, len(k), 0)
-	h2 := Murmurhash3_x86_32(k, len(k), h1)
+	h1 := Hash32Seed(key, 0)
+	h2 := Hash32Seed(key, h1)
 
 	var i uint32
 	for i = 0; i < bf.hashCount; i++ {
