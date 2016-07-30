@@ -1,6 +1,9 @@
 sudo: false
 
-go_import_path: github.com/SparrowDb
+install:
+  - git clone https://github.com/$TRAVIS_REPO_SLUG.git sparrowdb
+  - cd $TRAVIS_REPO_SLUG
+  - git checkout -qf $TRAVIS_COMMIT
 
 language: go
 
