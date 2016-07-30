@@ -2,6 +2,7 @@ package http
 
 import (
 	"bytes"
+	"errors"
 	"io"
 	"log"
 	"path/filepath"
@@ -20,6 +21,12 @@ type ServeHandler struct {
 	queryExecutor *spql.QueryExecutor
 }
 
+var (
+	errDatabaseNotFound = errors.New("Could not find resquested key")
+	errWrongRequest     = errors.New("Wrong HTTP request")
+	errEmptyQueryResult = errors.New("Empty query result")
+)
+
 func (sh *ServeHandler) writeResponse(request *RequestData, result *spql.QueryResult) {
 	request.responseWriter.Write(result.Value())
 }
@@ -29,7 +36,9 @@ func (sh *ServeHandler) writeError(request *RequestData, query string, errs ...e
 	for _, v := range errs {
 		result.AddErrorStr(v.Error())
 	}
+
 	result.AddValue(strings.Replace(query, "\n", "", -1))
+	request.responseWriter.WriteHeader(404)
 	request.responseWriter.Write(result.Value())
 }
 
@@ -50,7 +59,7 @@ func (sh *ServeHandler) serveQuery(request *RequestData) {
 	results := <-sh.queryExecutor.ExecuteQuery(q)
 
 	if results == nil {
-		log.Fatalf("ERROR: Nil query result")
+		sh.writeError(request, qStr, errEmptyQueryResult)
 		return
 	}
 
@@ -61,7 +70,7 @@ func (sh *ServeHandler) serveQuery(request *RequestData) {
 
 func (sh *ServeHandler) get(request *RequestData) {
 	if len(request.params) != 2 {
-		request.responseWriter.WriteHeader(404)
+		sh.writeError(request, "{}", errWrongRequest)
 		return
 	}
 
@@ -71,8 +80,7 @@ func (sh *ServeHandler) get(request *RequestData) {
 	result := <-sh.dbManager.GetData(dbname, key)
 
 	if result == nil {
-		request.responseWriter.WriteHeader(404)
-		request.responseWriter.Write([]byte("ERROOOOOOOOOOOOOOOOOOOOOOOOO"))
+		sh.writeError(request, "{}", errDatabaseNotFound)
 		return
 	}
 
