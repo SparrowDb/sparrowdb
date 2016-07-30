@@ -1,5 +1,7 @@
 sudo: false
 
+go_import_path: github.com/SparrowDb/sparrowdb
+
 language: go
 
 go:
