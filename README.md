@@ -1,3 +1,5 @@
+<img src="http://golang.org/doc/gopher/frontpage.png" alt="Golang logo" align="right"/>
+[![GoDoc](https://godoc.org/github.com/SparrowDb/sparrowdb?status.svg)](https://godoc.org/github.com/SparrowDb/sparrowdb)
 ﻿﻿Whats is SparrowDB?
 ====================
 SparrowDB is an image database that works like an append-only object store. Sparrow has tools that allow image processing and HTTP server to access images.
