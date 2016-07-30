@@ -2,6 +2,7 @@ package monitor
 
 import (
 	"log"
+	"net"
 	"net/http"
 	"time"
 
@@ -10,8 +11,10 @@ import (
 	"golang.org/x/net/websocket"
 )
 
+// WSServer holds WebSocket server configuration
 type WSServer struct {
-	Config *db.SparrowConfig
+	Config   *db.SparrowConfig
+	listener net.Listener
 }
 
 func (wss *WSServer) webHandler(ws *websocket.Conn) {
@@ -22,16 +25,28 @@ func (wss *WSServer) webHandler(ws *websocket.Conn) {
 	}
 }
 
+// Start starts WebSocket server listener
 func (wss *WSServer) Start() {
+	var err error
+	wss.listener, err = net.Listen("tcp", ":"+wss.Config.WSPort)
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
+
 	log.Printf("Starting WebSocket Server %s:%s", wss.Config.WSHost, wss.Config.WSPort)
 
 	http.Handle("/", websocket.Handler(wss.webHandler))
-	http.ListenAndServe(":"+wss.Config.WSPort, nil)
+
+	http.Serve(wss.listener, nil)
 }
 
+// Stop stops WebSocket server listener
 func (wss *WSServer) Stop() {
+	log.Printf("Stopping WebSocket Server")
+	wss.listener.Close()
 }
 
+// NewWebSocketServer returns new WSServer
 func NewWebSocketServer(config *db.SparrowConfig) WSServer {
 	return WSServer{
 		Config: config,
