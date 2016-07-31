@@ -52,6 +52,16 @@ Accessing image from browser:
 	
 	http://localhost:8081/g/database_name/image_key
 
+Token
+====================
+
+If is set in database configuration file, generate_token = true, SparrowDB will generate a token for each image uploaded. The token’s value is randomly assigned by and stored in database. The token effectively eliminates attacks aimed at guessing valid URLs for photos.
+
+Accessing image from browser with token:
+	
+	http://localhost:8081/g/database_name/image_key/token_value
+
+
 License
 ====================
 This software is under MIT license.
