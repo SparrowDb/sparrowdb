@@ -59,7 +59,7 @@ func (c *lru) Insert(n *Node) {
 	c.insertHead(ln)
 	c.incUsed(n.size)
 
-	for c.used > 524288000 && c.head.next != c.head {
+	for c.used > c.capacity && c.head.next != c.head {
 		old := c.head.next
 		c.decUsed(old.n.size)
 		c.removeNode(old)
