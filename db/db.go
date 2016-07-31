@@ -93,34 +93,39 @@ func nextDataHolderFile(filepath string) string {
 }
 
 // InsertData insert data into database
-func (db *Database) InsertData(df *model.DataDefinition) {
+func (db *Database) InsertData(df *model.DataDefinition) error {
 	key := util.Hash32(df.Key)
 	bs := df.ToByteStream()
-	_ = key
-	_ = bs
 
+	// check if DataDefinition will be greater than MaxDataLogSize
 	if db.commitlog.Size()+uint64(df.Size) > db.Descriptor.MaxDataLogSize {
 		db.lock.Lock()
 		defer db.lock.Unlock()
 
+		// get next data file name
 		next := nextDataHolderFile(db.Descriptor.Path)
 		ndh := filepath.Join(db.Descriptor.Path, next)
 
+		// copy index
 		cIndex := db.commitlog.GetSummary()
 
+		// recreate an empty commitlog
 		db.commitlog.RenameTo(ndh)
 		db.commitlog = NewCommitLog(db.Descriptor.Path)
 
+		// create new data holder file
 		newDataHolder(ndh, cIndex)
 	} else {
 		err := db.commitlog.Add(key, bs)
 		if err != nil {
-			log.Fatalf(err.Error())
+			return err
 		}
 	}
 
 	// Put in cache
 	db.cache.Put(key, bs.Bytes())
+
+	return nil
 }
 
 // GetDataByKey returns pointer to DataDefinition and bool if found the data

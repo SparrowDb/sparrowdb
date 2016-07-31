@@ -27,6 +27,7 @@ var (
 	errWrongRequest     = errors.New("Wrong HTTP request")
 	errEmptyQueryResult = errors.New("Empty query result")
 	errWrongToken       = errors.New("Wrong token")
+	errInsertImage      = errors.New("Could not insert images")
 )
 
 func (sh *ServeHandler) writeResponse(request *RequestData, result *spql.QueryResult) {
@@ -135,7 +136,7 @@ func (sh *ServeHandler) upload(request *RequestData) {
 			token = uuid.TimeUUID().String()
 		}
 
-		sto.InsertData(&model.DataDefinition{
+		err := sto.InsertData(&model.DataDefinition{
 			Key:   request.request.FormValue("key"),
 			Token: token,
 
@@ -145,6 +146,10 @@ func (sh *ServeHandler) upload(request *RequestData) {
 			Size: uint32(len(buf.Bytes())),
 			Buf:  buf.Bytes(),
 		})
+
+		if err != nil {
+			sh.writeError(request, "{}", errInsertImage)
+		}
 
 		monitor.IncHTTPUploads()
 	}
