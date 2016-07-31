@@ -16,6 +16,11 @@ func (s *Summary) LookUp(key uint32) (*Entry, bool) {
 	return value, ok
 }
 
+// GetTable returns the index holder
+func (s *Summary) GetTable() map[uint32]*Entry {
+	return s.table
+}
+
 // NewSummary returns new Summary
 func NewSummary() *Summary {
 	return &Summary{

@@ -2,8 +2,6 @@ package engine
 
 import (
 	"errors"
-	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"sync"
@@ -11,31 +9,7 @@ import (
 
 var (
 	ErrReadDir = errors.New("Could not list directory")
-
-	dataFileFmt  = "db-%d.spw"
-	indexFileFmt = "db-%d.idx"
 )
-
-func NextDataFile(filepath string) int {
-	p, err := ioutil.ReadDir(filepath)
-	if err != nil {
-		log.Fatal(fmt.Errorf("%s: %s", ErrReadDir, filepath))
-	}
-
-	last := 0
-
-	if len(p) > 0 {
-		t := len(p) - 1
-		for i := t; i >= 0; i-- {
-			if !p[i].IsDir() {
-				last = i + 1
-				break
-			}
-		}
-	}
-
-	return last
-}
 
 // Storage holds storage information
 type Storage struct {

@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"sync"
 
 	"github.com/sparrowdb/db/engine"
 	"github.com/sparrowdb/db/index"
@@ -20,6 +21,7 @@ type Commitlog struct {
 	filepath string
 	sto      *engine.Storage
 	summary  *index.Summary
+	lock     sync.RWMutex
 }
 
 // Get returns ByteStream with requested data, nil if not found
@@ -35,6 +37,9 @@ func (c *Commitlog) Get(key uint32) *engine.ByteStream {
 
 // Add add entry to commitlog
 func (c *Commitlog) Add(key uint32, bs *engine.ByteStream) error {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+
 	pos := c.sto.GetSize()
 	if err := c.sto.Append(bs); err != nil {
 		return err
@@ -59,6 +64,23 @@ func (c *Commitlog) LoadData() {
 			Offset: iter.GetOffset(),
 		})
 	}
+}
+
+// Size returns commitlog file size
+func (c *Commitlog) Size() uint64 {
+	return uint64(c.sto.GetSize())
+}
+
+// GetSummary returns commitlog index
+func (c *Commitlog) GetSummary() index.Summary {
+	return *c.summary
+}
+
+// RenameTo rename commitlog file
+func (c *Commitlog) RenameTo(newpath string) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	os.Rename(c.filepath, newpath)
 }
 
 // NewCommitLog returns new Commitlog

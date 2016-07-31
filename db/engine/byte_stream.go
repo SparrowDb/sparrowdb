@@ -44,6 +44,11 @@ func (bs *ByteStream) Bytes() []byte {
 	return bs.buf
 }
 
+// Size returns ByteStream size
+func (bs *ByteStream) Size() uint64 {
+	return uint64(len(bs.buf))
+}
+
 func (bs *ByteStream) appendBytes(buf []byte) {
 	bs.buf = append(bs.buf, buf...)
 	bs.cur += uint32(len(buf))
