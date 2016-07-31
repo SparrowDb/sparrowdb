@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 
@@ -34,9 +35,23 @@ type DBManager struct {
 
 func (dbm *DBManager) checkAndFillDescriptor(descriptor *DatabaseDescriptor) {
 	if len(strings.TrimSpace(descriptor.Path)) == 0 {
-		descriptor.Path = "data/" + descriptor.Name
-	} else {
-		descriptor.Path += ("/" + descriptor.Name)
+		descriptor.Path = filepath.Join(dbm.Config.Path, descriptor.Name)
+	}
+	if len(strings.TrimSpace(descriptor.Mode)) == 0 {
+		descriptor.Mode = dbm.Config.Mode
+	}
+	if len(strings.TrimSpace(descriptor.CronExp)) == 0 {
+		descriptor.CronExp = dbm.Config.CronExp
+	}
+
+	if descriptor.BloomFilterFp <= 0 {
+		descriptor.BloomFilterFp = dbm.Config.BloomFilterFp
+	}
+	if descriptor.MaxCacheSize <= 0 {
+		descriptor.MaxCacheSize = dbm.Config.MaxCacheSize
+	}
+	if descriptor.MaxDataLogSize <= 0 {
+		descriptor.MaxDataLogSize = dbm.Config.MaxDataLogSize
 	}
 }
 

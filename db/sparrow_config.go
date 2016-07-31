@@ -26,7 +26,7 @@ type SparrowConfig struct {
 	MaxCacheSize   uint64  `xml:"max_cache_size"`
 	BloomFilterFp  float32 `xml:"bloomfilter_fpp"`
 	CronExp        string  `xml:"dataholder_cron_compaction"`
-	Path           string  `xml:"path"`
+	Path           string  `xml:"data_file_directory"`
 	TokenActive    bool    `xml:"generate_token"`
 }
 
