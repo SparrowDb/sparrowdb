@@ -22,8 +22,10 @@ const (
 )
 
 var (
-	configPathFlag = flag.String("config", "./config/", "Description")
-	instance       *Instance
+	totalProcs      = runtime.NumCPU()
+	configPathFlag  = flag.String("config", "./config/", "Description")
+	configProcsFlag = flag.Int("j", totalProcs, "Description")
+	instance        *Instance
 )
 
 // Instance holds SparrowDb instance configuration
@@ -72,9 +74,14 @@ func main() {
 
 	checkAndCreateDefaultDirs()
 
+	// validate flag processors
+	if *configProcsFlag > totalProcs || *configProcsFlag < 0 {
+		log.Fatalf("Invalid number of processors: %d, max of %d", *configProcsFlag, totalProcs)
+	}
+
 	log.Printf("%s v%s", "SparrowDB", Version)
-	log.Printf("Cores: %d", runtime.NumCPU())
-	runtime.GOMAXPROCS(runtime.NumCPU())
+	log.Printf("Cores: %d", *configProcsFlag)
+	runtime.GOMAXPROCS(*configProcsFlag)
 
 	instance = &Instance{}
 	instance.sparrowConfig = db.NewSparrowConfig(*configPathFlag)
