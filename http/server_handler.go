@@ -13,6 +13,7 @@ import (
 	"github.com/sparrowdb/model"
 	"github.com/sparrowdb/monitor"
 	"github.com/sparrowdb/spql"
+	"github.com/sparrowdb/util/uuid"
 )
 
 // ServeHandler holds main http methods
@@ -22,9 +23,10 @@ type ServeHandler struct {
 }
 
 var (
-	errDatabaseNotFound = errors.New("Could not find resquested key")
+	errDatabaseNotFound = errors.New("Database not found")
 	errWrongRequest     = errors.New("Wrong HTTP request")
 	errEmptyQueryResult = errors.New("Empty query result")
+	errWrongToken       = errors.New("Wrong token")
 )
 
 func (sh *ServeHandler) writeResponse(request *RequestData, result *spql.QueryResult) {
@@ -69,7 +71,7 @@ func (sh *ServeHandler) serveQuery(request *RequestData) {
 }
 
 func (sh *ServeHandler) get(request *RequestData) {
-	if len(request.params) != 2 {
+	if len(request.params) < 2 {
 		sh.writeError(request, "{}", errWrongRequest)
 		return
 	}
@@ -77,11 +79,34 @@ func (sh *ServeHandler) get(request *RequestData) {
 	dbname := request.params[0]
 	key := request.params[1]
 
-	result := <-sh.dbManager.GetData(dbname, key)
-
-	if result == nil {
+	// Check if database exists
+	sto, ok := sh.dbManager.GetDatabase(dbname)
+	if !ok {
 		sh.writeError(request, "{}", errDatabaseNotFound)
 		return
+	}
+
+	// Async get requested data
+	result := <-sh.dbManager.GetData(dbname, key)
+
+	// Check if found requested data
+	if result == nil {
+		sh.writeError(request, "{}", errEmptyQueryResult)
+		return
+	}
+
+	// Token verification if enabled
+	if sto.Descriptor.TokenActive {
+		if len(request.params) != 3 {
+			sh.writeError(request, "{}", errWrongRequest)
+			return
+		}
+		token := request.params[2]
+
+		if token != result.Token {
+			sh.writeError(request, "{}", errWrongToken)
+			return
+		}
 	}
 
 	request.responseWriter.Header().Set("Content-Type", "image/"+result.Ext)
@@ -104,8 +129,15 @@ func (sh *ServeHandler) upload(request *RequestData) {
 	sto, ok := sh.dbManager.GetDatabase(dbname)
 
 	if ok {
+		var token string
+
+		if sto.Descriptor.TokenActive {
+			token = uuid.TimeUUID().String()
+		}
+
 		sto.InsertData(&model.DataDefinition{
-			Key: request.request.FormValue("key"),
+			Key:   request.request.FormValue("key"),
+			Token: token,
 
 			// get file extension and remove dot before ext name
 			Ext: filepath.Ext(fhandler.Filename)[1:],

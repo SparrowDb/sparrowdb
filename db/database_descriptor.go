@@ -21,6 +21,7 @@ type DatabaseDescriptor struct {
 	BloomFilterFp  string   `xml:"bloomfilter_fpp"`
 	CronExp        string   `xml:"dataholder_cron_compaction"`
 	Path           string   `xml:"path"`
+	TokenActive    bool     `xml:"generate_token"`
 }
 
 // ToJSON returns DatabaseDescriptor as JSON
