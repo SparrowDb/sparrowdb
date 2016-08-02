@@ -130,15 +130,12 @@ func (sh *ServeHandler) upload(request *RequestData) {
 	sto, ok := sh.dbManager.GetDatabase(dbname)
 
 	if ok {
-		var token string
-
-		if sto.Descriptor.TokenActive {
-			token = uuid.TimeUUID().String()
-		}
-
 		err := sto.InsertData(&model.DataDefinition{
-			Key:   request.request.FormValue("key"),
-			Token: token,
+			Key: request.request.FormValue("key"),
+
+			// default store UUID to keep information of insert time
+			// and eliminates attacks aimed at guessing valid URLs for photos
+			Token: uuid.TimeUUID().String(),
 
 			// get file extension and remove dot before ext name
 			Ext: filepath.Ext(fhandler.Filename)[1:],
