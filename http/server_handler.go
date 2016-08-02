@@ -90,8 +90,8 @@ func (sh *ServeHandler) get(request *RequestData) {
 	// Async get requested data
 	result := <-sh.dbManager.GetData(dbname, key)
 
-	// Check if found requested data
-	if result == nil {
+	// Check if found requested data or DataDefinition is deleted
+	if result == nil || result.Status == model.DataDefinitionRemoved {
 		sh.writeError(request, "{}", errEmptyQueryResult)
 		return
 	}
@@ -141,7 +141,11 @@ func (sh *ServeHandler) upload(request *RequestData) {
 			Ext: filepath.Ext(fhandler.Filename)[1:],
 
 			Size: uint32(len(buf.Bytes())),
-			Buf:  buf.Bytes(),
+
+			// Default status 1 (Active)
+			Status: model.DataDefinitionActive,
+
+			Buf: buf.Bytes(),
 		})
 
 		if err != nil {

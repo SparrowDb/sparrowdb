@@ -1,9 +1,11 @@
 package spql
 
 import (
+	"fmt"
 	"reflect"
 
 	"github.com/sparrowdb/db"
+	"github.com/sparrowdb/model"
 )
 
 // QueryExecutor holds query executor data
@@ -72,6 +74,28 @@ func (qe *QueryExecutor) ShowDatabases(query *Query, results chan *QueryResult) 
 
 	for _, v := range n {
 		qr.AddValue(v)
+	}
+
+	results <- &qr
+}
+
+// Delete delets entry from database with tombstone
+func (qe *QueryExecutor) Delete(query *Query, results chan *QueryResult) {
+	qp := query.Params.(*DeleteStmt)
+	qr := QueryResult{}
+
+	if db, ok := qe.dbManager.GetDatabase(qp.Name); ok == true {
+		result := <-qe.dbManager.GetData(qp.Name, qp.Key)
+
+		// Check if found requested data or DataDefinition is deleted
+		if result == nil || result.Status == model.DataDefinitionRemoved {
+			qr.AddErrorStr(fmt.Sprintf("Image %s not found in %s", qp.Key, qp.Name))
+		} else {
+			tbs := model.NewTombstone(result)
+			db.InsertData(tbs)
+		}
+	} else {
+		qr.AddErrorStr(fmt.Sprintf("Database %s not found", qp.Name))
 	}
 
 	results <- &qr

@@ -49,6 +49,9 @@ func (p *Parser) parse(q *Query, r *json.RawMessage) error {
 	case "show_databases":
 		q.Method = "ShowDatabases"
 		err = nil
+	case "delete":
+		q.Method = "Delete"
+		err = ParseDeleteStmt(q, r)
 	default:
 		err = errors.New("Invalid query")
 	}
