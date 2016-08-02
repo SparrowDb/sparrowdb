@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"syscall"
 
+	"github.com/sparrowdb/compression"
 	"github.com/sparrowdb/db"
 	"github.com/sparrowdb/http"
 	"github.com/sparrowdb/monitor"
@@ -55,6 +56,7 @@ func init() {
 	createPIDfile()
 
 	slog.SetLogger(slog.NewGlog())
+	compression.SetCompressor(compression.NewSnappyCompressor())
 
 	// Configure signal handler
 	c := make(chan os.Signal, 1)

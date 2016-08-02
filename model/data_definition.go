@@ -1,6 +1,9 @@
 package model
 
-import "github.com/sparrowdb/db/engine"
+import (
+	"github.com/sparrowdb/compression"
+	"github.com/sparrowdb/db/engine"
+)
 
 const (
 	// DataDefinitionActive active status
@@ -28,7 +31,10 @@ func (df *DataDefinition) ToByteStream() *engine.ByteStream {
 	byteStream.PutUInt32(df.Size)
 	byteStream.PutString(df.Ext)
 	byteStream.PutUInt16(df.Status)
-	byteStream.PutBytes(df.Buf)
+
+	encoded := compression.Compress(df.Buf)
+	byteStream.PutBytes(encoded)
+
 	return byteStream
 }
 
@@ -40,6 +46,11 @@ func NewDataDefinitionFromByteStream(bs *engine.ByteStream) *DataDefinition {
 	df.Size = bs.GetUInt32()
 	df.Ext = bs.GetString()
 	df.Status = bs.GetUInt16()
-	df.Buf = bs.GetBytes()
+
+	buf := bs.GetBytes()
+	if decoded, err := compression.Decompress(buf); err == nil {
+		df.Buf = decoded
+	}
+
 	return &df
 }
