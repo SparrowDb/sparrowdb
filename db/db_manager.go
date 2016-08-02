@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
 
 	"github.com/sparrowdb/model"
+	"github.com/sparrowdb/slog"
 	"github.com/sparrowdb/util"
 )
 
@@ -156,14 +156,14 @@ func (dbm *DBManager) LoadDatabases() {
 		_, err := dbm.openDatabase(&d)
 
 		if err != nil {
-			log.Fatalf("Erro trying to load %s: %s\n[%s]\n\nQuiting...", d.Name, err, string(d.ToJSON()))
+			slog.Fatalf("Erro trying to load %s: %s\n[%s]\n\nQuiting...", d.Name, err, string(d.ToJSON()))
 			os.Exit(1)
 		}
 
 		buffer.WriteString(d.Name + " ")
 	}
 
-	log.Printf("Databases loaded: %s", buffer.String())
+	slog.Infof("Databases loaded: %s", buffer.String())
 }
 
 func (dbm *DBManager) openDatabase(descriptor *DatabaseDescriptor) (*Database, error) {

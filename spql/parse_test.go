@@ -18,10 +18,10 @@ func TestParse(t *testing.T) {
 
 	query, err := NewParser(queryStr).ParseQuery()
 	if err != nil {
-		log.Printf("ERROR: %s", err.Error())
+		slog.Infof(("ERROR: %s", err.Error())
 		return
 	}
 
 	qp := query.Params.(*CreateDatabaseStmt)
-	log.Printf("SUCCESS: %s", qp)
+	slog.Infof(("SUCCESS: %s", qp)
 }

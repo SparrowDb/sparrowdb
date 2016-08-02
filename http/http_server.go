@@ -8,6 +8,7 @@ import (
 
 	"github.com/sparrowdb/db"
 	"github.com/sparrowdb/monitor"
+	"github.com/sparrowdb/slog"
 	"github.com/sparrowdb/spql"
 )
 
@@ -59,7 +60,7 @@ func (httpServer *HTTPServer) Start() {
 		log.Fatalf(err.Error())
 	}
 
-	log.Printf("Starting HTTP Server %s:%s", httpServer.Config.HTTPHost, httpServer.Config.HTTPPort)
+	slog.Infof("Starting HTTP Server %s:%s", httpServer.Config.HTTPHost, httpServer.Config.HTTPPort)
 
 	handler := NewServeHandler(httpServer.dbManager, httpServer.queryExecutor)
 
@@ -81,7 +82,7 @@ func (httpServer *HTTPServer) Start() {
 
 // Stop stops HTTP server listener
 func (httpServer *HTTPServer) Stop() {
-	log.Printf("Stopping HTTP Server")
+	slog.Infof("Stopping HTTP Server")
 	httpServer.listener.Close()
 }
 

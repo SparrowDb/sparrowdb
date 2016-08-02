@@ -13,6 +13,7 @@ import (
 	"github.com/sparrowdb/db"
 	"github.com/sparrowdb/http"
 	"github.com/sparrowdb/monitor"
+	"github.com/sparrowdb/slog"
 	"github.com/sparrowdb/util"
 )
 
@@ -50,6 +51,8 @@ func checkAndCreateDefaultDirs() {
 func init() {
 	createPIDfile()
 
+	slog.SetLogger(slog.NewGlog())
+
 	// Configure signal handler
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
@@ -60,7 +63,7 @@ func init() {
 func handleSignal(c chan os.Signal) {
 	<-c
 	instance.serviceManager.StopAll()
-	log.Printf("Quinting SparrowDB")
+	slog.Infof("Quinting SparrowDB")
 	os.Exit(1)
 }
 
@@ -79,14 +82,14 @@ func main() {
 		log.Fatalf("Invalid number of processors: %d, max of %d", *configProcsFlag, totalProcs)
 	}
 
-	log.Printf("%s v%s", "SparrowDB", Version)
-	log.Printf("Cores: %d", *configProcsFlag)
+	slog.Infof("%s v%s", "SparrowDB", Version)
+	slog.Infof("Cores: %d", *configProcsFlag)
 	runtime.GOMAXPROCS(*configProcsFlag)
 
 	instance = &Instance{}
 	instance.sparrowConfig = db.NewSparrowConfig(*configPathFlag)
 	instance.databaseConfig = db.NewDatabaseConfig(*configPathFlag)
-	log.Printf("Database Mode: %s", instance.sparrowConfig.GetStringMode())
+	slog.Infof("Database Mode: %s", instance.sparrowConfig.GetStringMode())
 
 	instance.dbManager = db.NewDBManager(instance.sparrowConfig, instance.databaseConfig)
 	instance.dbManager.LoadDatabases()

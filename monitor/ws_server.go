@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/sparrowdb/db"
+	"github.com/sparrowdb/slog"
 
 	"golang.org/x/net/websocket"
 )
@@ -33,7 +34,7 @@ func (wss *WSServer) Start() {
 		log.Fatalf(err.Error())
 	}
 
-	log.Printf("Starting WebSocket Server %s:%s", wss.Config.WSHost, wss.Config.WSPort)
+	slog.Infof("Starting WebSocket Server %s:%s", wss.Config.WSHost, wss.Config.WSPort)
 
 	http.Handle("/", websocket.Handler(wss.webHandler))
 
@@ -42,7 +43,7 @@ func (wss *WSServer) Start() {
 
 // Stop stops WebSocket server listener
 func (wss *WSServer) Stop() {
-	log.Printf("Stopping WebSocket Server")
+	slog.Infof("Stopping WebSocket Server")
 	wss.listener.Close()
 }
 
