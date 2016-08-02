@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"io/ioutil"
-	"log"
 	"os"
 	"os/signal"
 	"runtime"
@@ -83,7 +82,7 @@ func main() {
 
 	// validate flag processors
 	if *configProcsFlag > totalProcs || *configProcsFlag < 0 {
-		log.Fatalf("Invalid number of processors: %d, max of %d", *configProcsFlag, totalProcs)
+		slog.Fatalf("Invalid number of processors: %d, max of %d", *configProcsFlag, totalProcs)
 	}
 
 	slog.Infof("%s v%s", "SparrowDB", Version)

@@ -1,7 +1,6 @@
 package db
 
 import (
-	"log"
 	"os"
 	"path/filepath"
 	"sync"
@@ -9,6 +8,7 @@ import (
 	"github.com/sparrowdb/db/engine"
 	"github.com/sparrowdb/db/index"
 	"github.com/sparrowdb/db/iterator"
+	"github.com/sparrowdb/slog"
 	"github.com/sparrowdb/util"
 )
 
@@ -55,7 +55,7 @@ func (c *Commitlog) Add(key uint32, bs *engine.ByteStream) error {
 func (c *Commitlog) LoadData() {
 	iter, err := iterator.NewDataIterator(c.filepath)
 	if err != nil {
-		log.Fatal(err)
+		slog.Fatalf(err.Error())
 	}
 
 	for df, h, _ := iterator.Iterate(iter); h == true; df, h, _ = iter.Next() {

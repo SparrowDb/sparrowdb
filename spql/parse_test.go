@@ -6,7 +6,7 @@ import (
 )
 
 func TestParse(t *testing.T) {
-	log.Println("TestParser--")
+	log.Printf("TestParser--")
 
 	queryStr := `{
             "type": "create_database",
@@ -18,10 +18,10 @@ func TestParse(t *testing.T) {
 
 	query, err := NewParser(queryStr).ParseQuery()
 	if err != nil {
-		slog.Infof(("ERROR: %s", err.Error())
+		log.Printf("ERROR: %s", err.Error())
 		return
 	}
 
 	qp := query.Params.(*CreateDatabaseStmt)
-	slog.Infof(("SUCCESS: %s", qp)
+	log.Printf("SUCCESS: %s", qp)
 }

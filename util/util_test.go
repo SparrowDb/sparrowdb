@@ -12,8 +12,8 @@ func Test_BloomFilter(T *testing.T) {
 	bf.Add("www.yahoo.com")
 	bf.Add("www.bing.com")
 
-	slog.Infof(("%v", bf.Contains("www.github.com"))
-	slog.Infof(("%v", bf.Contains("www.bing.com"))
-	slog.Infof(("%v", bf.Contains("www.ebay.com"))
-	slog.Infof(("%v", bf.Contains("www.google.com"))
+	log.Printf("%v", bf.Contains("www.github.com"))
+	log.Printf("%v", bf.Contains("www.bing.com"))
+	log.Printf("%v", bf.Contains("www.ebay.com"))
+	log.Printf("%v", bf.Contains("www.google.com"))
 }

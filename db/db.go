@@ -3,7 +3,6 @@ package db
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"path/filepath"
 	"regexp"
 	"sync"
@@ -12,6 +11,7 @@ import (
 	"github.com/sparrowdb/db/engine"
 	"github.com/sparrowdb/db/index"
 	"github.com/sparrowdb/model"
+	"github.com/sparrowdb/slog"
 	"github.com/sparrowdb/util"
 )
 
@@ -74,7 +74,7 @@ func openDataHolder(filepath string) *dataHolder {
 func nextDataHolderFile(filepath string) string {
 	p, err := ioutil.ReadDir(filepath)
 	if err != nil {
-		log.Fatal(err)
+		slog.Fatalf(err.Error())
 	}
 
 	last := 0

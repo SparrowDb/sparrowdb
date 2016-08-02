@@ -4,8 +4,9 @@ import (
 	"encoding/xml"
 	"io"
 	"io/ioutil"
-	"log"
 	"os"
+
+	"github.com/sparrowdb/slog"
 )
 
 const (
@@ -45,7 +46,7 @@ func (cfg *DatabaseConfig) saveXMLFile() {
 	enc := xml.NewEncoder(xmlWriter)
 	enc.Indent("  ", "    ")
 	if err := enc.Encode(cfg.xmlDbList); err != nil {
-		log.Fatalf("error: %v\n", err)
+		slog.Fatalf(err.Error())
 	}
 }
 

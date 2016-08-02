@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"io"
-	"log"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -12,6 +11,7 @@ import (
 	"github.com/sparrowdb/db"
 	"github.com/sparrowdb/model"
 	"github.com/sparrowdb/monitor"
+	"github.com/sparrowdb/slog"
 	"github.com/sparrowdb/spql"
 	"github.com/sparrowdb/util/uuid"
 )
@@ -118,7 +118,7 @@ func (sh *ServeHandler) get(request *RequestData) {
 func (sh *ServeHandler) upload(request *RequestData) {
 	file, fhandler, err := request.request.FormFile("uploadfile")
 	if err != nil {
-		log.Println(err)
+		slog.Fatalf(err.Error())
 		return
 	}
 	defer file.Close()

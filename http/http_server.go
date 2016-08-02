@@ -1,7 +1,6 @@
 package http
 
 import (
-	"log"
 	"net"
 	"net/http"
 	"strings"
@@ -57,7 +56,7 @@ func (httpServer *HTTPServer) Start() {
 	var err error
 	httpServer.listener, err = net.Listen("tcp", ":"+httpServer.Config.HTTPPort)
 	if err != nil {
-		log.Fatalf(err.Error())
+		slog.Fatalf(err.Error())
 	}
 
 	slog.Infof("Starting HTTP Server %s:%s", httpServer.Config.HTTPHost, httpServer.Config.HTTPPort)

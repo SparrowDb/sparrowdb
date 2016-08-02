@@ -1,7 +1,6 @@
 package monitor
 
 import (
-	"log"
 	"net"
 	"net/http"
 	"time"
@@ -31,7 +30,7 @@ func (wss *WSServer) Start() {
 	var err error
 	wss.listener, err = net.Listen("tcp", ":"+wss.Config.WSPort)
 	if err != nil {
-		log.Fatalf(err.Error())
+		slog.Fatalf(err.Error())
 	}
 
 	slog.Infof("Starting WebSocket Server %s:%s", wss.Config.WSHost, wss.Config.WSPort)

@@ -3,10 +3,11 @@ package db
 import (
 	"encoding/xml"
 	"io/ioutil"
-	"log"
 	"os"
 	"regexp"
 	"strings"
+
+	"github.com/sparrowdb/slog"
 )
 
 const (
@@ -83,7 +84,7 @@ func NewSparrowConfig(filePath string) *SparrowConfig {
 	xml.Unmarshal(data, &cfg)
 
 	if !cfg.isValid() {
-		log.Fatalf("Not valid SparrowDB mode, it must be [R]ead, [W]write or [RW]read-write")
+		slog.Fatalf("Not valid SparrowDB mode, it must be [R]ead, [W]write or [RW]read-write")
 	}
 
 	return &cfg

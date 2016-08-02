@@ -2,9 +2,10 @@ package engine
 
 import (
 	"errors"
-	"log"
 	"os"
 	"sync"
+
+	"github.com/sparrowdb/slog"
 )
 
 var (
@@ -62,7 +63,7 @@ func (s *Storage) Get(offset int64) (*ByteStream, error) {
 	// Reads first 4 bytes to know the DataDefinition size
 	bSize := make([]byte, 4)
 	if err := r.ReadAt(offset, bSize); err != nil {
-		log.Fatal(err)
+		slog.Fatalf(err.Error())
 	}
 
 	bs := NewByteStreamFromBytes(bSize, LittleEndian)
@@ -74,7 +75,7 @@ func (s *Storage) Get(offset int64) (*ByteStream, error) {
 	// Reads data
 	bufData := make([]byte, size)
 	if err = r.ReadAt(offset, bufData); err != nil {
-		log.Fatal(err)
+		slog.Fatalf(err.Error())
 	}
 
 	if err := r.Close(); err != nil {
