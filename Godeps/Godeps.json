@@ -1,0 +1,15 @@
+{
+	"ImportPath": "github.com/sparrowdb",
+	"GoVersion": "go1.6",
+	"GodepVersion": "v74",
+	"Deps": [
+		{
+			"ImportPath": "github.com/golang/glog",
+			"Rev": "23def4e6c14b4da8ac2ed8007337bc5eb5007998"
+		},
+		{
+			"ImportPath": "golang.org/x/net/websocket",
+			"Rev": "f841c39de738b1d0df95b5a7187744f0e03d8112"
+		}
+	]
+}
