@@ -26,11 +26,12 @@ var (
 	totalProcs      = runtime.NumCPU()
 	configPathFlag  = flag.String("config", "./config/", "Description")
 	configProcsFlag = flag.Int("j", totalProcs, "Description")
-	instance        *Instance
+	instance        = &Instance{}
 )
 
 // Instance holds SparrowDb instance configuration
 type Instance struct {
+	pid            int
 	sparrowConfig  *db.SparrowConfig
 	databaseConfig *db.DatabaseConfig
 	dbManager      *db.DBManager
@@ -49,6 +50,9 @@ func checkAndCreateDefaultDirs() {
 }
 
 func init() {
+	// Sets pid
+	instance.pid = os.Getpid()
+
 	createPIDfile()
 
 	slog.SetLogger(slog.NewGlog())
@@ -68,7 +72,7 @@ func handleSignal(c chan os.Signal) {
 }
 
 func createPIDfile() {
-	p := strconv.Itoa(os.Getpid())
+	p := strconv.Itoa(instance.pid)
 	ioutil.WriteFile("sparrow.pid", []byte(p), 0644)
 }
 
@@ -83,10 +87,9 @@ func main() {
 	}
 
 	slog.Infof("%s v%s", "SparrowDB", Version)
-	slog.Infof("Cores: %d", *configProcsFlag)
+	slog.Infof("PID: %d, Cores: %d", instance.pid, *configProcsFlag)
 	runtime.GOMAXPROCS(*configProcsFlag)
 
-	instance = &Instance{}
 	instance.sparrowConfig = db.NewSparrowConfig(*configPathFlag)
 	instance.databaseConfig = db.NewDatabaseConfig(*configPathFlag)
 	slog.Infof("Database Mode: %s", instance.sparrowConfig.GetStringMode())
