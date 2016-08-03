@@ -1,6 +1,9 @@
 package compression
 
-import "github.com/golang/snappy"
+import (
+	"github.com/bkaradzic/go-lz4"
+	"github.com/golang/snappy"
+)
 
 // Compressor compression interface
 type Compressor interface {
@@ -29,6 +32,7 @@ func Decompress(src []byte) ([]byte, error) {
 	return compressor.Decompress(src)
 }
 
+// SNAPPY COMPRESSOR
 type snappyCompressor struct{}
 
 func (snappyCompressor) Compress(src []byte) []byte {
@@ -42,4 +46,21 @@ func (snappyCompressor) Decompress(src []byte) ([]byte, error) {
 // NewSnappyCompressor returns new snappyCompressor
 func NewSnappyCompressor() snappyCompressor {
 	return snappyCompressor{}
+}
+
+// LZ4 COMPRESSOR
+type lz4Compressor struct{}
+
+func (lz4Compressor) Compress(src []byte) []byte {
+	b, _ := lz4.Encode(nil, src)
+	return b
+}
+
+func (lz4Compressor) Decompress(src []byte) ([]byte, error) {
+	return lz4.Decode(nil, src)
+}
+
+// NewLZ4Compressor returns new lz4Compressor
+func NewLZ4Compressor() lz4Compressor {
+	return lz4Compressor{}
 }

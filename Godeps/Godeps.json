@@ -4,8 +4,17 @@
 	"GodepVersion": "v74",
 	"Deps": [
 		{
+			"ImportPath": "github.com/bkaradzic/go-lz4",
+			"Comment": "v1.0.0",
+			"Rev": "74ddf82598bc4745b965729e9c6a463bedd33049"
+		},
+		{
 			"ImportPath": "github.com/golang/glog",
 			"Rev": "23def4e6c14b4da8ac2ed8007337bc5eb5007998"
+		},
+		{
+			"ImportPath": "github.com/golang/snappy",
+			"Rev": "d9eb7a3d35ec988b8585d4a0068e462c27d28380"
 		},
 		{
 			"ImportPath": "golang.org/x/net/websocket",
