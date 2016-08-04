@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"sync"
 
 	"github.com/sparrowdb/db/cache"
@@ -30,22 +31,28 @@ type Database struct {
 }
 
 type dataHolder struct {
-	storage *engine.Storage
-	summary index.Summary
+	storage     *engine.Storage
+	summary     index.Summary
+	bloomfilter util.BloomFilter
 }
 
-func newDataHolder(filepath string, summary index.Summary) {
+func newDataHolder(filepath string, bloomFilterFp float32, summary index.Summary) {
 	dh := dataHolder{}
 	dh.storage = engine.NewStorage(filepath)
 	dh.summary = summary
 
-	idxOffset := uint64(dh.storage.GetSize())
+	dh.bloomfilter = util.NewBloomFilter(summary.Count(), bloomFilterFp)
 
+	// Append index
+	idxOffset := uint64(dh.storage.GetSize())
 	for _, v := range summary.GetTable() {
+		dh.bloomfilter.Add(strconv.Itoa(int(v.Key)))
 		dh.storage.Append(engine.NewByteStreamFromBytes(v.Bytes(), engine.LittleEndian))
 	}
 
+	// Append bloomfilter
 	bfOffset := uint64(dh.storage.GetSize())
+	dh.storage.Append(dh.bloomfilter.ByteStream())
 
 	engine.UpdateDataHeaderFile(dh.storage, &engine.DataHeader{
 		Index:       idxOffset,
@@ -59,14 +66,21 @@ func openDataHolder(filepath string) *dataHolder {
 	dh.summary = *index.NewSummary()
 
 	dhHeader := engine.GetDataHeaderFromFile(dh.storage)
-	offset := dhHeader.Index
 
+	offset := dhHeader.Index
 	for offset < dhHeader.BloomFilter {
 		bs, _ := dh.storage.Get(int64(offset))
 		dh.summary.Add(index.NewEntryFromByteStream(bs))
 		offset += uint64(len(bs.Bytes())) + 4
 	}
 
+	offset = dhHeader.BloomFilter
+	fsize := uint64(dh.storage.GetSize())
+	for offset < fsize {
+		bs, _ := dh.storage.Get(int64(offset))
+		dh.bloomfilter = *util.NewBloomFilterFromByteStream(bs)
+		offset += uint64(len(bs.Bytes())) + 4
+	}
 	return &dh
 }
 
@@ -114,7 +128,7 @@ func (db *Database) InsertData(df *model.DataDefinition) error {
 		db.commitlog = NewCommitLog(db.Descriptor.Path)
 
 		// create new data holder file
-		newDataHolder(ndh, cIndex)
+		newDataHolder(ndh, db.Descriptor.BloomFilterFp, cIndex)
 	} else {
 		err := db.commitlog.Add(key, bs)
 		if err != nil {
@@ -143,10 +157,14 @@ func (db *Database) GetDataByKey(key uint32) (*model.DataDefinition, bool) {
 	}
 
 	// Search in data files
+	strKey := strconv.Itoa(int(key))
 	for _, d := range db.dh {
-		if e, ok := d.summary.LookUp(key); ok == true {
-			bs, _ := d.storage.Get(e.Offset)
-			return model.NewDataDefinitionFromByteStream(bs), true
+		if eBF := d.bloomfilter.Contains(strKey); eBF == true {
+			if e, eIdx := d.summary.LookUp(key); eIdx == true {
+				bs, _ := d.storage.Get(e.Offset)
+				db.cache.Put(key, bs.Bytes())
+				return model.NewDataDefinitionFromByteStream(bs), true
+			}
 		}
 	}
 

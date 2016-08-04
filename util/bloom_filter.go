@@ -1,12 +1,16 @@
 package util
 
-import "math"
+import (
+	"math"
+
+	"github.com/sparrowdb/db/engine"
+)
 
 // BloomFilter host data about  probabilistic data structure
 type BloomFilter struct {
 	size      uint32
 	hashCount uint32
-	array     []bool
+	array     []uint8
 }
 
 func (bf *BloomFilter) calculateBitSetSize(elements uint32, falsePositive float64) uint32 {
@@ -36,25 +40,49 @@ func (bf *BloomFilter) getHashes(key string) []uint32 {
 // Add adds key to BloomFilter
 func (bf *BloomFilter) Add(key string) {
 	for _, v := range bf.getHashes(key) {
-		bf.array[v] = true
+		bf.array[v] = 1
 	}
 }
 
 // Contains checks if perhaps BloomFilter contains the key
 func (bf *BloomFilter) Contains(key string) bool {
 	for _, v := range bf.getHashes(key) {
-		if bf.array[v] == false {
+		if bf.array[v] == 0 {
 			return false
 		}
 	}
 	return true
 }
 
+// ByteStream returns byte stream of bloom filter data
+func (bf *BloomFilter) ByteStream() *engine.ByteStream {
+	bs := engine.NewByteStream(engine.LittleEndian)
+	bs.PutUInt32(bf.size)
+	bs.PutUInt32(bf.hashCount)
+	for _, v := range bf.array {
+		bs.PutUInt16(uint16(v))
+	}
+	return bs
+}
+
+// NewBloomFilterFromByteStream convert ByteStream to Entry
+func NewBloomFilterFromByteStream(bs *engine.ByteStream) *BloomFilter {
+	bf := BloomFilter{}
+	bf.size = bs.GetUInt32()
+	bf.hashCount = bs.GetUInt32()
+	var i uint32
+	bf.array = make([]uint8, bf.size)
+	for i = 0; i < bf.size; i++ {
+		bf.array[i] = uint8(bs.GetUInt16())
+	}
+	return &bf
+}
+
 // NewBloomFilter returns new BloomFilter
-func NewBloomFilter(elements uint32, falsePositive float64) *BloomFilter {
-	bf := &BloomFilter{}
-	bf.size = bf.calculateBitSetSize(elements, falsePositive)
-	bf.array = make([]bool, bf.size)
+func NewBloomFilter(elements uint32, falsePositive float32) BloomFilter {
+	bf := BloomFilter{}
+	bf.size = bf.calculateBitSetSize(elements, float64(falsePositive))
+	bf.array = make([]uint8, bf.size)
 	bf.hashCount = bf.calculateHashCount(elements, float64(bf.size))
 	return bf
 }
