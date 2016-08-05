@@ -35,6 +35,11 @@ func (w *Writer) Append(b []byte) (int, error) {
 	return written, nil
 }
 
+// Truncate truncates current file
+func (w *Writer) Truncate(size int64) error {
+	return w.fp.Truncate(size)
+}
+
 // Close closes current file
 func (w *Writer) Close() error {
 	if err := w.fp.Sync(); err != nil {

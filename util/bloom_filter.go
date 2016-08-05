@@ -65,7 +65,7 @@ func (bf *BloomFilter) ByteStream() *engine.ByteStream {
 	return bs
 }
 
-// NewBloomFilterFromByteStream convert ByteStream to Entry
+// NewBloomFilterFromByteStream convert ByteStream to BloomFilter
 func NewBloomFilterFromByteStream(bs *engine.ByteStream) *BloomFilter {
 	bf := BloomFilter{}
 	bf.size = bs.GetUInt32()

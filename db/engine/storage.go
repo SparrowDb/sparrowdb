@@ -34,16 +34,22 @@ func (s *Storage) Append(bs *ByteStream) error {
 	bout := NewByteStream(LittleEndian)
 	bout.PutUInt32(uint32(len(buf)))
 
+	lastPosition := s.GetSize()
+
 	if _, err := w.Append(bout.Bytes()); err != nil {
+		w.Truncate(lastPosition)
 		return err
 	}
 	if _, err := w.Append(buf); err != nil {
+		w.Truncate(lastPosition)
 		return err
 	}
 
 	if err := w.Close(); err != nil {
+		w.Truncate(lastPosition)
 		return err
 	}
+
 	return nil
 }
 
