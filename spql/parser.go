@@ -3,6 +3,7 @@ package spql
 import (
 	"encoding/json"
 	"errors"
+	"strings"
 )
 
 // Parser holds query parser definitions
@@ -39,7 +40,7 @@ func (p *Parser) ParseQuery() (*Query, error) {
 func (p *Parser) parse(q *Query, r *json.RawMessage) error {
 	var err error
 
-	switch q.Action {
+	switch strings.ToLower(q.Action) {
 	case "create_database":
 		q.Method = "CreateDatabase"
 		err = ParseCreateDatabaseStmt(q, r)
@@ -52,6 +53,9 @@ func (p *Parser) parse(q *Query, r *json.RawMessage) error {
 	case "delete":
 		q.Method = "Delete"
 		err = ParseDeleteStmt(q, r)
+	case "select":
+		q.Method = "Select"
+		err = ParseSelectStmt(q, r)
 	default:
 		err = errors.New("Invalid query")
 	}

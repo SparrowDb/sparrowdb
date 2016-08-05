@@ -6,6 +6,7 @@ import (
 
 	"github.com/sparrowdb/db"
 	"github.com/sparrowdb/model"
+	"github.com/sparrowdb/util"
 )
 
 // QueryExecutor holds query executor data
@@ -53,7 +54,7 @@ func (qe *QueryExecutor) CreateDatabase(query *Query, results chan *QueryResult)
 	results <- &qr
 }
 
-// DropDatabase process drop database from query string
+// DropDatabase process drop database from results <- qrquery string
 func (qe *QueryExecutor) DropDatabase(query *Query, results chan *QueryResult) {
 	qp := query.Params.(*DropDatabaseStmt)
 
@@ -89,16 +90,43 @@ func (qe *QueryExecutor) Delete(query *Query, results chan *QueryResult) {
 
 		// Check if found requested data or DataDefinition is deleted
 		if result == nil || result.Status == model.DataDefinitionRemoved {
-			qr.AddErrorStr(fmt.Sprintf("Image %s not found in %s", qp.Key, qp.Name))
+			qr.AddErrorStr(fmt.Sprintf(errDataNotFound, qp.Key, qp.Name))
 		} else {
 			tbs := model.NewTombstone(result)
 			db.InsertData(tbs)
 		}
 	} else {
-		qr.AddErrorStr(fmt.Sprintf("Database %s not found", qp.Name))
+		qr.AddErrorStr(fmt.Sprintf(errDatabaseNotFound, qp.Name))
 	}
 
 	results <- &qr
+}
+
+// Select do query in database
+func (qe *QueryExecutor) Select(query *Query, results chan *QueryResult) {
+	qp := query.Params.(*SelectStmt)
+	qr := QueryResult{Database: qp.Name}
+
+	if db, ok := qe.dbManager.GetDatabase(qp.Name); ok {
+		qe.doSelect(qp, &qr, db, results)
+	} else {
+		qr.AddErrorStr(fmt.Sprintf(errDatabaseNotFound, qp.Name))
+		results <- &qr
+	}
+}
+
+func (qe *QueryExecutor) doSelect(qp *SelectStmt, qr *QueryResult, db *db.Database, result chan *QueryResult) {
+	hkey := util.Hash32(qp.Key)
+
+	// empty means query all
+	if qp.Key == "" {
+
+	} else {
+		if d, ok := db.GetDataByKey(hkey); ok {
+			qr.AddValue(d.QueryResult())
+			result <- qr
+		}
+	}
 }
 
 // NewQueryExecutor returns new QueryExecutor

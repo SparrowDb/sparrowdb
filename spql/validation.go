@@ -2,7 +2,20 @@ package spql
 
 import "regexp"
 
+const (
+	errDatabaseNotFound = "Database %s not found"
+	errDataNotFound     = "Data %s not found in %s"
+)
+
 var (
-	// ValidatenDatabaseName Rule to accept only letters and numbers
+	// ValidateDatabaseName Rule to accept only letters and numbers
 	ValidateDatabaseName = regexp.MustCompile(`^[a-zA-Z0-9]*$`)
 )
+
+func ValidateFieldName(name string) bool {
+	return name == "key" || name == "extension"
+}
+
+func ValidateMatchType(name string) bool {
+	return name == "*" || name == "="
+}

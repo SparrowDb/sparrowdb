@@ -3,6 +3,7 @@ package model
 import (
 	"github.com/sparrowdb/compression"
 	"github.com/sparrowdb/db/engine"
+	"github.com/sparrowdb/util/uuid"
 )
 
 const (
@@ -21,6 +22,38 @@ type DataDefinition struct {
 	Ext    string
 	Status uint16
 	Buf    []byte
+}
+
+// DataDefinitionResult holds DataDefinition query result
+type DataDefinitionResult struct {
+	Key       string
+	Size      uint32
+	Token     string
+	TImestamp string
+	Ext       string
+	Status    string
+}
+
+// QueryResult convert DataDefinition to DataDefinitionResult
+func (df *DataDefinition) QueryResult() *DataDefinitionResult {
+	dfr := DataDefinitionResult{
+		Key:   df.Key,
+		Size:  df.Size,
+		Token: df.Token,
+		Ext:   df.Ext,
+	}
+
+	switch df.Status {
+	case 1:
+		dfr.Status = "Active"
+	case 2:
+		dfr.Status = "Removed"
+	}
+
+	uuid, _ := uuid.ParseUUID(df.Token)
+	dfr.TImestamp = uuid.Time().String()
+
+	return &dfr
 }
 
 // ToByteStream convert DataDefinition to ByteStream
