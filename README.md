@@ -48,6 +48,22 @@ Sending an image to database:
         http://127.0.0.1:8081/upload
 
 
+Sending an image to database:
+
+	curl -X POST -d '{"type": "select", "params": {"name": "database_name", "field": "key", "key": "image_name"}}' \ 
+        http://127.0.0.1:8081/query
+
+
+
+
+"type": "select",
+        "params": {
+            "name": "teste5",
+            "field": "key",
+            "key": "key100"
+        }
+
+
 Accessing image from browser:
 	
 	http://localhost:8081/g/database_name/image_key
