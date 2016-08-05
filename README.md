@@ -54,16 +54,6 @@ Sending an image to database:
         http://127.0.0.1:8081/query
 
 
-
-
-"type": "select",
-        "params": {
-            "name": "teste5",
-            "field": "key",
-            "key": "key100"
-        }
-
-
 Accessing image from browser:
 	
 	http://localhost:8081/g/database_name/image_key
