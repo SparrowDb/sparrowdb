@@ -6,7 +6,6 @@ import "sync"
 type ServiceManager struct {
 	services map[string]*SparrowService
 	Active   bool
-	wg       sync.WaitGroup
 }
 
 // SparrowService interface for services
@@ -24,30 +23,34 @@ func (bge *ServiceManager) AddService(name string, v SparrowService) {
 func (bge *ServiceManager) StartAll() {
 	bge.Active = true
 
-	bge.wg.Add(len(bge.services))
+	var wg sync.WaitGroup
 
 	for _, v := range bge.services {
+		wg.Add(1)
 		go func(service *SparrowService) {
-			defer bge.wg.Done()
+			defer wg.Done()
 			(*service).Start()
 		}(v)
 	}
 
-	bge.wg.Wait()
+	wg.Wait()
 }
 
 // StopAll stops all services
 func (bge *ServiceManager) StopAll() {
 	bge.Active = false
 
+	var wg sync.WaitGroup
+
 	for _, v := range bge.services {
+		wg.Add(1)
 		go func(service *SparrowService) {
-			defer bge.wg.Done()
+			defer wg.Done()
 			(*service).Stop()
 		}(v)
 	}
 
-	bge.wg.Wait()
+	wg.Wait()
 }
 
 // NewServiceManager returns new ServiceManager
