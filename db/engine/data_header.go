@@ -36,8 +36,8 @@ func GetDataHeaderFromFile(s *Storage) *DataHeader {
 
 // UpdateDataHeaderFile updates header in data file
 func UpdateDataHeaderFile(s *Storage, d *DataHeader) error {
-	s.lock.RLock()
-	defer s.lock.RUnlock()
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 
 	rw, _ := OpenRandomWriter(s.Filepath)
 

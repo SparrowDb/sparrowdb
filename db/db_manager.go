@@ -30,7 +30,7 @@ type DBManager struct {
 	Config         *SparrowConfig
 	databases      map[string]*Database
 	databaseConfig *DatabaseConfig
-	lock           sync.RWMutex
+	mu             sync.RWMutex
 }
 
 func (dbm *DBManager) checkAndFillDescriptor(descriptor *DatabaseDescriptor) {
@@ -57,20 +57,16 @@ func (dbm *DBManager) checkAndFillDescriptor(descriptor *DatabaseDescriptor) {
 
 // CreateDatabase create database
 func (dbm *DBManager) CreateDatabase(descriptor DatabaseDescriptor) error {
-	dbm.lock.RLock()
-	defer dbm.lock.RUnlock()
+	dbm.mu.RLock()
+	defer dbm.mu.RUnlock()
 
-	_, ok := dbm.GetDatabase(descriptor.Name)
-
-	if !ok {
+	if _, ok := dbm.GetDatabase(descriptor.Name); !ok {
 		// check in descriptor wich values must be set
 		// as default value
 		dbm.checkAndFillDescriptor(&descriptor)
 
 		// create dir for the database with configured path
-		err := util.CreateDir(descriptor.Path)
-
-		if err != nil {
+		if err := util.CreateDir(descriptor.Path); err != nil {
 			return ErrCreateDb
 		}
 
@@ -85,12 +81,10 @@ func (dbm *DBManager) CreateDatabase(descriptor DatabaseDescriptor) error {
 
 // DropDatabase drop database
 func (dbm *DBManager) DropDatabase(dbname string) error {
-	dbm.lock.RLock()
-	defer dbm.lock.RUnlock()
+	dbm.mu.RLock()
+	defer dbm.mu.RUnlock()
 
-	db, ok := dbm.GetDatabase(dbname)
-
-	if ok {
+	if db, ok := dbm.GetDatabase(dbname); ok {
 		exists, err := util.Exists(db.Descriptor.Path)
 
 		if err != nil {
@@ -125,12 +119,8 @@ func (dbm *DBManager) GetData(dbname string, strKey string) <-chan *model.DataDe
 func (dbm *DBManager) getData(dbname string, strKey string, result chan *model.DataDefinition) {
 	defer close(result)
 
-	db, hasDb := dbm.GetDatabase(dbname)
-
-	if hasDb {
-		data, ret := db.GetDataByKey(util.Hash32(strKey))
-
-		if ret {
+	if db, hasDb := dbm.GetDatabase(dbname); hasDb {
+		if data, ret := db.GetDataByKey(util.Hash32(strKey)); ret {
 			result <- data
 		} else {
 			result <- nil
@@ -178,6 +168,14 @@ func (dbm *DBManager) openDatabase(descriptor *DatabaseDescriptor) (*Database, e
 	dbm.databases[descriptor.Name] = database
 
 	return database, nil
+}
+
+func (dbm *DBManager) Start() {
+
+}
+
+func (dbm *DBManager) Stop() {
+
 }
 
 // NewDBManager returns new DBManager

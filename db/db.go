@@ -27,7 +27,7 @@ type Database struct {
 	commitlog  *Commitlog
 	dh         []*dataHolder
 	cache      *cache.Cache
-	lock       sync.RWMutex
+	mu         sync.RWMutex
 }
 
 type dataHolder struct {
@@ -113,8 +113,8 @@ func (db *Database) InsertData(df *model.DataDefinition) error {
 
 	// check if DataDefinition will be greater than MaxDataLogSize
 	if db.commitlog.Size()+uint64(df.Size) > db.Descriptor.MaxDataLogSize {
-		db.lock.Lock()
-		defer db.lock.Unlock()
+		db.mu.Lock()
+		defer db.mu.Unlock()
 
 		// get next data file name
 		next := nextDataHolderFile(db.Descriptor.Path)

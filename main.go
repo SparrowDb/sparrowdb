@@ -106,5 +106,6 @@ func main() {
 	instance.serviceManager = db.NewServiceManager()
 	instance.serviceManager.AddService("wsServer", &instance.wsServer)
 	instance.serviceManager.AddService("httpServer", &instance.httpServer)
+	instance.serviceManager.AddService("dbManager", instance.dbManager)
 	instance.serviceManager.StartAll()
 }

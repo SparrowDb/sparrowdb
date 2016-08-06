@@ -13,15 +13,15 @@ var (
 
 // Writer holds writer
 type Writer struct {
-	fp   *os.File
-	lock sync.RWMutex
+	fp *os.File
+	mu sync.RWMutex
 }
 
 // Append append bytes to current file
 // returns written bytes and error message
 func (w *Writer) Append(b []byte) (int, error) {
-	w.lock.RLock()
-	defer w.lock.RUnlock()
+	w.mu.RLock()
+	defer w.mu.RUnlock()
 
 	written, err := w.fp.Write(b)
 	if err != nil {

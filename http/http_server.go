@@ -41,14 +41,11 @@ func (httpServer *HTTPServer) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 
 	monitor.IncHTTPRequests()
 
-	controller, ok := httpServer.routers[parts[0]]
-
-	if ok {
+	if controller, ok := httpServer.routers[parts[0]]; ok {
 		parts := strings.Split(r.URL.Path[1:], "/")
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		controller.method(&RequestData{responseWriter: w, request: r, params: parts[1:]})
 	}
-
 }
 
 // Start starts HTTP server listener

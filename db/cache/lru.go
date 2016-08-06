@@ -6,7 +6,7 @@ type lru struct {
 	used     int64 // Used size of cache in bytes
 	capacity int64 // Max size of cache in bytes
 	count    int64 // Itens in cache
-	lock     sync.RWMutex
+	mu       sync.RWMutex
 	head     *lruNode
 }
 
@@ -52,8 +52,8 @@ func (c *lru) Usage() (int64, int64, int64) {
 }
 
 func (c *lru) Insert(n *Node) {
-	c.lock.Lock()
-	defer c.lock.Unlock()
+	c.mu.Lock()
+	defer c.mu.Unlock()
 
 	ln := &lruNode{n: n, refs: 2}
 	c.insertHead(ln)
@@ -67,8 +67,8 @@ func (c *lru) Insert(n *Node) {
 }
 
 func (c *lru) LookUp(key uint32) *Node {
-	c.lock.Lock()
-	defer c.lock.Unlock()
+	c.mu.Lock()
+	defer c.mu.Unlock()
 
 	var n *Node
 	for cur := c.head.prev; cur != c.head; cur = cur.prev {

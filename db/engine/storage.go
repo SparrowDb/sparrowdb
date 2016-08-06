@@ -16,13 +16,13 @@ var (
 type Storage struct {
 	Filepath   string
 	dataHeader *DataHeader
-	lock       sync.RWMutex
+	mu       sync.RWMutex
 }
 
 // Append appends ByteStream to file
 func (s *Storage) Append(bs *ByteStream) error {
-	s.lock.RLock()
-	defer s.lock.RUnlock()
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 
 	w, err := OpenWriter(s.Filepath)
 	if err != nil {

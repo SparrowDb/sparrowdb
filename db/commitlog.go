@@ -21,7 +21,7 @@ type Commitlog struct {
 	filepath string
 	sto      *engine.Storage
 	summary  *index.Summary
-	lock     sync.RWMutex
+	mu       sync.RWMutex
 }
 
 // Get returns ByteStream with requested data, nil if not found
@@ -37,8 +37,8 @@ func (c *Commitlog) Get(key uint32) *engine.ByteStream {
 
 // Add add entry to commitlog
 func (c *Commitlog) Add(key uint32, bs *engine.ByteStream) error {
-	c.lock.Lock()
-	defer c.lock.Unlock()
+	c.mu.Lock()
+	defer c.mu.Unlock()
 
 	pos := c.sto.GetSize()
 	if err := c.sto.Append(bs); err != nil {
@@ -78,8 +78,8 @@ func (c *Commitlog) GetSummary() index.Summary {
 
 // RenameTo rename commitlog file
 func (c *Commitlog) RenameTo(newpath string) {
-	c.lock.Lock()
-	defer c.lock.Unlock()
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	os.Rename(c.filepath, newpath)
 }
 

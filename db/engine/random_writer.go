@@ -8,16 +8,16 @@ import (
 
 // RandomWriter holds writer
 type RandomWriter struct {
-	fp   *os.File
-	lock sync.RWMutex
+	fp *os.File
+	mu sync.RWMutex
 }
 
 // AppendAt append bytes to current file
 // starting from offset position
 // returns written bytes and error message
 func (w *RandomWriter) AppendAt(b []byte, offset int64) (int, error) {
-	w.lock.RLock()
-	defer w.lock.RUnlock()
+	w.mu.RLock()
+	defer w.mu.RUnlock()
 
 	written, err := w.fp.WriteAt(b, offset)
 	if err != nil {

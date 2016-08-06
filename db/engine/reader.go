@@ -13,8 +13,8 @@ var (
 
 // Reader holds writer
 type Reader struct {
-	fp   *os.File
-	lock sync.RWMutex
+	fp *os.File
+	mu sync.RWMutex
 }
 
 // ReadAt reads file at offset position
