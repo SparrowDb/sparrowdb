@@ -2,27 +2,16 @@ package db
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
 
+	"github.com/sparrowdb/errors"
 	"github.com/sparrowdb/model"
 	"github.com/sparrowdb/slog"
 	"github.com/sparrowdb/util"
-)
-
-var (
-	// ErrCreateDb error message when create database
-	ErrCreateDb = errors.New("Could not create database")
-
-	// ErrDropDb error message when drop database
-	ErrDropDb = errors.New("Could not drop database")
-
-	// ErrOpenDb error message when open database
-	ErrOpenDb = errors.New("Could not open database")
 )
 
 // DBManager holds all databases
@@ -67,7 +56,7 @@ func (dbm *DBManager) CreateDatabase(descriptor DatabaseDescriptor) error {
 
 		// create dir for the database with configured path
 		if err := util.CreateDir(descriptor.Path); err != nil {
-			return ErrCreateDb
+			return errors.ErrCreateDatabase
 		}
 
 		dbm.databases[descriptor.Name] = NewDatabase(&descriptor)
@@ -76,7 +65,7 @@ func (dbm *DBManager) CreateDatabase(descriptor DatabaseDescriptor) error {
 		return nil
 	}
 
-	return ErrCreateDb
+	return errors.ErrCreateDatabase
 }
 
 // DropDatabase drop database
@@ -88,7 +77,7 @@ func (dbm *DBManager) DropDatabase(dbname string) error {
 		exists, err := util.Exists(db.Descriptor.Path)
 
 		if err != nil {
-			return ErrDropDb
+			return errors.ErrDropDatabase
 		}
 
 		if exists {
@@ -100,7 +89,7 @@ func (dbm *DBManager) DropDatabase(dbname string) error {
 		return nil
 	}
 
-	return ErrDropDb
+	return errors.ErrDropDatabase
 }
 
 // GetDatabase returns database by database name
@@ -160,7 +149,7 @@ func (dbm *DBManager) openDatabase(descriptor *DatabaseDescriptor) (*Database, e
 	// Check database directory
 	exists, _ := util.Exists(descriptor.Path)
 	if !exists {
-		return nil, fmt.Errorf("%s: %s", ErrOpenDb, descriptor.Name)
+		return nil, fmt.Errorf("%s: %s", errors.ErrOpenDatabase, descriptor.Name)
 	}
 
 	database := OpenDatabase(descriptor)

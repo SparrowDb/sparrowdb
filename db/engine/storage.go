@@ -1,22 +1,17 @@
 package engine
 
 import (
-	"errors"
 	"os"
 	"sync"
 
 	"github.com/sparrowdb/slog"
 )
 
-var (
-	ErrReadDir = errors.New("Could not list directory")
-)
-
 // Storage holds storage information
 type Storage struct {
 	Filepath   string
 	dataHeader *DataHeader
-	mu       sync.RWMutex
+	mu         sync.RWMutex
 }
 
 // Append appends ByteStream to file

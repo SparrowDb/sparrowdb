@@ -2,13 +2,13 @@ package http
 
 import (
 	"bytes"
-	"errors"
 	"io"
 	"path/filepath"
 	"strconv"
 	"strings"
 
 	"github.com/sparrowdb/db"
+	"github.com/sparrowdb/errors"
 	"github.com/sparrowdb/model"
 	"github.com/sparrowdb/monitor"
 	"github.com/sparrowdb/slog"
@@ -21,14 +21,6 @@ type ServeHandler struct {
 	dbManager     *db.DBManager
 	queryExecutor *spql.QueryExecutor
 }
-
-var (
-	errDatabaseNotFound = errors.New("Database not found")
-	errWrongRequest     = errors.New("Wrong HTTP request")
-	errEmptyQueryResult = errors.New("Empty query result")
-	errWrongToken       = errors.New("Wrong token")
-	errInsertImage      = errors.New("Could not insert images")
-)
 
 func (sh *ServeHandler) writeResponse(request *RequestData, result *spql.QueryResult) {
 	request.responseWriter.Write(result.Value())
@@ -62,7 +54,7 @@ func (sh *ServeHandler) serveQuery(request *RequestData) {
 	results := <-sh.queryExecutor.ExecuteQuery(q)
 
 	if results == nil {
-		sh.writeError(request, qStr, errEmptyQueryResult)
+		sh.writeError(request, qStr, errors.ErrEmptyQueryResult)
 		return
 	}
 
@@ -73,7 +65,7 @@ func (sh *ServeHandler) serveQuery(request *RequestData) {
 
 func (sh *ServeHandler) get(request *RequestData) {
 	if len(request.params) < 2 {
-		sh.writeError(request, "{}", errWrongRequest)
+		sh.writeError(request, "{}", errors.ErrWrongRequest)
 		return
 	}
 
@@ -83,7 +75,7 @@ func (sh *ServeHandler) get(request *RequestData) {
 	// Check if database exists
 	sto, ok := sh.dbManager.GetDatabase(dbname)
 	if !ok {
-		sh.writeError(request, "{}", errDatabaseNotFound)
+		sh.writeError(request, "{}", errors.ErrDatabaseNotFound)
 		return
 	}
 
@@ -92,20 +84,20 @@ func (sh *ServeHandler) get(request *RequestData) {
 
 	// Check if found requested data or DataDefinition is deleted
 	if result == nil || result.Status == model.DataDefinitionRemoved {
-		sh.writeError(request, "{}", errEmptyQueryResult)
+		sh.writeError(request, "{}", errors.ErrEmptyQueryResult)
 		return
 	}
 
 	// Token verification if enabled
 	if sto.Descriptor.TokenActive {
 		if len(request.params) != 3 {
-			sh.writeError(request, "{}", errWrongRequest)
+			sh.writeError(request, "{}", errors.ErrWrongRequest)
 			return
 		}
 		token := request.params[2]
 
 		if token != result.Token {
-			sh.writeError(request, "{}", errWrongToken)
+			sh.writeError(request, "{}", errors.ErrWrongToken)
 			return
 		}
 	}
@@ -149,7 +141,7 @@ func (sh *ServeHandler) upload(request *RequestData) {
 		})
 
 		if err != nil {
-			sh.writeError(request, "{}", errInsertImage)
+			sh.writeError(request, "{}", errors.ErrInsertImage)
 		}
 
 		monitor.IncHTTPUploads()
