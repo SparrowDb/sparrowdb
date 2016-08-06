@@ -9,6 +9,10 @@ var (
 	ErrNotAFile = "Not a file"
 )
 
+type fileLock interface {
+	release() error
+}
+
 // OpenFile opens file and returns file
 func OpenFile(filepath string, flag int) (*os.File, error) {
 	if fi, err := os.Stat(filepath); err == nil {
