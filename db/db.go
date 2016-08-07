@@ -191,10 +191,14 @@ func (db *Database) GetDataByKey(key string) (*model.DataDefinition, bool) {
 
 	// Search in data files
 	strKey := strconv.Itoa(int(hkey))
-	for _, d := range db.dhList {
-		if d.bloomfilter.Contains(strKey) {
-			if e, eIdx := d.summary.LookUp(hkey); eIdx == true {
-				bs, _ := d.Get(e.Offset)
+	var curr int
+	dhListLen := len(db.dhList) - 1
+
+	// Search from the newest dataholder until the oldest
+	for curr = dhListLen; curr >= 0; curr-- {
+		if db.dhList[curr].bloomfilter.Contains(strKey) {
+			if e, eIdx := db.dhList[curr].summary.LookUp(hkey); eIdx == true {
+				bs, _ := db.dhList[curr].Get(e.Offset)
 				return model.NewDataDefinitionFromByteStream(bs), true
 			}
 		}
