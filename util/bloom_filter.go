@@ -2,8 +2,6 @@ package util
 
 import (
 	"math"
-
-	"github.com/sparrowdb/db/engine"
 )
 
 // BloomFilter host data about  probabilistic data structure
@@ -55,8 +53,8 @@ func (bf *BloomFilter) Contains(key string) bool {
 }
 
 // ByteStream returns byte stream of bloom filter data
-func (bf *BloomFilter) ByteStream() *engine.ByteStream {
-	bs := engine.NewByteStream(engine.LittleEndian)
+func (bf *BloomFilter) ByteStream() *ByteStream {
+	bs := NewByteStream()
 	bs.PutUInt32(bf.size)
 	bs.PutUInt32(bf.hashCount)
 	for _, v := range bf.array {
@@ -66,7 +64,7 @@ func (bf *BloomFilter) ByteStream() *engine.ByteStream {
 }
 
 // NewBloomFilterFromByteStream convert ByteStream to BloomFilter
-func NewBloomFilterFromByteStream(bs *engine.ByteStream) *BloomFilter {
+func NewBloomFilterFromByteStream(bs *ByteStream) *BloomFilter {
 	bf := BloomFilter{}
 	bf.size = bs.GetUInt32()
 	bf.hashCount = bs.GetUInt32()

@@ -1,9 +1,9 @@
-package db
+package service
 
 import "sync"
 
-// ServiceManager holds services
-type ServiceManager struct {
+// Manager holds services
+type Manager struct {
 	services map[string]*SparrowService
 	Active   bool
 }
@@ -15,12 +15,12 @@ type SparrowService interface {
 }
 
 // AddService add service
-func (bge *ServiceManager) AddService(name string, v SparrowService) {
+func (bge *Manager) AddService(name string, v SparrowService) {
 	bge.services[name] = &v
 }
 
 // StartAll starts all services
-func (bge *ServiceManager) StartAll() {
+func (bge *Manager) StartAll() {
 	bge.Active = true
 
 	var wg sync.WaitGroup
@@ -37,7 +37,7 @@ func (bge *ServiceManager) StartAll() {
 }
 
 // StopAll stops all services
-func (bge *ServiceManager) StopAll() {
+func (bge *Manager) StopAll() {
 	bge.Active = false
 
 	var wg sync.WaitGroup
@@ -53,9 +53,9 @@ func (bge *ServiceManager) StopAll() {
 	wg.Wait()
 }
 
-// NewServiceManager returns new ServiceManager
-func NewServiceManager() ServiceManager {
-	return ServiceManager{
+// NewManager returns new Manager
+func NewManager() Manager {
+	return Manager{
 		services: make(map[string]*SparrowService),
 		Active:   false,
 	}

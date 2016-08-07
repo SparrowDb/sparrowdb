@@ -13,6 +13,7 @@ import (
 	"github.com/sparrowdb/db"
 	"github.com/sparrowdb/http"
 	"github.com/sparrowdb/monitor"
+	"github.com/sparrowdb/service"
 	"github.com/sparrowdb/slog"
 	"github.com/sparrowdb/util"
 )
@@ -37,7 +38,7 @@ type Instance struct {
 	dbManager      *db.DBManager
 	httpServer     http.HTTPServer
 	wsServer       monitor.WSServer
-	serviceManager db.ServiceManager
+	serviceManager service.Manager
 }
 
 func checkAndCreateDefaultDirs() {
@@ -103,7 +104,7 @@ func main() {
 	instance.httpServer = http.NewHTTPServer(instance.sparrowConfig, instance.dbManager)
 	instance.wsServer = monitor.NewWebSocketServer(instance.sparrowConfig)
 
-	instance.serviceManager = db.NewServiceManager()
+	instance.serviceManager = service.NewManager()
 	instance.serviceManager.AddService("wsServer", &instance.wsServer)
 	instance.serviceManager.AddService("httpServer", &instance.httpServer)
 	instance.serviceManager.AddService("dbManager", instance.dbManager)

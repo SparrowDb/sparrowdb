@@ -6,7 +6,6 @@ import (
 
 	"github.com/sparrowdb/db"
 	"github.com/sparrowdb/model"
-	"github.com/sparrowdb/util"
 )
 
 // QueryExecutor holds query executor data
@@ -116,13 +115,11 @@ func (qe *QueryExecutor) Select(query *Query, results chan *QueryResult) {
 }
 
 func (qe *QueryExecutor) doSelect(qp *SelectStmt, qr *QueryResult, db *db.Database, result chan *QueryResult) {
-	hkey := util.Hash32(qp.Key)
-
 	// empty means query all
 	if qp.Key == "" {
 
 	} else {
-		if d, ok := db.GetDataByKey(hkey); ok {
+		if d, ok := db.GetDataByKey(qp.Key); ok {
 			qr.AddValue(d.QueryResult())
 			result <- qr
 		}

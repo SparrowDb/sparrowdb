@@ -1,4 +1,4 @@
-package engine
+package util
 
 import (
 	"encoding/binary"
@@ -11,11 +11,7 @@ const (
 	uint64Size = 8
 )
 
-// LittleEndian byte order
-var LittleEndian = binary.LittleEndian
-
-// BigEndian  byte order
-var BigEndian = binary.BigEndian
+var currentEndianess = binary.LittleEndian
 
 // GetByteOrder returns byte order of running machine
 func GetByteOrder() binary.ByteOrder {
@@ -24,9 +20,9 @@ func GetByteOrder() binary.ByteOrder {
 
 	switch *(*byte)(unsafe.Pointer(&x)) {
 	case 0x01:
-		bo = BigEndian
+		//currentEndianess = binary.BigEndian
 	case 0x04:
-		bo = LittleEndian
+		//currentEndianess = binary.LittleEndian
 	}
 
 	return bo
@@ -34,9 +30,8 @@ func GetByteOrder() binary.ByteOrder {
 
 // ByteStream holds []byte definition
 type ByteStream struct {
-	buf   []byte
-	cur   uint32
-	order binary.ByteOrder
+	buf []byte
+	cur uint32
 }
 
 // Bytes returns the current []byte
@@ -45,8 +40,8 @@ func (bs *ByteStream) Bytes() []byte {
 }
 
 // Size returns ByteStream size
-func (bs *ByteStream) Size() uint64 {
-	return uint64(len(bs.buf))
+func (bs *ByteStream) Size() int {
+	return len(bs.buf)
 }
 
 func (bs *ByteStream) appendBytes(buf []byte) {
@@ -57,21 +52,21 @@ func (bs *ByteStream) appendBytes(buf []byte) {
 // PutUInt16 append uint16 to ByteStream
 func (bs *ByteStream) PutUInt16(x uint16) {
 	b := make([]byte, uint16Size)
-	bs.order.PutUint16(b, x)
+	currentEndianess.PutUint16(b, x)
 	bs.appendBytes(b)
 }
 
 // PutUInt32 append uint32 to ByteStream
 func (bs *ByteStream) PutUInt32(x uint32) {
 	b := make([]byte, uint32Size)
-	bs.order.PutUint32(b, x)
+	currentEndianess.PutUint32(b, x)
 	bs.appendBytes(b)
 }
 
 // PutUInt64 append uint64 to ByteStream
 func (bs *ByteStream) PutUInt64(x uint64) {
 	b := make([]byte, uint64Size)
-	bs.order.PutUint64(b, x)
+	currentEndianess.PutUint64(b, x)
 	bs.appendBytes(b)
 }
 
@@ -90,7 +85,7 @@ func (bs *ByteStream) PutBytes(x []byte) {
 // GetUInt16 returns uint16 from ByteStream
 func (bs *ByteStream) GetUInt16() uint16 {
 	x := bs.buf[bs.cur : bs.cur+uint16Size]
-	y := bs.order.Uint16(x)
+	y := currentEndianess.Uint16(x)
 	bs.cur += uint16Size
 	return y
 }
@@ -98,7 +93,7 @@ func (bs *ByteStream) GetUInt16() uint16 {
 // GetUInt32 returns uint32 from ByteStream
 func (bs *ByteStream) GetUInt32() uint32 {
 	x := bs.buf[bs.cur : bs.cur+4]
-	y := bs.order.Uint32(x)
+	y := currentEndianess.Uint32(x)
 	bs.cur += uint32Size
 	return y
 }
@@ -106,7 +101,7 @@ func (bs *ByteStream) GetUInt32() uint32 {
 // GetUInt64 returns uint64 from ByteStream
 func (bs *ByteStream) GetUInt64() uint64 {
 	x := bs.buf[bs.cur : bs.cur+uint64Size]
-	y := bs.order.Uint64(x)
+	y := currentEndianess.Uint64(x)
 	bs.cur += uint64Size
 	return y
 }
@@ -133,19 +128,17 @@ func (bs *ByteStream) Reset() {
 }
 
 // NewByteStream returns new ByteStream
-func NewByteStream(byteOrder binary.ByteOrder) *ByteStream {
+func NewByteStream() *ByteStream {
 	return &ByteStream{
-		buf:   []byte{},
-		cur:   0,
-		order: byteOrder,
+		buf: []byte{},
+		cur: 0,
 	}
 }
 
-// NewByteStream returns new ByteStream
-func NewByteStreamFromBytes(buf []byte, byteOrder binary.ByteOrder) *ByteStream {
+// NewByteStreamFromBytes returns new ByteStream
+func NewByteStreamFromBytes(buf []byte) *ByteStream {
 	return &ByteStream{
-		buf:   buf,
-		cur:   0,
-		order: byteOrder,
+		buf: buf,
+		cur: 0,
 	}
 }

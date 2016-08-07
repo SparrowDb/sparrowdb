@@ -2,7 +2,7 @@ package model
 
 import (
 	"github.com/sparrowdb/compression"
-	"github.com/sparrowdb/db/engine"
+	"github.com/sparrowdb/util"
 	"github.com/sparrowdb/util/uuid"
 )
 
@@ -57,8 +57,8 @@ func (df *DataDefinition) QueryResult() *DataDefinitionResult {
 }
 
 // ToByteStream convert DataDefinition to ByteStream
-func (df *DataDefinition) ToByteStream() *engine.ByteStream {
-	byteStream := engine.NewByteStream(engine.LittleEndian)
+func (df *DataDefinition) ToByteStream() *util.ByteStream {
+	byteStream := util.NewByteStream()
 	byteStream.PutString(df.Key)
 	byteStream.PutString(df.Token)
 	byteStream.PutUInt32(df.Size)
@@ -72,7 +72,7 @@ func (df *DataDefinition) ToByteStream() *engine.ByteStream {
 }
 
 // NewDataDefinitionFromByteStream convert ByteStream to DataDefinition
-func NewDataDefinitionFromByteStream(bs *engine.ByteStream) *DataDefinition {
+func NewDataDefinitionFromByteStream(bs *util.ByteStream) *DataDefinition {
 	df := DataDefinition{}
 	df.Key = bs.GetString()
 	df.Token = bs.GetString()

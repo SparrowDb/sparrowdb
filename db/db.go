@@ -2,169 +2,145 @@ package db
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"regexp"
-	"strconv"
 	"sync"
+	"time"
 
-	"github.com/sparrowdb/db/cache"
-	"github.com/sparrowdb/db/engine"
+	"github.com/sparrowdb/cache"
 	"github.com/sparrowdb/db/index"
+	"github.com/sparrowdb/engine"
 	"github.com/sparrowdb/model"
 	"github.com/sparrowdb/slog"
 	"github.com/sparrowdb/util"
-)
-
-var (
-	dataFileFmt  = "db-%d.spw"
-	indexFileFmt = "db-%d.idx"
 )
 
 // Database holds database definitions
 type Database struct {
 	Descriptor *DatabaseDescriptor
 	commitlog  *Commitlog
-	dh         []*dataHolder
+	dhList     []dataHolder
 	cache      *cache.Cache
 	mu         sync.RWMutex
 }
 
 type dataHolder struct {
-	storage     *engine.Storage
+	sto         engine.Storage
 	summary     index.Summary
 	bloomfilter util.BloomFilter
 }
 
-func newDataHolder(filepath string, bloomFilterFp float32, summary index.Summary) {
+func newDataHolder(sto *engine.Storage, dbPath string, bloomFilterFp float32) (*dataHolder, error) {
 	dh := dataHolder{}
-	dh.storage = engine.NewStorage(filepath)
-	dh.summary = summary
 
-	dh.bloomfilter = util.NewBloomFilter(summary.Count(), bloomFilterFp)
+	uTime := fmt.Sprintf("%v", time.Now().UnixNano())
+	cPath := filepath.Join(dbPath, "commitlog")
 
-	// Append index
-	idxOffset := uint64(dh.storage.GetSize())
-	for _, v := range summary.GetTable() {
-		dh.bloomfilter.Add(strconv.Itoa(int(v.Key)))
-		dh.storage.Append(engine.NewByteStreamFromBytes(v.Bytes(), engine.LittleEndian))
+	// Rename commitlog file to data file
+	if err := (*sto).Rename(engine.FileDesc{Type: engine.FileCommitlog}, engine.FileDesc{Type: engine.FileData}); err != nil {
+		return nil, err
 	}
 
-	// Append bloomfilter
-	bfOffset := uint64(dh.storage.GetSize())
-	dh.storage.Append(dh.bloomfilter.ByteStream())
+	// Rename directory to unix time
+	if err := os.Rename(cPath, filepath.Join(dbPath, uTime)); err != nil {
+		return nil, err
+	}
 
-	engine.UpdateDataHeaderFile(dh.storage, &engine.DataHeader{
-		Index:       idxOffset,
-		BloomFilter: bfOffset,
-	})
+	return &dh, nil
 }
 
-func openDataHolder(filepath string) *dataHolder {
+func openDataHolder(path string) (*dataHolder, error) {
+	var err error
+
 	dh := dataHolder{}
-	dh.storage = engine.NewStorage(filepath)
-	dh.summary = *index.NewSummary()
 
-	dhHeader := engine.GetDataHeaderFromFile(dh.storage)
-
-	offset := dhHeader.Index
-	for offset < dhHeader.BloomFilter {
-		bs, _ := dh.storage.Get(int64(offset))
-		dh.summary.Add(index.NewEntryFromByteStream(bs))
-		offset += uint64(len(bs.Bytes())) + 4
+	dh.sto, err = engine.OpenFile(path)
+	if err != nil {
+		return nil, err
 	}
 
-	offset = dhHeader.BloomFilter
-	fsize := uint64(dh.storage.GetSize())
-	for offset < fsize {
-		bs, _ := dh.storage.Get(int64(offset))
-		dh.bloomfilter = *util.NewBloomFilterFromByteStream(bs)
-		offset += uint64(len(bs.Bytes())) + 4
+	ir := newIndexReader(&dh.sto)
+	dh.summary, err = ir.LoadIndex()
+	if err != nil {
+		return nil, err
 	}
-	return &dh
+
+	return &dh, nil
 }
 
-// nextDataHolderFile returns the next file name
-func nextDataHolderFile(filepath string) string {
-	p, err := ioutil.ReadDir(filepath)
+func (d *dataHolder) Get(position int64) (*util.ByteStream, error) {
+	// Search in index if found, get from data file
+	freader, _ := d.sto.Open(engine.FileDesc{Type: engine.FileData})
+	r := newReader(freader.(io.ReaderAt))
+
+	b, err := r.Read(position)
 	if err != nil {
 		slog.Fatalf(err.Error())
 	}
 
-	last := 0
-
-	if len(p) > 0 {
-		t := len(p) - 1
-		for i := t; i >= 0; i-- {
-			if !p[i].IsDir() {
-				last = i + 1
-				break
-			}
-		}
-	}
-
-	return fmt.Sprintf(dataFileFmt, last)
+	bs := util.NewByteStreamFromBytes(b)
+	return bs, nil
 }
 
 // InsertData insert data into database
 func (db *Database) InsertData(df *model.DataDefinition) error {
-	key := util.Hash32(df.Key)
+	db.mu.Lock()
+	defer db.mu.Unlock()
+
+	hKey := util.Hash32(df.Key)
 	bs := df.ToByteStream()
 
-	// check if DataDefinition will be greater than MaxDataLogSize
-	if db.commitlog.Size()+uint64(df.Size) > db.Descriptor.MaxDataLogSize {
-		db.mu.Lock()
-		defer db.mu.Unlock()
+	// Put in cache
+	db.cache.Put(hKey, bs.Bytes())
 
-		// get next data file name
-		next := nextDataHolderFile(db.Descriptor.Path)
-		ndh := filepath.Join(db.Descriptor.Path, next)
+	// Get last position in commitlog
+	size, err := db.commitlog.Size()
+	if err != nil {
+		return err
+	}
 
-		// copy index
-		cIndex := db.commitlog.GetSummary()
-
-		// recreate an empty commitlog
-		db.commitlog.RenameTo(ndh)
-		db.commitlog = NewCommitLog(db.Descriptor.Path)
-
-		// create new data holder file
-		newDataHolder(ndh, db.Descriptor.BloomFilterFp, cIndex)
-	} else {
-		err := db.commitlog.Add(key, bs)
+	// Check if commitlog has the max file size
+	if size+int64(df.Size) > int64(db.Descriptor.MaxDataLogSize) {
+		ndh, err := newDataHolder(&db.commitlog.sto, db.Descriptor.Path, db.Descriptor.BloomFilterFp)
 		if err != nil {
 			return err
 		}
+
+		db.dhList = append(db.dhList, *ndh)
+		db.commitlog = NewCommitLog(db.Descriptor.Path)
 	}
 
-	// Put in cache
-	db.cache.Put(key, bs.Bytes())
+	if err = db.commitlog.Add(df.Key, bs); err != nil {
+		return err
+	}
 
 	return nil
 }
 
 // GetDataByKey returns pointer to DataDefinition and bool if found the data
-func (db *Database) GetDataByKey(key uint32) (*model.DataDefinition, bool) {
+func (db *Database) GetDataByKey(key string) (*model.DataDefinition, bool) {
+	hkey := util.Hash32(key)
+
 	// Search for given key in cache
-	if c := db.cache.Get(key); c != nil {
-		bs := engine.NewByteStreamFromBytes(c, engine.LittleEndian)
+	if c := db.cache.Get(hkey); c != nil {
+		bs := util.NewByteStreamFromBytes(c)
 		return model.NewDataDefinitionFromByteStream(bs), true
 	}
 
 	// Search in commitlog
 	if bs := db.commitlog.Get(key); bs != nil {
-		db.cache.Put(key, bs.Bytes())
+		db.cache.Put(hkey, bs.Bytes())
 		return model.NewDataDefinitionFromByteStream(bs), true
 	}
 
 	// Search in data files
-	strKey := strconv.Itoa(int(key))
-	for _, d := range db.dh {
-		if eBF := d.bloomfilter.Contains(strKey); eBF == true {
-			if e, eIdx := d.summary.LookUp(key); eIdx == true {
-				bs, _ := d.storage.Get(e.Offset)
-				db.cache.Put(key, bs.Bytes())
-				return model.NewDataDefinitionFromByteStream(bs), true
-			}
+	for _, d := range db.dhList {
+		if e, eIdx := d.summary.LookUp(hkey); eIdx == true {
+			bs, _ := d.Get(e.Offset)
+			return model.NewDataDefinitionFromByteStream(bs), true
 		}
 	}
 
@@ -175,9 +151,12 @@ func (db *Database) GetDataByKey(key uint32) (*model.DataDefinition, bool) {
 func (db *Database) LoadData() {
 	flist, _ := ioutil.ReadDir(db.Descriptor.Path)
 	for _, v := range flist {
-		if m, _ := regexp.MatchString("^db\\-[0-9]+.spw$", v.Name()); m == true {
-			fpath := filepath.Join(db.Descriptor.Path, v.Name())
-			db.dh = append(db.dh, openDataHolder(fpath))
+		if m, _ := regexp.MatchString("^([0-9]{19})$", v.Name()); m == true {
+			dh, err := openDataHolder(filepath.Join(db.Descriptor.Path, v.Name()))
+			if err != nil {
+				slog.Fatalf(err.Error())
+			}
+			db.dhList = append(db.dhList, *dh)
 		}
 	}
 }
