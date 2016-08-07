@@ -2,6 +2,8 @@ package util
 
 import (
 	"math"
+
+	"github.com/sparrowdb/slog"
 )
 
 // BloomFilter host data about  probabilistic data structure
@@ -68,6 +70,7 @@ func NewBloomFilterFromByteStream(bs *ByteStream) *BloomFilter {
 	bf := BloomFilter{}
 	bf.size = bs.GetUInt32()
 	bf.hashCount = bs.GetUInt32()
+	slog.Infof("n:%v - %v", bf.size, bf.hashCount)
 	var i uint32
 	bf.array = make([]uint8, bf.size)
 	for i = 0; i < bf.size; i++ {

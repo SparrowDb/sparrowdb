@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"sync"
 	"time"
 
@@ -34,10 +35,14 @@ type dataHolder struct {
 }
 
 func newDataHolder(sto *engine.Storage, dbPath string, bloomFilterFp float32) (*dataHolder, error) {
-	dh := dataHolder{}
+	var err error
 
-	uTime := fmt.Sprintf("%v", time.Now().UnixNano())
+	// commitlog full path
 	cPath := filepath.Join(dbPath, "commitlog")
+
+	// new name for commitlog folder
+	uTime := fmt.Sprintf("%v", time.Now().UnixNano())
+	newPath := filepath.Join(dbPath, uTime)
 
 	// Rename commitlog file to data file
 	if err := (*sto).Rename(engine.FileDesc{Type: engine.FileCommitlog}, engine.FileDesc{Type: engine.FileData}); err != nil {
@@ -45,8 +50,39 @@ func newDataHolder(sto *engine.Storage, dbPath string, bloomFilterFp float32) (*
 	}
 
 	// Rename directory to unix time
-	if err := os.Rename(cPath, filepath.Join(dbPath, uTime)); err != nil {
+	if err := os.Rename(cPath, newPath); err != nil {
 		return nil, err
+	}
+
+	// Load dataholder
+	dh := dataHolder{}
+	if dh.sto, err = engine.OpenFile(newPath); err != nil {
+		return nil, err
+	}
+
+	// Load index from dataholder
+	ir := newIndexReader(&dh.sto)
+	dh.summary, err = ir.LoadIndex()
+	if err != nil {
+		return nil, err
+	}
+
+	// Create and populate bloomfilter
+	table := dh.summary.GetTable()
+	dh.bloomfilter = util.NewBloomFilter(dh.summary.Count(), bloomFilterFp)
+	for _, v := range table {
+		dh.bloomfilter.Add(strconv.Itoa(int(v.Key)))
+	}
+
+	bfw, err := dh.sto.Create(engine.FileDesc{Type: engine.FileBloomFilter})
+	if err != nil {
+		return nil, err
+	}
+
+	writer := newBufWriter(bfw)
+	b := dh.bloomfilter.ByteStream()
+	if err = writer.Append(b.Bytes()); err == nil {
+		writer.Close()
 	}
 
 	return &dh, nil
@@ -62,10 +98,27 @@ func openDataHolder(path string) (*dataHolder, error) {
 		return nil, err
 	}
 
+	// Loads index
 	ir := newIndexReader(&dh.sto)
 	dh.summary, err = ir.LoadIndex()
 	if err != nil {
 		return nil, err
+	}
+
+	// Loads bloomfilter
+	var pos int64
+	var bfreader io.Reader
+
+	bfreader, err = dh.sto.Open(engine.FileDesc{Type: engine.FileBloomFilter})
+	if err != nil {
+		return nil, err
+	}
+
+	r := newReader(bfreader.(io.ReaderAt))
+
+	if b, err := r.Read(pos); err == nil {
+		bs := util.NewByteStreamFromBytes(b)
+		dh.bloomfilter = *util.NewBloomFilterFromByteStream(bs)
 	}
 
 	return &dh, nil
@@ -137,10 +190,13 @@ func (db *Database) GetDataByKey(key string) (*model.DataDefinition, bool) {
 	}
 
 	// Search in data files
+	strKey := strconv.Itoa(int(hkey))
 	for _, d := range db.dhList {
-		if e, eIdx := d.summary.LookUp(hkey); eIdx == true {
-			bs, _ := d.Get(e.Offset)
-			return model.NewDataDefinitionFromByteStream(bs), true
+		if d.bloomfilter.Contains(strKey) {
+			if e, eIdx := d.summary.LookUp(hkey); eIdx == true {
+				bs, _ := d.Get(e.Offset)
+				return model.NewDataDefinitionFromByteStream(bs), true
+			}
 		}
 	}
 

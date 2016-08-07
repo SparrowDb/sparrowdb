@@ -66,9 +66,9 @@ func (c *Commitlog) Add(key string, bs *util.ByteStream) error {
 func (c *Commitlog) writeIndex(index *index.Entry) error {
 	var err error
 
-	fwriter, _ := c.sto.Create(engine.FileDesc{Type: engine.FileIndex})
+	fwriter, err := c.sto.Create(engine.FileDesc{Type: engine.FileIndex})
 
-	writer := newIndexWriter(fwriter)
+	writer := newBufWriter(fwriter)
 	if err = writer.Append(index.Bytes()); err == nil {
 		c.summary.Add(index)
 		writer.Close()

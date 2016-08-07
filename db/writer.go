@@ -34,30 +34,30 @@ func newWriter(f io.Writer) *dbWriter {
 	return &dbWriter{f}
 }
 
-type indexWriter struct {
+type bufWriter struct {
 	writer io.Writer
 }
 
-func (iw *indexWriter) Append(value []byte) error {
+func (bw *bufWriter) Append(value []byte) error {
 	bout := util.NewByteStream()
 	bout.PutUInt32(uint32(len(value)))
 	b := bout.Bytes()
 
-	if _, err := iw.writer.Write(b); err != nil {
+	if _, err := bw.writer.Write(b); err != nil {
 		return err
 	}
 
-	if _, err := iw.writer.Write(value); err != nil {
+	if _, err := bw.writer.Write(value); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (iw *indexWriter) Close() error {
-	return iw.writer.(io.WriteCloser).Close()
+func (bw *bufWriter) Close() error {
+	return bw.writer.(io.WriteCloser).Close()
 }
 
-func newIndexWriter(f io.Writer) *indexWriter {
-	return &indexWriter{f}
+func newBufWriter(f io.Writer) *bufWriter {
+	return &bufWriter{f}
 }
