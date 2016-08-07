@@ -12,6 +12,11 @@ import (
 	"github.com/sparrowdb/util"
 )
 
+const (
+	// FolderCommitlog keeps default commitlog folder name
+	FolderCommitlog = "commitlog"
+)
+
 // Commitlog holds commitlog information
 type Commitlog struct {
 	filepath string
@@ -131,7 +136,7 @@ func NewCommitLog(path string) *Commitlog {
 	var err error
 
 	c := Commitlog{}
-	c.filepath = filepath.Join(path, "commitlog")
+	c.filepath = filepath.Join(path, FolderCommitlog)
 	c.summary = index.NewSummary()
 	c.desc = engine.FileDesc{Type: engine.FileCommitlog}
 

@@ -38,7 +38,7 @@ func newDataHolder(sto *engine.Storage, dbPath string, bloomFilterFp float32) (*
 	var err error
 
 	// commitlog full path
-	cPath := filepath.Join(dbPath, "commitlog")
+	cPath := filepath.Join(dbPath, FolderCommitlog)
 
 	// new name for commitlog folder
 	uTime := fmt.Sprintf("%v", time.Now().UnixNano())
