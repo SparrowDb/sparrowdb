@@ -2,6 +2,7 @@
 
 [![GoDoc](https://godoc.org/github.com/SparrowDb/sparrowdb?status.svg)](https://godoc.org/github.com/SparrowDb/sparrowdb)
 [![Build Status](https://travis-ci.org/SparrowDb/sparrowdb.svg?branch=master)](https://travis-ci.org/SparrowDb/sparrowdb)
+[![Go Report Card](https://goreportcard.com/badge/github.com/SparrowDb/sparrowdb)](https://goreportcard.com/report/github.com/SparrowDb/sparrowdb)
 
 ﻿﻿Whats is SparrowDB?
 ====================
