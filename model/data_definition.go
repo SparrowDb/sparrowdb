@@ -8,10 +8,10 @@ import (
 
 const (
 	// DataDefinitionActive active status
-	DataDefinitionActive = 1
+	DataDefinitionActive = iota
 
 	// DataDefinitionRemoved removed status
-	DataDefinitionRemoved = 2
+	DataDefinitionRemoved
 )
 
 // DataDefinition holds the stored item

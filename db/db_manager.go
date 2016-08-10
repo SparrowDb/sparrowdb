@@ -81,6 +81,7 @@ func (dbm *DBManager) DropDatabase(dbname string) error {
 		}
 
 		if exists {
+			db.Close()
 			delete(dbm.databases, dbname)
 			util.DeleteDir(db.Descriptor.Path)
 			dbm.databaseConfig.DropDatabase(dbname)

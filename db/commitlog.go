@@ -46,7 +46,7 @@ func (c *Commitlog) Get(key string) *util.ByteStream {
 }
 
 // Add add entry to commitlog
-func (c *Commitlog) Add(key string, bs *util.ByteStream) error {
+func (c *Commitlog) Add(key string, status uint16, bs *util.ByteStream) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -63,6 +63,7 @@ func (c *Commitlog) Add(key string, bs *util.ByteStream) error {
 	c.writeIndex(&index.Entry{
 		Key:    hKey,
 		Offset: pos,
+		Status: status,
 	})
 
 	return nil

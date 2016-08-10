@@ -26,9 +26,12 @@ type Database struct {
 	dhList     []dataHolder
 	cache      *cache.Cache
 	mu         sync.RWMutex
+
+	compFinish chan bool
 }
 
 type dataHolder struct {
+	path        string
 	sto         engine.Storage
 	summary     index.Summary
 	bloomfilter util.BloomFilter
@@ -55,7 +58,7 @@ func newDataHolder(sto *engine.Storage, dbPath string, bloomFilterFp float32) (*
 	}
 
 	// Load dataholder
-	dh := dataHolder{}
+	dh := dataHolder{path: newPath}
 	if dh.sto, err = engine.OpenFile(newPath); err != nil {
 		return nil, err
 	}
@@ -91,7 +94,7 @@ func newDataHolder(sto *engine.Storage, dbPath string, bloomFilterFp float32) (*
 func openDataHolder(path string) (*dataHolder, error) {
 	var err error
 
-	dh := dataHolder{}
+	dh := dataHolder{path: path}
 
 	dh.sto, err = engine.OpenFile(path)
 	if err != nil {
@@ -166,7 +169,7 @@ func (db *Database) InsertData(df *model.DataDefinition) error {
 		db.commitlog = NewCommitLog(db.Descriptor.Path)
 	}
 
-	if err = db.commitlog.Add(df.Key, bs); err != nil {
+	if err = db.commitlog.Add(df.Key, df.Status, bs); err != nil {
 		return err
 	}
 
@@ -191,11 +194,10 @@ func (db *Database) GetDataByKey(key string) (*model.DataDefinition, bool) {
 
 	// Search in data files
 	strKey := strconv.Itoa(int(hkey))
-	var curr int
 	dhListLen := len(db.dhList) - 1
 
 	// Search from the newest dataholder until the oldest
-	for curr = dhListLen; curr >= 0; curr-- {
+	for curr := dhListLen; curr >= 0; curr-- {
 		if db.dhList[curr].bloomfilter.Contains(strKey) {
 			if e, eIdx := db.dhList[curr].summary.LookUp(hkey); eIdx == true {
 				bs, _ := db.dhList[curr].Get(e.Offset)
@@ -221,13 +223,32 @@ func (db *Database) LoadData() {
 	}
 }
 
+func (db *Database) compactionNotification() {
+	slog.Infof("%s compaction started: %s", db.Descriptor.Name, time.Now())
+	select {
+	case <-db.compFinish:
+		slog.Infof("%s compaction finished: %s", db.Descriptor.Name, time.Now())
+	}
+}
+
+// Close closes databases
+func (db *Database) Close() {
+	// removes db from compaction service
+	removeDbCompaction(db.Descriptor.Name)
+}
+
 // NewDatabase returns new Database
 func NewDatabase(descriptor *DatabaseDescriptor) *Database {
 	db := Database{
 		Descriptor: descriptor,
 		commitlog:  NewCommitLog(descriptor.Path),
 		cache:      cache.NewCache(cache.NewLRU(int64(descriptor.MaxCacheSize))),
+
+		compFinish: make(chan bool),
 	}
+
+	// add database in compaction service
+	registerDbCompaction(&db)
 
 	return &db
 }
