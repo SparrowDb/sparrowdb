@@ -23,5 +23,5 @@ func TestParse(t *testing.T) {
 	}
 
 	qp := query.Params.(*CreateDatabaseStmt)
-	log.Printf("SUCCESS: %s", qp)
+	log.Printf("SUCCESS: %s", qp.Name)
 }

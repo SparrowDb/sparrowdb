@@ -10,5 +10,5 @@ func Hash32(s string) uint32 {
 // Hash32Seed hashes string with seed into uint32
 func Hash32Seed(s string, seed uint32) uint32 {
 	b := []byte(s)
-	return murmurhash3.Murmurhash3_x86_32(b, seed)
+	return murmurhash3.Murmurhash3X86_32(b, seed)
 }

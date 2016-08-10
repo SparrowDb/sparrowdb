@@ -44,12 +44,14 @@ import (
 	"time"
 )
 
+// UUID holds uuid bytes
 type UUID [16]byte
 
 var hardwareAddr []byte
 var clockSeq uint32
 
 const (
+	// VariantNCSCompat format variant
 	VariantNCSCompat = 0
 	VariantIETF      = 2
 	VariantMicrosoft = 6
@@ -246,12 +248,12 @@ func (u UUID) Time() time.Time {
 	return time.Unix(sec+timeBase, nsec).UTC()
 }
 
-// Marshaling for JSON
+// MarshalJSON Marshaling for JSON
 func (u UUID) MarshalJSON() ([]byte, error) {
 	return []byte(`"` + u.String() + `"`), nil
 }
 
-// Unmarshaling for JSON
+// UnmarshalJSON Unmarshaling for JSON
 func (u *UUID) UnmarshalJSON(data []byte) error {
 	str := strings.Trim(string(data), `"`)
 	if len(str) > 36 {
@@ -266,10 +268,12 @@ func (u *UUID) UnmarshalJSON(data []byte) error {
 	return err
 }
 
+// MarshalText marshalls text
 func (u UUID) MarshalText() ([]byte, error) {
 	return []byte(u.String()), nil
 }
 
+// UnmarshalText unmarshalls text
 func (u *UUID) UnmarshalText(text []byte) (err error) {
 	*u, err = ParseUUID(string(text))
 	return

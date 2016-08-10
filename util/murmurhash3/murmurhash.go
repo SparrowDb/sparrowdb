@@ -30,7 +30,8 @@ func finalization32(hash uint32) uint32 {
 	return hash
 }
 
-func Murmurhash3_x86_32(data []byte, seed uint32) uint32 {
+// Murmurhash3X86_32 generates hash from a given key
+func Murmurhash3X86_32(data []byte, seed uint32) uint32 {
 	var (
 		hash    = uint32(seed)
 		length  = len(data)

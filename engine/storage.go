@@ -5,16 +5,14 @@ import (
 	"io"
 )
 
-// FileType Describes wich type is the file
+// FileType Describes which type is the file
 type FileType int
 
 const (
+	// File descriptor type
 	FileData FileType = iota
-
 	FileIndex
-
 	FileBloomFilter
-
 	FileCommitlog
 )
 

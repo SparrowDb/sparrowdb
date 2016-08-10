@@ -50,7 +50,7 @@ func (dbm *DBManager) CreateDatabase(descriptor DatabaseDescriptor) error {
 	defer dbm.mu.RUnlock()
 
 	if _, ok := dbm.GetDatabase(descriptor.Name); !ok {
-		// check in descriptor wich values must be set
+		// check in descriptor which values must be set
 		// as default value
 		dbm.checkAndFillDescriptor(&descriptor)
 

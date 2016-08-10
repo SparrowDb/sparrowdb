@@ -3,9 +3,7 @@
 // license that can be found in the LICENSE file.
 package engine
 
-import (
-	"syscall"
-)
+import "syscall"
 
 // lockCloser hides all of an syscall.Handle's methods, except for Close.
 type windowsFileLock struct {
