@@ -1,6 +1,7 @@
 package http
 
 import (
+	"fmt"
 	"net"
 	"net/http"
 	"strings"
@@ -51,7 +52,7 @@ func (httpServer *HTTPServer) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 // Start starts HTTP server listener
 func (httpServer *HTTPServer) Start() {
 	var err error
-	httpServer.listener, err = net.Listen("tcp", ":"+httpServer.Config.HTTPPort)
+	httpServer.listener, err = net.Listen("tcp", fmt.Sprintf("%s:%s", httpServer.Config.HTTPHost, httpServer.Config.HTTPPort))
 	if err != nil {
 		slog.Fatalf(err.Error())
 	}

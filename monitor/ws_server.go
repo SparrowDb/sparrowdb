@@ -1,6 +1,7 @@
 package monitor
 
 import (
+	"fmt"
 	"net"
 	"net/http"
 	"time"
@@ -28,7 +29,7 @@ func (wss *WSServer) webHandler(ws *websocket.Conn) {
 // Start starts WebSocket server listener
 func (wss *WSServer) Start() {
 	var err error
-	wss.listener, err = net.Listen("tcp", ":"+wss.Config.WSPort)
+	wss.listener, err = net.Listen("tcp", fmt.Sprintf("%s:%s", wss.Config.WSHost, wss.Config.WSPort))
 	if err != nil {
 		slog.Fatalf(err.Error())
 	}
