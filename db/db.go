@@ -14,6 +14,7 @@ import (
 	"github.com/sparrowdb/cache"
 	"github.com/sparrowdb/db/index"
 	"github.com/sparrowdb/engine"
+	"github.com/sparrowdb/errors"
 	"github.com/sparrowdb/model"
 	"github.com/sparrowdb/slog"
 	"github.com/sparrowdb/util"
@@ -132,9 +133,12 @@ func (d *dataHolder) Get(position int64) (*util.ByteStream, error) {
 	freader, _ := d.sto.Open(engine.FileDesc{Type: engine.FileData})
 	r := newReader(freader.(io.ReaderAt))
 
+	// If found key but can't load it from file, it will return nil to avoid
+	// db crash. Returning nil will send to user empty query result
 	b, err := r.Read(position)
 	if err != nil {
-		slog.Fatalf(err.Error())
+		slog.Errorf(errors.ErrFileCorrupted.Error(), d.path)
+		return nil, nil
 	}
 
 	bs := util.NewByteStreamFromBytes(b)

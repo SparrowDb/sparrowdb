@@ -8,6 +8,7 @@ import (
 
 	"github.com/sparrowdb/db/index"
 	"github.com/sparrowdb/engine"
+	"github.com/sparrowdb/errors"
 	"github.com/sparrowdb/slog"
 	"github.com/sparrowdb/util"
 )
@@ -34,9 +35,12 @@ func (c *Commitlog) Get(key string) *util.ByteStream {
 		freader, _ := c.sto.Open(c.desc)
 		r := newReader(freader.(io.ReaderAt))
 
+		// If found key but can't load it from file, it will return nil to avoid
+		// db crash. Returning nil will send to user empty query result
 		b, err := r.Read(idx.Offset)
 		if err != nil {
-			slog.Fatalf(err.Error())
+			slog.Errorf(errors.ErrFileCorrupted.Error(), c.filepath)
+			return nil
 		}
 
 		bs := util.NewByteStreamFromBytes(b)

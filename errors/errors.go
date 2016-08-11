@@ -30,4 +30,7 @@ var (
 
 	// ErrReadDir error message when try to read directory
 	ErrReadDir = errors.New("Could not read directory")
+
+	// ErrFileCorrupted erros message when file is corrupted
+	ErrFileCorrupted = errors.New("Could not read data from %s. File Corrupted")
 )

@@ -29,7 +29,7 @@ func (r *dbReader) Read(offset int64) ([]byte, error) {
 	// Reads data
 	bufData := make([]byte, size)
 	if _, err := r.reader.ReadAt(bufData, offset); err != nil {
-		slog.Fatalf(err.Error())
+		return nil, err
 	}
 
 	if err := r.Close(); err != nil {
