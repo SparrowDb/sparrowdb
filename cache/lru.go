@@ -7,6 +7,7 @@ type lru struct {
 	capacity int64 // Max size of cache in bytes
 	count    int64 // Itens in cache
 	mu       sync.RWMutex
+	kv       map[uint32]**lruNode
 	head     *lruNode
 }
 
@@ -59,6 +60,8 @@ func (c *lru) Insert(n *Node) {
 	c.insertHead(ln)
 	c.incUsed(n.size)
 
+	c.kv[n.key] = &ln
+
 	for c.used > c.capacity && c.head.next != c.head {
 		old := c.head.next
 		c.decUsed(old.n.size)
@@ -71,15 +74,14 @@ func (c *lru) LookUp(key uint32) *Node {
 	defer c.mu.Unlock()
 
 	var n *Node
-	for cur := c.head.prev; cur != c.head; cur = cur.prev {
-		if key == cur.n.key {
-			cur.refs++
-			c.removeNode(cur)
-			c.insertHead(cur)
-			n = cur.n
-			break
-		}
+	if vaddr, ok := c.kv[key]; ok == true {
+		cur := *vaddr
+		cur.refs++
+		c.removeNode(cur)
+		c.insertHead(cur)
+		n = cur.n
 	}
+
 	return n
 }
 
@@ -87,6 +89,7 @@ func (c *lru) LookUp(key uint32) *Node {
 func NewLRU(capacity int64) Cacheable {
 	c := &lru{
 		capacity: capacity,
+		kv:       make(map[uint32]**lruNode),
 	}
 
 	// Make empty node
