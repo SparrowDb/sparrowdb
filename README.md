@@ -4,7 +4,7 @@
 [![Build Status](https://travis-ci.org/SparrowDb/sparrowdb.svg?branch=master)](https://travis-ci.org/SparrowDb/sparrowdb)
 [![Go Report Card](https://goreportcard.com/badge/github.com/SparrowDb/sparrowdb)](https://goreportcard.com/report/github.com/SparrowDb/sparrowdb)
 
-﻿﻿Whats is SparrowDB?
+Whats is SparrowDB?
 ====================
 SparrowDB is an image database that works like an append-only object store. Sparrow has tools that allow image processing and HTTP server to access images.
 
