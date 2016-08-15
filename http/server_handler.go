@@ -121,6 +121,8 @@ func (sh *ServeHandler) upload(request *RequestData) {
 	dbname := request.request.FormValue("dbname")
 	sto, ok := sh.dbManager.GetDatabase(dbname)
 
+	b := buf.Bytes()
+
 	if ok {
 		err := sto.InsertData(&model.DataDefinition{
 			Key: request.request.FormValue("key"),
@@ -132,12 +134,12 @@ func (sh *ServeHandler) upload(request *RequestData) {
 			// get file extension and remove dot before ext name
 			Ext: filepath.Ext(fhandler.Filename)[1:],
 
-			Size: uint32(len(buf.Bytes())),
+			Size: uint32(len(b)),
 
 			// Default status 1 (Active)
 			Status: model.DataDefinitionActive,
 
-			Buf: buf.Bytes(),
+			Buf: b,
 		})
 
 		if err != nil {
