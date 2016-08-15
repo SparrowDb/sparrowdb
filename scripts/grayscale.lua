@@ -1,9 +1,11 @@
 -- loads sparrowdb module
 local s = require("sparrowdb")
 
+-- get image data
 image = s.getInputImage()
 
--- buf is global variable with image data
+-- convert image to grayscale
 out = s.grayscale(image)
 
+-- set new output for image
 s.setOutputImage(out)
