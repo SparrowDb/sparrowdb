@@ -1,6 +1,6 @@
 Scripts
 ====================
-SparrowDB uses [bild](https://github.com/anthonynsimon/bild) to allow image processing using [LUA](github.com/yuin/gopher-lua) script.
+SparrowDB uses [bild](https://github.com/anthonynsimon/bild) to allow image processing using [LUA](https://github.com/yuin/gopher-lua) script.
 
 All SparrowDB scripts must be in 'scripts' folder.
 
