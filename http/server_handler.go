@@ -144,9 +144,12 @@ func (sh *ServeHandler) upload(request *RequestData) {
 
 		if err != nil {
 			sh.writeError(request, "{}", errors.ErrInsertImage)
+			return
 		}
 
 		monitor.IncHTTPUploads()
+	} else {
+		sh.writeError(request, "{}", errors.ErrDatabaseNotFound)
 	}
 }
 
