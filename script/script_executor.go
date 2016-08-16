@@ -6,6 +6,7 @@ import (
 	"image/draw"
 	"image/png"
 	"os"
+	"path/filepath"
 
 	"github.com/yuin/gopher-lua"
 )
@@ -15,8 +16,9 @@ const (
 )
 
 // Execute executes script that is in scripts folder
-func Execute(scriptpath string, b []byte) ([]byte, error) {
+func Execute(script string, b []byte) ([]byte, error) {
 	// check script file
+	scriptpath := filepath.Join("scripts", script+".lua")
 	if _, err := os.Stat(scriptpath); err != nil {
 		if os.IsNotExist(err) {
 			return nil, err

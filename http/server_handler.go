@@ -11,6 +11,7 @@ import (
 	"github.com/sparrowdb/errors"
 	"github.com/sparrowdb/model"
 	"github.com/sparrowdb/monitor"
+	"github.com/sparrowdb/script"
 	"github.com/sparrowdb/slog"
 	"github.com/sparrowdb/spql"
 	"github.com/sparrowdb/util/uuid"
@@ -124,6 +125,14 @@ func (sh *ServeHandler) upload(request *RequestData) {
 	b := buf.Bytes()
 
 	if ok {
+		// checks if user request needs script execution
+		if scriptName := request.request.FormValue("script"); len(strings.TrimSpace(scriptName)) > 0 {
+			if b, err = script.Execute(scriptName, b); err != nil {
+				sh.writeError(request, "{}", errors.ErrInsertImage)
+				return
+			}
+		}
+
 		err := sto.InsertData(&model.DataDefinition{
 			Key: request.request.FormValue("key"),
 
