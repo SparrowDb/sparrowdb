@@ -31,7 +31,6 @@ type DataDefinitionResult struct {
 	Token     string
 	TImestamp string
 	Ext       string
-	Status    string
 }
 
 // QueryResult convert DataDefinition to DataDefinitionResult
@@ -41,13 +40,6 @@ func (df *DataDefinition) QueryResult() *DataDefinitionResult {
 		Size:  df.Size,
 		Token: df.Token,
 		Ext:   df.Ext,
-	}
-
-	switch df.Status {
-	case 1:
-		dfr.Status = "Active"
-	case 2:
-		dfr.Status = "Removed"
 	}
 
 	uuid, _ := uuid.ParseUUID(df.Token)
