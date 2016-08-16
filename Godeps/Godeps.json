@@ -4,6 +4,10 @@
 	"GodepVersion": "v74",
 	"Deps": [
 		{
+			"ImportPath": "github.com/anthonynsimon/bild",
+			"Rev": "b0434ac01b3d1daf37acd9fa5f7dab3885f06c84"
+		},
+		{
 			"ImportPath": "github.com/bkaradzic/go-lz4",
 			"Comment": "v1.0.0",
 			"Rev": "74ddf82598bc4745b965729e9c6a463bedd33049"
@@ -20,6 +24,22 @@
 		{
 			"ImportPath": "github.com/golang/snappy",
 			"Rev": "d9eb7a3d35ec988b8585d4a0068e462c27d28380"
+		},
+		{
+			"ImportPath": "github.com/yuin/gopher-lua",
+			"Rev": "e57b64049898d04ad03d3cc75ffa770eb29aeae0"
+		},
+		{
+			"ImportPath": "github.com/yuin/gopher-lua/ast",
+			"Rev": "e57b64049898d04ad03d3cc75ffa770eb29aeae0"
+		},
+		{
+			"ImportPath": "github.com/yuin/gopher-lua/parse",
+			"Rev": "e57b64049898d04ad03d3cc75ffa770eb29aeae0"
+		},
+		{
+			"ImportPath": "github.com/yuin/gopher-lua/pm",
+			"Rev": "e57b64049898d04ad03d3cc75ffa770eb29aeae0"
 		},
 		{
 			"ImportPath": "golang.org/x/net/websocket",
