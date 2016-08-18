@@ -24,6 +24,7 @@ type ServeHandler struct {
 }
 
 func (sh *ServeHandler) writeResponse(request *RequestData, result *spql.QueryResult) {
+	request.responseWriter.Header().Set("Content-Type", "application/json")
 	request.responseWriter.Write(result.Value())
 }
 
@@ -60,7 +61,6 @@ func (sh *ServeHandler) serveQuery(request *RequestData) {
 	}
 
 	monitor.IncHTTPQueries()
-	request.responseWriter.Header().Set("Content-Type", "application/json")
 	sh.writeResponse(request, results)
 }
 
@@ -133,12 +133,16 @@ func (sh *ServeHandler) upload(request *RequestData) {
 			}
 		}
 
-		err := sto.InsertData(&model.DataDefinition{
-			Key: request.request.FormValue("key"),
+		dataKey := request.request.FormValue("key")
+		dataToken := uuid.TimeUUID().String()
+
+		// create new DataDefinition with requested values
+		df := &model.DataDefinition{
+			Key: dataKey,
 
 			// default store UUID to keep information of insert time
 			// and eliminates attacks aimed at guessing valid URLs for photos
-			Token: uuid.TimeUUID().String(),
+			Token: dataToken,
 
 			// get file extension and remove dot before ext name
 			Ext: filepath.Ext(fhandler.Filename)[1:],
@@ -149,13 +153,20 @@ func (sh *ServeHandler) upload(request *RequestData) {
 			Status: model.DataDefinitionActive,
 
 			Buf: b,
-		})
+		}
 
-		if err != nil {
+		// try to insert image in database
+		if err := sto.InsertData(df); err != nil {
 			sh.writeError(request, "{}", errors.ErrInsertImage)
 			return
 		}
 
+		// write ok response
+		result := &spql.QueryResult{Database: dbname}
+		result.AddValue(df.QueryResult())
+		sh.writeResponse(request, result)
+
+		// increment upload statistics
 		monitor.IncHTTPUploads()
 	} else {
 		sh.writeError(request, "{}", errors.ErrDatabaseNotFound)

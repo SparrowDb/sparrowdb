@@ -29,7 +29,7 @@ type DataDefinitionResult struct {
 	Key       string
 	Size      uint32
 	Token     string
-	TImestamp string
+	Timestamp string
 	Ext       string
 }
 
@@ -43,7 +43,7 @@ func (df *DataDefinition) QueryResult() *DataDefinitionResult {
 	}
 
 	uuid, _ := uuid.ParseUUID(df.Token)
-	dfr.TImestamp = uuid.Time().String()
+	dfr.Timestamp = uuid.Time().String()
 
 	return &dfr
 }
