@@ -99,10 +99,9 @@ func main() {
 	instance.dbManager = db.NewDBManager(instance.sparrowConfig, instance.databaseConfig)
 	instance.dbManager.LoadDatabases()
 
-	monitor.StartMonitor()
-
 	instance.httpServer = http.NewHTTPServer(instance.sparrowConfig, instance.dbManager)
 	instance.wsServer = monitor.NewWebSocketServer(instance.sparrowConfig)
+	monitor.StartMonitor(&instance.wsServer)
 
 	instance.serviceManager = service.NewManager()
 	instance.serviceManager.AddService("wsServer", &instance.wsServer)

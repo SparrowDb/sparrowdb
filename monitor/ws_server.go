@@ -1,13 +1,13 @@
 package monitor
 
 import (
-	"fmt"
 	"net"
-	"net/http"
-	"time"
 
 	"github.com/sparrowdb/db"
 	"github.com/sparrowdb/slog"
+
+	"fmt"
+	"net/http"
 
 	"golang.org/x/net/websocket"
 )
@@ -16,13 +16,25 @@ import (
 type WSServer struct {
 	Config   *db.SparrowConfig
 	listener net.Listener
+
+	Notifier chan []byte
 }
 
 func (wss *WSServer) webHandler(ws *websocket.Conn) {
+	var in []byte
+
+	ws.Write(getJson())
+
+	go func() {
+		for {
+			if err := websocket.Message.Receive(ws, &in); err != nil {
+				break
+			}
+		}
+	}()
+
 	for {
-		b := MetricToJSON()
-		websocket.Message.Send(ws, string(b))
-		time.Sleep(1 * time.Second)
+		ws.Write(<-wss.Notifier)
 	}
 }
 
@@ -50,6 +62,7 @@ func (wss *WSServer) Stop() {
 // NewWebSocketServer returns new WSServer
 func NewWebSocketServer(config *db.SparrowConfig) WSServer {
 	return WSServer{
-		Config: config,
+		Config:   config,
+		Notifier: make(chan []byte),
 	}
 }
