@@ -28,6 +28,9 @@ func newScriptCtx(rgba *image.RGBA) *scriptCtx {
 	c.exports["invert"] = c.luaInvert
 	c.exports["flipH"] = c.luaFlipH
 	c.exports["flipV"] = c.luaFlipV
+	c.exports["rotate"] = c.luaRotate
+	c.exports["resize"] = c.luaResize
+	c.exports["crop"] = c.luaCrop
 
 	c.exports["getInputImage"] = c.luaGetImage
 	c.exports["setOutputImage"] = c.luaSetImage
@@ -136,6 +139,30 @@ func (sc *scriptCtx) luaRotate(L *lua.LState) int {
 		data := L.Get(1).(*lua.LUserData)
 		val := float64(L.Get(2).(lua.LNumber))
 		data.Value = transform.Rotate(data.Value.(image.Image), val, nil)
+		L.Push(data)
+	}
+	return 1
+}
+
+func (sc *scriptCtx) luaResize(L *lua.LState) int {
+	if L.GetTop() == 3 {
+		data := L.Get(1).(*lua.LUserData)
+		w := int(L.Get(2).(lua.LNumber))
+		h := int(L.Get(3).(lua.LNumber))
+		data.Value = transform.Resize(data.Value.(image.Image), w, h, transform.Linear)
+		L.Push(data)
+	}
+	return 1
+}
+
+func (sc *scriptCtx) luaCrop(L *lua.LState) int {
+	if L.GetTop() == 5 {
+		data := L.Get(1).(*lua.LUserData)
+		x1 := int(L.Get(2).(lua.LNumber))
+		y1 := int(L.Get(3).(lua.LNumber))
+		x2 := int(L.Get(4).(lua.LNumber))
+		y2 := int(L.Get(5).(lua.LNumber))
+		data.Value = transform.Crop(data.Value.(image.Image), image.Rect(x1, y1, x2, y2))
 		L.Push(data)
 	}
 	return 1
