@@ -9,10 +9,16 @@ import (
 type FileType int
 
 const (
-	// File descriptor type
+	// FileData represents storage file type
 	FileData FileType = iota
+
+	// FileIndex represents index file type
 	FileIndex
+
+	// FileBloomFilter represents bloomfilter file type
 	FileBloomFilter
+
+	// FileCommitlog represents commitlog file type
 	FileCommitlog
 )
 

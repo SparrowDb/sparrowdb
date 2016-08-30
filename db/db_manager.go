@@ -160,12 +160,16 @@ func (dbm *DBManager) openDatabase(descriptor *DatabaseDescriptor) (*Database, e
 	return database, nil
 }
 
+// Start starts db manager
 func (dbm *DBManager) Start() {
 
 }
 
+// Stop checks and stops all databases
 func (dbm *DBManager) Stop() {
-
+	for _, db := range dbm.databases {
+		db.Close()
+	}
 }
 
 // NewDBManager returns new DBManager

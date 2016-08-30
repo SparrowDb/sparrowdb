@@ -52,10 +52,10 @@ var clockSeq uint32
 
 const (
 	// VariantNCSCompat format variant
-	VariantNCSCompat = 0
-	VariantIETF      = 2
-	VariantMicrosoft = 6
-	VariantFuture    = 7
+	variantNCSCompat = 0
+	variantIETF      = 2
+	variantMicrosoft = 6
+	variantFuture    = 7
 )
 
 func init() {
@@ -199,15 +199,15 @@ func (u UUID) Bytes() []byte {
 func (u UUID) Variant() int {
 	x := u[8]
 	if x&0x80 == 0 {
-		return VariantNCSCompat
+		return variantNCSCompat
 	}
 	if x&0x40 == 0 {
-		return VariantIETF
+		return variantIETF
 	}
 	if x&0x20 == 0 {
-		return VariantMicrosoft
+		return variantMicrosoft
 	}
-	return VariantFuture
+	return variantFuture
 }
 
 // Version extracts the version of this UUID variant. The RFC 4122 describes
