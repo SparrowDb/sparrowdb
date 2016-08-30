@@ -4,8 +4,59 @@
 	"GodepVersion": "v74",
 	"Deps": [
 		{
-			"ImportPath": "github.com/anthonynsimon/bild",
-			"Rev": "b0434ac01b3d1daf37acd9fa5f7dab3885f06c84"
+			"ImportPath": "github.com/anthonynsimon/bild/adjust",
+			"Comment": "v0.6.0-1-gbb588ae",
+			"Rev": "bb588aead88d3a58b065950505ec76174bdff10e"
+		},
+		{
+			"ImportPath": "github.com/anthonynsimon/bild/blend",
+			"Comment": "v0.6.0-1-gbb588ae",
+			"Rev": "bb588aead88d3a58b065950505ec76174bdff10e"
+		},
+		{
+			"ImportPath": "github.com/anthonynsimon/bild/blur",
+			"Comment": "v0.6.0-1-gbb588ae",
+			"Rev": "bb588aead88d3a58b065950505ec76174bdff10e"
+		},
+		{
+			"ImportPath": "github.com/anthonynsimon/bild/clone",
+			"Comment": "v0.6.0-1-gbb588ae",
+			"Rev": "bb588aead88d3a58b065950505ec76174bdff10e"
+		},
+		{
+			"ImportPath": "github.com/anthonynsimon/bild/convolution",
+			"Comment": "v0.6.0-1-gbb588ae",
+			"Rev": "bb588aead88d3a58b065950505ec76174bdff10e"
+		},
+		{
+			"ImportPath": "github.com/anthonynsimon/bild/effect",
+			"Comment": "v0.6.0-1-gbb588ae",
+			"Rev": "bb588aead88d3a58b065950505ec76174bdff10e"
+		},
+		{
+			"ImportPath": "github.com/anthonynsimon/bild/fcolor",
+			"Comment": "v0.6.0-1-gbb588ae",
+			"Rev": "bb588aead88d3a58b065950505ec76174bdff10e"
+		},
+		{
+			"ImportPath": "github.com/anthonynsimon/bild/math/f64",
+			"Comment": "v0.6.0-1-gbb588ae",
+			"Rev": "bb588aead88d3a58b065950505ec76174bdff10e"
+		},
+		{
+			"ImportPath": "github.com/anthonynsimon/bild/parallel",
+			"Comment": "v0.6.0-1-gbb588ae",
+			"Rev": "bb588aead88d3a58b065950505ec76174bdff10e"
+		},
+		{
+			"ImportPath": "github.com/anthonynsimon/bild/transform",
+			"Comment": "v0.6.0-1-gbb588ae",
+			"Rev": "bb588aead88d3a58b065950505ec76174bdff10e"
+		},
+		{
+			"ImportPath": "github.com/anthonynsimon/bild/util",
+			"Comment": "v0.6.0-1-gbb588ae",
+			"Rev": "bb588aead88d3a58b065950505ec76174bdff10e"
 		},
 		{
 			"ImportPath": "github.com/bkaradzic/go-lz4",

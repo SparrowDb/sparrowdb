@@ -3,7 +3,9 @@ package script
 import (
 	"image"
 
-	"github.com/anthonynsimon/bild"
+	"github.com/anthonynsimon/bild/blur"
+	"github.com/anthonynsimon/bild/effect"
+	"github.com/anthonynsimon/bild/transform"
 	"github.com/yuin/gopher-lua"
 )
 
@@ -57,7 +59,7 @@ func (sc *scriptCtx) luaSetImage(L *lua.LState) int {
 func (sc *scriptCtx) luaGrayscale(L *lua.LState) int {
 	if L.GetTop() == 1 {
 		data := L.Get(1).(*lua.LUserData)
-		data.Value = bild.Grayscale(data.Value.(image.Image))
+		data.Value = effect.Grayscale(data.Value.(image.Image))
 		L.Push(data)
 	}
 	return 1
@@ -67,7 +69,7 @@ func (sc *scriptCtx) luaGaussianBlur(L *lua.LState) int {
 	if L.GetTop() == 2 {
 		data := L.Get(1).(*lua.LUserData)
 		radius := float64(L.Get(2).(lua.LNumber))
-		data.Value = bild.GaussianBlur(data.Value.(image.Image), radius)
+		data.Value = blur.Gaussian(data.Value.(image.Image), radius)
 		L.Push(data)
 	}
 	return 1
@@ -77,7 +79,7 @@ func (sc *scriptCtx) luaBoxBlur(L *lua.LState) int {
 	if L.GetTop() == 2 {
 		data := L.Get(1).(*lua.LUserData)
 		radius := float64(L.Get(2).(lua.LNumber))
-		data.Value = bild.BoxBlur(data.Value.(image.Image), radius)
+		data.Value = blur.Box(data.Value.(image.Image), radius)
 		L.Push(data)
 	}
 	return 1
@@ -87,7 +89,7 @@ func (sc *scriptCtx) luaEdgeDetection(L *lua.LState) int {
 	if L.GetTop() == 2 {
 		data := L.Get(1).(*lua.LUserData)
 		radius := float64(L.Get(2).(lua.LNumber))
-		data.Value = bild.EdgeDetection(data.Value.(image.Image), radius)
+		data.Value = effect.EdgeDetection(data.Value.(image.Image), radius)
 		L.Push(data)
 	}
 	return 1
@@ -96,7 +98,7 @@ func (sc *scriptCtx) luaEdgeDetection(L *lua.LState) int {
 func (sc *scriptCtx) luaEmboss(L *lua.LState) int {
 	if L.GetTop() == 1 {
 		data := L.Get(1).(*lua.LUserData)
-		data.Value = bild.Emboss(data.Value.(image.Image))
+		data.Value = effect.Emboss(data.Value.(image.Image))
 		L.Push(data)
 	}
 	return 1
@@ -105,7 +107,7 @@ func (sc *scriptCtx) luaEmboss(L *lua.LState) int {
 func (sc *scriptCtx) luaInvert(L *lua.LState) int {
 	if L.GetTop() == 1 {
 		data := L.Get(1).(*lua.LUserData)
-		data.Value = bild.Invert(data.Value.(image.Image))
+		data.Value = effect.Invert(data.Value.(image.Image))
 		L.Push(data)
 	}
 	return 1
@@ -114,7 +116,7 @@ func (sc *scriptCtx) luaInvert(L *lua.LState) int {
 func (sc *scriptCtx) luaFlipH(L *lua.LState) int {
 	if L.GetTop() == 1 {
 		data := L.Get(1).(*lua.LUserData)
-		data.Value = bild.FlipH(data.Value.(image.Image))
+		data.Value = transform.FlipH(data.Value.(image.Image))
 		L.Push(data)
 	}
 	return 1
@@ -123,7 +125,17 @@ func (sc *scriptCtx) luaFlipH(L *lua.LState) int {
 func (sc *scriptCtx) luaFlipV(L *lua.LState) int {
 	if L.GetTop() == 1 {
 		data := L.Get(1).(*lua.LUserData)
-		data.Value = bild.FlipV(data.Value.(image.Image))
+		data.Value = transform.FlipV(data.Value.(image.Image))
+		L.Push(data)
+	}
+	return 1
+}
+
+func (sc *scriptCtx) luaRotate(L *lua.LState) int {
+	if L.GetTop() == 2 {
+		data := L.Get(1).(*lua.LUserData)
+		val := float64(L.Get(2).(lua.LNumber))
+		data.Value = transform.Rotate(data.Value.(image.Image), val, nil)
 		L.Push(data)
 	}
 	return 1
