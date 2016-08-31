@@ -111,7 +111,7 @@ func (sh *ServeHandler) get(request *RequestData) {
 func (sh *ServeHandler) upload(request *RequestData) {
 	file, fhandler, err := request.request.FormFile("uploadfile")
 	if err != nil {
-		slog.Fatalf(err.Error())
+		slog.Errorf(err.Error())
 		return
 	}
 	defer file.Close()
