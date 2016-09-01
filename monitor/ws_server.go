@@ -23,7 +23,7 @@ type WSServer struct {
 func (wss *WSServer) webHandler(ws *websocket.Conn) {
 	var in []byte
 
-	ws.Write(getJson())
+	ws.Write(getJSON())
 
 	go func() {
 		for {
