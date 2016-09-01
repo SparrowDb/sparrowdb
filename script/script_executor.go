@@ -30,7 +30,11 @@ func Execute(script string, b []byte) ([]byte, error) {
 	defer L.Close()
 
 	// image bytes to RGBA
-	img, _, _ := image.Decode(bytes.NewReader(b))
+	img, _, err := image.Decode(bytes.NewReader(b))
+	if err != nil {
+		return nil, err
+	}
+
 	buf := image.NewRGBA(img.Bounds())
 	draw.Draw(buf, buf.Bounds(), img, image.Point{0, 0}, draw.Src)
 

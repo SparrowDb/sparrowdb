@@ -2,6 +2,7 @@ package script
 
 import (
 	"image"
+	"image/draw"
 
 	"github.com/anthonynsimon/bild/blur"
 	"github.com/anthonynsimon/bild/effect"
@@ -62,7 +63,13 @@ func (sc *scriptCtx) luaSetImage(L *lua.LState) int {
 func (sc *scriptCtx) luaGrayscale(L *lua.LState) int {
 	if L.GetTop() == 1 {
 		data := L.Get(1).(*lua.LUserData)
-		data.Value = effect.Grayscale(data.Value.(image.Image))
+		src := effect.Grayscale(data.Value.(image.Image))
+
+		bounds := src.Bounds()
+		img := image.NewRGBA(bounds)
+		draw.Draw(img, bounds, src, bounds.Min, draw.Src)
+
+		data.Value = img
 		L.Push(data)
 	}
 	return 1
