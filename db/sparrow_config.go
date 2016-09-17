@@ -17,18 +17,20 @@ const (
 
 // SparrowConfig holds general configuration of SparrowDB
 type SparrowConfig struct {
-	NodeName       string  `xml:"node_name"`
-	HTTPPort       string  `xml:"http_port"`
-	HTTPHost       string  `xml:"http_host"`
-	WSPort         string  `xml:"ws_port"`
-	WSHost         string  `xml:"ws_host"`
-	Mode           string  `xml:"mode"`
-	MaxDataLogSize uint64  `xml:"max_datalog_size"`
-	MaxCacheSize   uint64  `xml:"max_cache_size"`
-	BloomFilterFp  float32 `xml:"bloomfilter_fpp"`
-	CronExp        string  `xml:"dataholder_cron_compaction"`
-	Path           string  `xml:"data_file_directory"`
-	TokenActive    bool    `xml:"generate_token"`
+	NodeName             string  `xml:"node_name"`
+	HTTPPort             string  `xml:"http_port"`
+	HTTPHost             string  `xml:"http_host"`
+	WSPort               string  `xml:"ws_port"`
+	WSHost               string  `xml:"ws_host"`
+	Mode                 string  `xml:"mode"`
+	MaxDataLogSize       uint64  `xml:"max_datalog_size"`
+	MaxCacheSize         uint64  `xml:"max_cache_size"`
+	BloomFilterFp        float32 `xml:"bloomfilter_fpp"`
+	CronExp              string  `xml:"dataholder_cron_compaction"`
+	Path                 string  `xml:"data_file_directory"`
+	TokenActive          bool    `xml:"generate_token"`
+	AuthenticationActive bool    `xml:"enable_authentication"`
+	UserExpire           int     `xml:"user_expire"`
 }
 
 func (sc *SparrowConfig) isValid() bool {

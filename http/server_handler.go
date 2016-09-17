@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/sparrowdb/auth"
 	"github.com/sparrowdb/db"
 	"github.com/sparrowdb/errors"
 	"github.com/sparrowdb/model"
@@ -39,12 +40,35 @@ func (sh *ServeHandler) writeError(request *RequestData, query string, errs ...e
 	request.responseWriter.Write(result.Value())
 }
 
+func (sh *ServeHandler) user(request *RequestData) {
+	body := request.request.Body
+
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(body)
+	qStr := buf.String()
+
+	qr, err := spql.ParseUserStmt(qStr)
+	if err != nil {
+		sh.writeError(request, "{}", err)
+		return
+	}
+	sh.writeResponse(request, qr)
+}
+
 func (sh *ServeHandler) serveQuery(request *RequestData) {
 	body := request.request.Body
 
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(body)
 	qStr := buf.String()
+
+	if sh.dbManager.Config.AuthenticationActive {
+		userToken, _ := spql.GetTokenFromRequest(qStr)
+		if !auth.IsLogged(userToken) {
+			sh.writeError(request, "{}", errors.ErrInvalidToken)
+			return
+		}
+	}
 
 	p := spql.NewParser(qStr)
 	q, err := p.ParseQuery()

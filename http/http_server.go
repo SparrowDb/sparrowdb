@@ -61,6 +61,8 @@ func (httpServer *HTTPServer) Start() {
 
 	handler := NewServeHandler(httpServer.dbManager, httpServer.queryExecutor)
 
+	httpServer.add(&controllerInfo{route: "/user", httpMethod: "POST", method: handler.user})
+
 	r, w, q := httpServer.Config.GetMode()
 	if r == true {
 		httpServer.add(&controllerInfo{route: "/g", httpMethod: "GET", method: handler.get})

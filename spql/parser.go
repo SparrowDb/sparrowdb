@@ -10,14 +10,15 @@ import (
 type Parser struct {
 	query    string
 	rawQuery struct {
+		Token   string           `json:"token"`
 		Action  string           `json:"type"`
 		Params  *json.RawMessage `json:"params"`
 		Filters *json.RawMessage `json:"filters"`
 	}
 }
 
-// ParseQuery parses a query string and returns QueryObject
-func (p *Parser) ParseQuery() (*Query, error) {
+// parseStmt Parse query string to rawQuery
+func parseStmt(p *Parser) (*Query, error) {
 	// Parse query string to rawQuery
 	err := json.Unmarshal([]byte(p.query), &p.rawQuery)
 	if err != nil {
@@ -28,13 +29,23 @@ func (p *Parser) ParseQuery() (*Query, error) {
 		Action: p.rawQuery.Action,
 	}
 
+	return &query, nil
+}
+
+// ParseQuery parses a query string and returns QueryObject
+func (p *Parser) ParseQuery() (*Query, error) {
+	q, err := parseStmt(p)
+	if err != nil {
+		return nil, err
+	}
+
 	// Parse query params
-	perr := p.parse(&query, p.rawQuery.Params)
+	perr := p.parse(q, p.rawQuery.Params)
 	if perr != nil {
 		return nil, perr
 	}
 
-	return &query, nil
+	return q, nil
 }
 
 func (p *Parser) parse(q *Query, r *json.RawMessage) error {
@@ -69,3 +80,10 @@ func NewParser(query string) *Parser {
 		query: query,
 	}
 }
+
+/*
+func ParseString(str string) map[string]interface{} {
+	var msgMapTemplate interface{}
+	json.Unmarshal([]byte(str), &msgMapTemplate)
+	return msgMapTemplate.(map[string]interface{})
+}*/

@@ -33,4 +33,10 @@ var (
 
 	// ErrFileCorrupted erros message when file is corrupted
 	ErrFileCorrupted = errors.New("Could not read data from %s. File Corrupted")
+
+	// ErrLogin erros message when username and/or password is wrong
+	ErrLogin = errors.New("Wrong username and/or password")
+
+	// ErrInvalidToken erros message when username inputs invalid or expired token
+	ErrInvalidToken = errors.New("Invalid or expired token")
 )

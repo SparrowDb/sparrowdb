@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"syscall"
 
+	"github.com/sparrowdb/auth"
 	"github.com/sparrowdb/compression"
 	"github.com/sparrowdb/db"
 	"github.com/sparrowdb/http"
@@ -95,6 +96,8 @@ func main() {
 	instance.sparrowConfig = db.NewSparrowConfig(*configPathFlag)
 	instance.databaseConfig = db.NewDatabaseConfig(*configPathFlag)
 	slog.Infof("Database Mode: %s", instance.sparrowConfig.GetStringMode())
+
+	auth.LoadUserConfig(*configPathFlag, instance.sparrowConfig)
 
 	instance.dbManager = db.NewDBManager(instance.sparrowConfig, instance.databaseConfig)
 	instance.dbManager.LoadDatabases()
