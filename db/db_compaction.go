@@ -4,7 +4,6 @@ import (
 	"github.com/elgs/cron"
 	"github.com/sparrowdb/db/index"
 	"github.com/sparrowdb/model"
-	"github.com/sparrowdb/slog"
 	"github.com/sparrowdb/util"
 )
 
@@ -65,7 +64,6 @@ func doCompaction(db *Database) {
 					bs, _ := dh.Get(v.Offset)
 					df := model.NewDataDefinitionFromByteStream(bs)
 					db.commitlog.Add(df.Key, df.Status, bs)
-					slog.Infof("add:%s", df.Key)
 				}
 			}
 			util.DeleteDir(dh.path)
