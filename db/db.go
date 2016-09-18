@@ -130,7 +130,12 @@ func openDataHolder(path string) (*dataHolder, error) {
 
 func (d *dataHolder) Get(position int64) (*util.ByteStream, error) {
 	// Search in index if found, get from data file
-	freader, _ := d.sto.Open(engine.FileDesc{Type: engine.FileData})
+	freader, err := d.sto.Open(engine.FileDesc{Type: engine.FileData})
+	if err != nil {
+		slog.Errorf(errors.ErrFileCorrupted.Error(), d.path)
+		return nil, nil
+	}
+
 	r := newReader(freader.(io.ReaderAt))
 
 	// If found key but can't load it from file, it will return nil to avoid
@@ -182,6 +187,11 @@ func (db *Database) InsertData(df *model.DataDefinition) error {
 
 // GetDataByKey returns pointer to DataDefinition and bool if found the data
 func (db *Database) GetDataByKey(key string) (*model.DataDefinition, bool) {
+	defer func() {
+		if x := recover(); x != nil {
+		}
+	}()
+
 	hkey := util.Hash32(key)
 
 	// Search for given key in cache
@@ -204,7 +214,10 @@ func (db *Database) GetDataByKey(key string) (*model.DataDefinition, bool) {
 	for curr := dhListLen; curr >= 0; curr-- {
 		if db.dhList[curr].bloomfilter.Contains(strKey) {
 			if e, eIdx := db.dhList[curr].summary.LookUp(hkey); eIdx == true {
-				bs, _ := db.dhList[curr].Get(e.Offset)
+				bs, err := db.dhList[curr].Get(e.Offset)
+				if err != nil {
+					return nil, false
+				}
 				return model.NewDataDefinitionFromByteStream(bs), true
 			}
 		}

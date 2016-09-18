@@ -4,6 +4,7 @@ import (
 	"github.com/elgs/cron"
 	"github.com/sparrowdb/db/index"
 	"github.com/sparrowdb/model"
+	"github.com/sparrowdb/slog"
 	"github.com/sparrowdb/util"
 )
 
@@ -46,8 +47,12 @@ func doCompaction(db *Database) {
 	tombstones := geTombstonesFromDb(db)
 	removeDbCompaction(db.Descriptor.Name)
 
+	// get all tombstones from commitlog
+	tbCommitlog := getTombstonesFromCommitlog(db)
+	tombstones = append(tombstones, tbCommitlog...)
+
 	// iterate over all dataHolders
-	for dhIdx, dh := range db.dhList {
+	for _, dh := range db.dhList {
 
 		// check if dataHolder has any tombstone
 		if dhContainsAnyTombstone(&dh, &tombstones) {
@@ -60,16 +65,27 @@ func doCompaction(db *Database) {
 					bs, _ := dh.Get(v.Offset)
 					df := model.NewDataDefinitionFromByteStream(bs)
 					db.commitlog.Add(df.Key, df.Status, bs)
+					slog.Infof("add:%s", df.Key)
 				}
 			}
-
 			util.DeleteDir(dh.path)
-
-			db.dhList = db.dhList[:dhIdx+copy(db.dhList[dhIdx:], db.dhList[dhIdx+1:])]
 		}
 	}
 
 	db.compFinish <- true
+}
+
+func getTombstonesFromCommitlog(db *Database) []tombstoneMark {
+	var tombstones []tombstoneMark
+
+	summary := db.commitlog.summary.GetTable()
+
+	for _, v := range summary {
+		if v.Status == model.DataDefinitionRemoved {
+			tombstones = append(tombstones, tombstoneMark{db.commitlog.filepath, *v})
+		}
+	}
+	return tombstones
 }
 
 func geTombstonesFromDb(db *Database) []tombstoneMark {
