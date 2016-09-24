@@ -23,7 +23,7 @@ func newScriptCtx(rgba *image.RGBA) *scriptCtx {
 
 	c.exports["grayscale"] = c.luaGrayscale
 	c.exports["boxBlur"] = c.luaBoxBlur
-	c.exports["gaussianBlue"] = c.luaGaussianBlur
+	c.exports["gaussianBlur"] = c.luaGaussianBlur
 	c.exports["edgeDetection"] = c.luaEdgeDetection
 	c.exports["emboss"] = c.luaEmboss
 	c.exports["invert"] = c.luaInvert
