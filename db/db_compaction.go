@@ -44,7 +44,6 @@ func doCompaction(db *Database) {
 
 	// get all tombstones from database
 	tombstones := geTombstonesFromDb(db)
-	removeDbCompaction(db.Descriptor.Name)
 
 	// get all tombstones from commitlog
 	tbCommitlog := getTombstonesFromCommitlog(db)
