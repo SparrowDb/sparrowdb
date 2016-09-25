@@ -138,8 +138,6 @@ func (qe *QueryExecutor) doSelect(qp *SelectStmt, qr *QueryResult, db *db.Databa
 // CreateSnapshot process to create snapshot of database
 func (qe *QueryExecutor) CreateSnapshot(query *Query, results chan *QueryResult) {
 	qp := query.Params.(*CreateSnapshotStmt)
-
-	//err := qe.dbManager.DropDatabase(qp.Name)
 	qr := QueryResult{Database: qp.Name}
 
 	if db, ok := qe.dbManager.GetDatabase(qp.Name); ok == true {
