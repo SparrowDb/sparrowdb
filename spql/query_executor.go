@@ -4,8 +4,11 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/sparrowdb/backup"
 	"github.com/sparrowdb/db"
+	"github.com/sparrowdb/errors"
 	"github.com/sparrowdb/model"
+	"github.com/sparrowdb/slog"
 )
 
 // QueryExecutor holds query executor data
@@ -22,6 +25,11 @@ func (qe *QueryExecutor) ExecuteQuery(query *Query) <-chan *QueryResult {
 
 func (qe *QueryExecutor) executeQuery(query *Query, results chan *QueryResult) {
 	defer close(results)
+	defer func() {
+		if r := recover(); r != nil {
+			slog.Errorf("%s", r)
+		}
+	}()
 
 	inputs := make([]reflect.Value, 2)
 	inputs[0] = reflect.ValueOf(query)
@@ -41,6 +49,7 @@ func (qe *QueryExecutor) CreateDatabase(query *Query, results chan *QueryResult)
 		BloomFilterFp:  qp.BloomFilterFp,
 		CronExp:        qp.CronExp,
 		Path:           qp.Path,
+		SnapshotPath:   qp.SnapshotPath,
 	}
 
 	err := qe.dbManager.CreateDatabase(databaseCfg)
@@ -95,7 +104,7 @@ func (qe *QueryExecutor) Delete(query *Query, results chan *QueryResult) {
 			db.InsertData(tbs)
 		}
 	} else {
-		qr.AddErrorStr(fmt.Sprintf(errDatabaseNotFound, qp.Name))
+		qr.AddErrorStr(errors.ErrDatabaseNotFound.Error())
 	}
 
 	results <- &qr
@@ -109,7 +118,7 @@ func (qe *QueryExecutor) Select(query *Query, results chan *QueryResult) {
 	if db, ok := qe.dbManager.GetDatabase(qp.Name); ok {
 		qe.doSelect(qp, &qr, db, results)
 	} else {
-		qr.AddErrorStr(fmt.Sprintf(errDatabaseNotFound, qp.Name))
+		qr.AddErrorStr(errors.ErrDatabaseNotFound.Error())
 		results <- &qr
 	}
 }
@@ -124,6 +133,25 @@ func (qe *QueryExecutor) doSelect(qp *SelectStmt, qr *QueryResult, db *db.Databa
 			result <- qr
 		}
 	}
+}
+
+// CreateSnapshot process to create snapshot of database
+func (qe *QueryExecutor) CreateSnapshot(query *Query, results chan *QueryResult) {
+	qp := query.Params.(*CreateSnapshotStmt)
+
+	//err := qe.dbManager.DropDatabase(qp.Name)
+	qr := QueryResult{Database: qp.Name}
+
+	if db, ok := qe.dbManager.GetDatabase(qp.Name); ok == true {
+		err := backup.CreateSnapshot(db.Descriptor.Path, db.Descriptor.SnapshotPath)
+		if err != nil {
+			qr.AddErrorStr(errors.ErrCreateDatabase.Error())
+		}
+	} else {
+		qr.AddErrorStr(errors.ErrDatabaseNotFound.Error())
+	}
+
+	results <- &qr
 }
 
 // NewQueryExecutor returns new QueryExecutor

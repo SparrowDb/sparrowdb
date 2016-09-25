@@ -67,6 +67,9 @@ func (p *Parser) parse(q *Query, r *json.RawMessage) error {
 	case "select":
 		q.Method = "Select"
 		err = ParseSelectStmt(q, r)
+	case "create_snapshot":
+		q.Method = "CreateSnapshot"
+		err = ParseCreateSnapshotStmt(q, r)
 	default:
 		err = errors.New("Invalid query")
 	}

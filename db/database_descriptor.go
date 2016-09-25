@@ -21,6 +21,7 @@ type DatabaseDescriptor struct {
 	BloomFilterFp  float32  `xml:"bloomfilter_fpp"`
 	CronExp        string   `xml:"dataholder_cron_compaction"`
 	Path           string   `xml:"path"`
+	SnapshotPath   string   `xml:"snapshot_path"`
 	TokenActive    bool     `xml:"generate_token"`
 	Mode           string   `xml:"mode"`
 }

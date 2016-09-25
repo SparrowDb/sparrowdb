@@ -13,6 +13,7 @@ type CreateDatabaseStmt struct {
 	BloomFilterFp  float32 `json:"bloomfilter_fpp"`
 	CronExp        string  `json:"dataholder_cron_compaction"`
 	Path           string  `json:"path"`
+	SnapshotPath   string  `json:"snapshot_path"`
 }
 
 // ParseCreateDatabaseStmt parse raw json to query.params

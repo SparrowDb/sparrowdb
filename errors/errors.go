@@ -6,6 +6,9 @@ var (
 	// ErrCreateDatabase error message when create database
 	ErrCreateDatabase = errors.New("Could not create database")
 
+	// ErrCreateSnapshot error message when create database snapshot
+	ErrCreateSnapshot = errors.New("Could not create snapshot")
+
 	// ErrDropDatabase error message when drop database
 	ErrDropDatabase = errors.New("Could not drop database")
 

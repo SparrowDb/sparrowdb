@@ -26,6 +26,9 @@ func (dbm *DBManager) checkAndFillDescriptor(descriptor *DatabaseDescriptor) {
 	if len(strings.TrimSpace(descriptor.Path)) == 0 {
 		descriptor.Path = filepath.Join(dbm.Config.Path, descriptor.Name)
 	}
+	if len(strings.TrimSpace(descriptor.SnapshotPath)) == 0 {
+		descriptor.SnapshotPath = filepath.Join(dbm.Config.SnapshotPath, descriptor.Name)
+	}
 	if len(strings.TrimSpace(descriptor.Mode)) == 0 {
 		descriptor.Mode = dbm.Config.Mode
 	}

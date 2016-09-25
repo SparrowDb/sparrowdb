@@ -43,7 +43,7 @@ type Instance struct {
 }
 
 func checkAndCreateDefaultDirs() {
-	dirs := []string{"config", "data", "scripts"}
+	dirs := []string{"config", "data", "scripts", "snapshot"}
 	for _, val := range dirs {
 		if _, err := os.Stat(val); os.IsNotExist(err) {
 			util.CreateDir(val)

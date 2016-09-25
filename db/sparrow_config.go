@@ -28,6 +28,7 @@ type SparrowConfig struct {
 	BloomFilterFp        float32 `xml:"bloomfilter_fpp"`
 	CronExp              string  `xml:"dataholder_cron_compaction"`
 	Path                 string  `xml:"data_file_directory"`
+	SnapshotPath         string  `xml:"snapshot_path"`
 	TokenActive          bool    `xml:"generate_token"`
 	AuthenticationActive bool    `xml:"enable_authentication"`
 	UserExpire           int     `xml:"user_expire"`

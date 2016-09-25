@@ -3,8 +3,7 @@ package spql
 import "regexp"
 
 const (
-	errDatabaseNotFound = "Database %s not found"
-	errDataNotFound     = "Data %s not found in %s"
+	errDataNotFound = "Data %s not found in %s"
 )
 
 var (
