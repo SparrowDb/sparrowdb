@@ -22,7 +22,7 @@ import (
 
 // Database holds database definitions
 type Database struct {
-	Descriptor *DatabaseDescriptor
+	Descriptor DatabaseDescriptor
 	commitlog  *Commitlog
 	dhList     []dataHolder
 	cache      *cache.Cache
@@ -255,7 +255,7 @@ func (db *Database) Close() {
 }
 
 // NewDatabase returns new Database
-func NewDatabase(descriptor *DatabaseDescriptor) *Database {
+func NewDatabase(descriptor DatabaseDescriptor) *Database {
 	db := Database{
 		Descriptor: descriptor,
 		commitlog:  NewCommitLog(descriptor.Path),
@@ -271,7 +271,7 @@ func NewDatabase(descriptor *DatabaseDescriptor) *Database {
 }
 
 // OpenDatabase returns oppened Database
-func OpenDatabase(descriptor *DatabaseDescriptor) *Database {
+func OpenDatabase(descriptor DatabaseDescriptor) *Database {
 	db := NewDatabase(descriptor)
 	db.commitlog.LoadData()
 	db.LoadData()

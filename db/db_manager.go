@@ -62,7 +62,7 @@ func (dbm *DBManager) CreateDatabase(descriptor DatabaseDescriptor) error {
 			return errors.ErrCreateDatabase
 		}
 
-		dbm.databases[descriptor.Name] = NewDatabase(&descriptor)
+		dbm.databases[descriptor.Name] = NewDatabase(descriptor)
 		dbm.databaseConfig.SaveDatabase(descriptor)
 
 		return nil
@@ -136,7 +136,7 @@ func (dbm *DBManager) LoadDatabases() {
 	descriptors := dbm.databaseConfig.LoadDatabases()
 
 	for _, d := range descriptors {
-		_, err := dbm.openDatabase(&d)
+		_, err := dbm.openDatabase(d)
 
 		if err != nil {
 			slog.Fatalf("Erro trying to load %s: %s\n[%s]\n\nQuiting...", d.Name, err, string(d.ToJSON()))
@@ -149,7 +149,7 @@ func (dbm *DBManager) LoadDatabases() {
 	slog.Infof("Databases loaded: %s", buffer.String())
 }
 
-func (dbm *DBManager) openDatabase(descriptor *DatabaseDescriptor) (*Database, error) {
+func (dbm *DBManager) openDatabase(descriptor DatabaseDescriptor) (*Database, error) {
 	// Check database directory
 	exists, _ := util.Exists(descriptor.Path)
 	if !exists {
