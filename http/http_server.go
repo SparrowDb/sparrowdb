@@ -45,6 +45,7 @@ func (httpServer *HTTPServer) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	if controller, ok := httpServer.routers[parts[0]]; ok {
 		parts := strings.Split(r.URL.Path[1:], "/")
 		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Server", "SparrowDb")
 		controller.method(&RequestData{responseWriter: w, request: r, params: parts[1:]})
 	}
 }
