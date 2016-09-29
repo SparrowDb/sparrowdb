@@ -6,11 +6,11 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/sparrowdb/db/index"
-	"github.com/sparrowdb/engine"
-	"github.com/sparrowdb/errors"
-	"github.com/sparrowdb/slog"
-	"github.com/sparrowdb/util"
+	"github.com/SparrowDb/sparrowdb/db/index"
+	"github.com/SparrowDb/sparrowdb/engine"
+	"github.com/SparrowDb/sparrowdb/errors"
+	"github.com/SparrowDb/sparrowdb/slog"
+	"github.com/SparrowDb/sparrowdb/util"
 )
 
 const (

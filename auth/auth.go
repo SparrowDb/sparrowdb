@@ -8,9 +8,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/sparrowdb/db"
-	"github.com/sparrowdb/slog"
-	"github.com/sparrowdb/util/uuid"
+	"github.com/SparrowDb/sparrowdb/db"
+	"github.com/SparrowDb/sparrowdb/slog"
+	"github.com/SparrowDb/sparrowdb/util/uuid"
 )
 
 const (

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"strings"
 
-	"github.com/sparrowdb/errors"
+	"github.com/SparrowDb/sparrowdb/errors"
 )
 
 var (

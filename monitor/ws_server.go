@@ -3,8 +3,8 @@ package monitor
 import (
 	"net"
 
-	"github.com/sparrowdb/db"
-	"github.com/sparrowdb/slog"
+	"github.com/SparrowDb/sparrowdb/db"
+	"github.com/SparrowDb/sparrowdb/slog"
 
 	"fmt"
 	"net/http"

@@ -3,7 +3,7 @@ package db
 import (
 	"io"
 
-	"github.com/sparrowdb/util"
+	"github.com/SparrowDb/sparrowdb/util"
 )
 
 type dbWriter struct {

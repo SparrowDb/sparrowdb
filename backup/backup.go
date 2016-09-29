@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sparrowdb/util"
+	"github.com/SparrowDb/sparrowdb/util"
 )
 
 // CreateSnapshot creates snapshot of database using hard link

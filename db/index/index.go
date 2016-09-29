@@ -1,6 +1,6 @@
 package index
 
-import "github.com/sparrowdb/util"
+import "github.com/SparrowDb/sparrowdb/util"
 
 // Entry holds index entry
 type Entry struct {

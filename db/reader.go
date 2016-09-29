@@ -3,10 +3,10 @@ package db
 import (
 	"io"
 
-	"github.com/sparrowdb/db/index"
-	"github.com/sparrowdb/engine"
-	"github.com/sparrowdb/slog"
-	"github.com/sparrowdb/util"
+	"github.com/SparrowDb/sparrowdb/db/index"
+	"github.com/SparrowDb/sparrowdb/engine"
+	"github.com/SparrowDb/sparrowdb/slog"
+	"github.com/SparrowDb/sparrowdb/util"
 )
 
 type dbReader struct {

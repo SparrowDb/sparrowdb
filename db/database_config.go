@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/sparrowdb/slog"
+	"github.com/SparrowDb/sparrowdb/slog"
 )
 
 const (

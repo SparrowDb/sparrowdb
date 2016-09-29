@@ -8,10 +8,10 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/sparrowdb/errors"
-	"github.com/sparrowdb/model"
-	"github.com/sparrowdb/slog"
-	"github.com/sparrowdb/util"
+	"github.com/SparrowDb/sparrowdb/errors"
+	"github.com/SparrowDb/sparrowdb/model"
+	"github.com/SparrowDb/sparrowdb/slog"
+	"github.com/SparrowDb/sparrowdb/util"
 )
 
 // DBManager holds all databases
