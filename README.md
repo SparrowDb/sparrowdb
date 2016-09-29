@@ -49,7 +49,7 @@ Sending an image to database:
         http://127.0.0.1:8081/upload
 
 
-Sending an image to database:
+Querying an image:
 
 	curl -X POST -d '{"type": "select", "params": {"name": "database_name", "field": "key", "key": "image_name"}}' \ 
         http://127.0.0.1:8081/query
@@ -67,6 +67,33 @@ If is set in database configuration file, generate_token = true, SparrowDB will 
 Accessing image from browser with token:
 	
 	http://localhost:8081/g/database_name/image_key/token_value
+
+Image Processing
+====================
+
+SparrowDB uses [bild](https://github.com/anthonynsimon/bild) to allow image processing using [LUA](https://github.com/yuin/gopher-lua) script.
+
+All SparrowDB scripts must be in 'scripts' folder.
+
+Script Example
+====================
+Example of script that converts image to grayscale.
+
+
+```lua
+-- loads sparrowdb module
+local s = require("sparrowdb")
+
+-- get image data
+image = s.getInputImage()
+
+-- convert image to grayscale
+out = s.grayscale(image)
+
+-- set new output for image
+s.setOutputImage(out)
+```
+
 
 
 License
