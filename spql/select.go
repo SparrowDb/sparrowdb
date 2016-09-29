@@ -14,6 +14,8 @@ type SelectStmt struct {
 
 // ParseSelectStmt parse raw json to query.params
 func ParseSelectStmt(q *Query, raw *json.RawMessage) error {
+	q.Method = "Select"
+
 	stmt := &SelectStmt{}
 	json.Unmarshal(*raw, stmt)
 	q.Params = stmt

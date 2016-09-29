@@ -12,6 +12,8 @@ type DropDatabaseStmt struct {
 
 // ParseDropDatabaseStmt parse raw json to query.params
 func ParseDropDatabaseStmt(q *Query, raw *json.RawMessage) error {
+	q.Method = "DropDatabase"
+
 	stmt := &DropDatabaseStmt{}
 	json.Unmarshal(*raw, stmt)
 	q.Params = stmt

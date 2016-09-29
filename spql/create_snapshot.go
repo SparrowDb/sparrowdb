@@ -12,6 +12,8 @@ type CreateSnapshotStmt struct {
 
 // ParseCreateSnapshotStmt parse raw json to query.params
 func ParseCreateSnapshotStmt(q *Query, raw *json.RawMessage) error {
+	q.Method = "CreateSnapshot"
+
 	stmt := &CreateSnapshotStmt{}
 	json.Unmarshal(*raw, stmt)
 	q.Params = stmt

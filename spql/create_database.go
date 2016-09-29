@@ -18,6 +18,8 @@ type CreateDatabaseStmt struct {
 
 // ParseCreateDatabaseStmt parse raw json to query.params
 func ParseCreateDatabaseStmt(q *Query, raw *json.RawMessage) error {
+	q.Method = "CreateDatabase"
+
 	stmt := &CreateDatabaseStmt{}
 	json.Unmarshal(*raw, stmt)
 	q.Params = stmt

@@ -18,7 +18,7 @@ type UserStmt struct {
 func GetTokenFromRequest(queryStr string) (string, bool) {
 	p := Parser{query: queryStr}
 
-	if _, err := parseStmt(&p); err != nil {
+	if _, err := parseSpql(&p); err != nil {
 		return "", false
 	}
 
@@ -36,7 +36,7 @@ func ValidateUserToken(str string) bool {
 // ParseUserStmt parses user query and returns QueryObject
 func ParseUserStmt(queryStr string) (*QueryResult, error) {
 	p := Parser{query: queryStr}
-	q, err := parseStmt(&p)
+	q, err := parseSpql(&p)
 	if err != nil {
 		return nil, err
 	}

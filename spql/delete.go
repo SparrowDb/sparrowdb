@@ -13,6 +13,8 @@ type DeleteStmt struct {
 
 // ParseDeleteStmt parse raw json to query.params
 func ParseDeleteStmt(q *Query, raw *json.RawMessage) error {
+	q.Method = "Delete"
+
 	stmt := &DeleteStmt{}
 	json.Unmarshal(*raw, stmt)
 	q.Params = stmt

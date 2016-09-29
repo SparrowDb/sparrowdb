@@ -21,6 +21,9 @@ var (
 	// ErrWrongRequest error message for wrong HTTP request
 	ErrWrongRequest = errors.New("Wrong HTTP request")
 
+	// ErrInvalidQueryAction error message for when query action is invalid
+	ErrInvalidQueryAction = errors.New("Invalid query action")
+
 	// ErrEmptyQueryResult error message for empty query result
 	ErrEmptyQueryResult = errors.New("Empty query result")
 
