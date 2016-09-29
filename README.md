@@ -75,10 +75,7 @@ SparrowDB uses [bild](https://github.com/anthonynsimon/bild) to allow image proc
 
 All SparrowDB scripts must be in 'scripts' folder.
 
-### Script Example
-====================
-Example of script that converts image to grayscale.
-
+Example of script that converts image to grayscale:
 
 ```lua
 -- loads sparrowdb module
