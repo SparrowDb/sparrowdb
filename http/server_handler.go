@@ -7,15 +7,15 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/sparrowdb/auth"
-	"github.com/sparrowdb/db"
-	"github.com/sparrowdb/errors"
-	"github.com/sparrowdb/model"
-	"github.com/sparrowdb/monitor"
-	"github.com/sparrowdb/script"
-	"github.com/sparrowdb/slog"
-	"github.com/sparrowdb/spql"
-	"github.com/sparrowdb/util/uuid"
+	"github.com/SparrowDb/sparrowdb/auth"
+	"github.com/SparrowDb/sparrowdb/db"
+	"github.com/SparrowDb/sparrowdb/errors"
+	"github.com/SparrowDb/sparrowdb/model"
+	"github.com/SparrowDb/sparrowdb/monitor"
+	"github.com/SparrowDb/sparrowdb/script"
+	"github.com/SparrowDb/sparrowdb/slog"
+	"github.com/SparrowDb/sparrowdb/spql"
+	"github.com/SparrowDb/sparrowdb/util/uuid"
 )
 
 // ServeHandler holds main http methods

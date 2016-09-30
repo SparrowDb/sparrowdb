@@ -9,14 +9,14 @@ import (
 	"strconv"
 	"syscall"
 
-	"github.com/sparrowdb/auth"
-	"github.com/sparrowdb/compression"
-	"github.com/sparrowdb/db"
-	"github.com/sparrowdb/http"
-	"github.com/sparrowdb/monitor"
-	"github.com/sparrowdb/service"
-	"github.com/sparrowdb/slog"
-	"github.com/sparrowdb/util"
+	"github.com/SparrowDb/sparrowdb/auth"
+	"github.com/SparrowDb/sparrowdb/compression"
+	"github.com/SparrowDb/sparrowdb/db"
+	"github.com/SparrowDb/sparrowdb/http"
+	"github.com/SparrowDb/sparrowdb/monitor"
+	"github.com/SparrowDb/sparrowdb/service"
+	"github.com/SparrowDb/sparrowdb/slog"
+	"github.com/SparrowDb/sparrowdb/util"
 )
 
 const (

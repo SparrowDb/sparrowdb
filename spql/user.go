@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"strings"
 
-	"github.com/sparrowdb/auth"
-	"github.com/sparrowdb/errors"
+	"github.com/SparrowDb/sparrowdb/auth"
+	"github.com/SparrowDb/sparrowdb/errors"
 )
 
 // UserStmt holds user parsed arguments from query

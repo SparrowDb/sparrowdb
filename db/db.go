@@ -11,13 +11,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/sparrowdb/cache"
-	"github.com/sparrowdb/db/index"
-	"github.com/sparrowdb/engine"
-	"github.com/sparrowdb/errors"
-	"github.com/sparrowdb/model"
-	"github.com/sparrowdb/slog"
-	"github.com/sparrowdb/util"
+	"github.com/SparrowDb/sparrowdb/cache"
+	"github.com/SparrowDb/sparrowdb/db/index"
+	"github.com/SparrowDb/sparrowdb/engine"
+	"github.com/SparrowDb/sparrowdb/errors"
+	"github.com/SparrowDb/sparrowdb/model"
+	"github.com/SparrowDb/sparrowdb/slog"
+	"github.com/SparrowDb/sparrowdb/util"
 )
 
 // Database holds database definitions

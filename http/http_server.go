@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/sparrowdb/db"
-	"github.com/sparrowdb/monitor"
-	"github.com/sparrowdb/slog"
-	"github.com/sparrowdb/spql"
+	"github.com/SparrowDb/sparrowdb/db"
+	"github.com/SparrowDb/sparrowdb/monitor"
+	"github.com/SparrowDb/sparrowdb/slog"
+	"github.com/SparrowDb/sparrowdb/spql"
 )
 
 // HTTPServer holds HTTP server configuration and routes

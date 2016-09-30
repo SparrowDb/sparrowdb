@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/sparrowdb/backup"
-	"github.com/sparrowdb/db"
-	"github.com/sparrowdb/errors"
-	"github.com/sparrowdb/model"
-	"github.com/sparrowdb/slog"
+	"github.com/SparrowDb/sparrowdb/backup"
+	"github.com/SparrowDb/sparrowdb/db"
+	"github.com/SparrowDb/sparrowdb/errors"
+	"github.com/SparrowDb/sparrowdb/model"
+	"github.com/SparrowDb/sparrowdb/slog"
 )
 
 // QueryExecutor holds query executor data

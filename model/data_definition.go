@@ -1,9 +1,9 @@
 package model
 
 import (
-	"github.com/sparrowdb/compression"
-	"github.com/sparrowdb/util"
-	"github.com/sparrowdb/util/uuid"
+	"github.com/SparrowDb/sparrowdb/compression"
+	"github.com/SparrowDb/sparrowdb/util"
+	"github.com/SparrowDb/sparrowdb/util/uuid"
 )
 
 const (

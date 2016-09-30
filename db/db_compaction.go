@@ -2,9 +2,9 @@ package db
 
 import (
 	"github.com/elgs/cron"
-	"github.com/sparrowdb/db/index"
-	"github.com/sparrowdb/model"
-	"github.com/sparrowdb/util"
+	"github.com/SparrowDb/sparrowdb/db/index"
+	"github.com/SparrowDb/sparrowdb/model"
+	"github.com/SparrowDb/sparrowdb/util"
 )
 
 var (
