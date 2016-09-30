@@ -69,5 +69,7 @@ type Storage interface {
 
 	Rename(ofd, nfd FileDesc) error
 
+	Truncate(pos int64) error
+
 	Close() error
 }

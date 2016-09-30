@@ -53,24 +53,31 @@ func (c *Commitlog) Get(key string) *util.ByteStream {
 func (c *Commitlog) Add(key string, status uint16, bs *util.ByteStream) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
+	var err error
 
-	fwriter, _ := c.sto.Create(c.desc)
-	pos, _ := c.sto.Size(c.desc)
+	fwriter, err := c.sto.Create(c.desc)
+	pos, err := c.sto.Size(c.desc)
 
 	writer := newWriter(fwriter)
-	writer.Append(key, bs.Bytes())
 
-	writer.Close()
+	if err = writer.Append(key, bs.Bytes()); err == nil {
+		hKey := util.Hash32(key)
 
-	hKey := util.Hash32(key)
+		if eidx := c.writeIndex(&index.Entry{
+			Key:    hKey,
+			Offset: pos,
+			Status: status,
+		}); eidx != nil {
+			c.sto.Truncate(pos)
+		}
 
-	c.writeIndex(&index.Entry{
-		Key:    hKey,
-		Offset: pos,
-		Status: status,
-	})
+		writer.Close()
+	} else {
+		c.sto.Truncate(pos)
+	}
 
-	return nil
+	c.sto.Close()
+	return err
 }
 
 func (c *Commitlog) writeIndex(index *index.Entry) error {

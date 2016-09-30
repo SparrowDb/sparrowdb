@@ -105,6 +105,12 @@ func (fs *fileStorage) Rename(ofd, nfd FileDesc) error {
 	return nil
 }
 
+func (fs *fileStorage) Truncate(pos int64) error {
+	fs.mu.Lock()
+	defer fs.mu.Unlock()
+	return os.Truncate(fs.path, pos)
+}
+
 func (fs *fileStorage) Close() error {
 	fs.mu.Lock()
 	defer fs.mu.Unlock()
