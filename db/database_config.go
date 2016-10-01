@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/SparrowDb/sparrowdb/errors"
 	"github.com/SparrowDb/sparrowdb/slog"
 )
 
@@ -54,14 +55,19 @@ func (cfg *DatabaseConfig) saveXMLFile() {
 func (cfg *DatabaseConfig) LoadDatabases() []DatabaseDescriptor {
 	filePath := cfg.filepath + DefaultDatabaseConfigFile
 
-	xmlFile, _ := os.Open(filePath)
+	xmlFile, err := os.Open(filePath)
+	if err != nil {
+		slog.Fatalf(errors.ErrFileNotFound.Error(), filePath)
+	}
 
 	defer xmlFile.Close()
 
 	data, _ := ioutil.ReadAll(xmlFile)
 
 	descriptor := XMLDatabaseList{}
-	xml.Unmarshal(data, &descriptor)
+	if err := xml.Unmarshal(data, &descriptor); err != nil {
+		slog.Fatalf(errors.ErrParseFile.Error(), filePath)
+	}
 
 	// Put the loaded database list into the sparrowdb instance list
 	cfg.xmlDbList.Databases = descriptor.Databases

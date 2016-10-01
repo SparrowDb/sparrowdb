@@ -37,12 +37,21 @@ var (
 	// ErrReadDir error message when try to read directory
 	ErrReadDir = errors.New("Could not read directory")
 
-	// ErrFileCorrupted erros message when file is corrupted
+	// ErrFileNotFound error message when file not found
+	ErrFileNotFound = errors.New("File %s not found")
+
+	// ErrParseFile error message when cannot parse file
+	ErrParseFile = errors.New("Error trying to parse file %s")
+
+	// ErrWrongInstanceMode error message for wrong instance mode
+	ErrWrongInstanceMode = errors.New("Not valid SparrowDB mode, it must be [R]ead, [W]write or [RW]read-write")
+
+	// ErrFileCorrupted error message when file is corrupted
 	ErrFileCorrupted = errors.New("Could not read data from %s. File Corrupted")
 
-	// ErrLogin erros message when username and/or password is wrong
+	// ErrLogin error message when username and/or password is wrong
 	ErrLogin = errors.New("Wrong username and/or password")
 
-	// ErrInvalidToken erros message when username inputs invalid or expired token
+	// ErrInvalidToken error message when username inputs invalid or expired token
 	ErrInvalidToken = errors.New("Invalid or expired token")
 )

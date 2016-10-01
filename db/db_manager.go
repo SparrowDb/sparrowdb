@@ -135,15 +135,19 @@ func (dbm *DBManager) LoadDatabases() {
 	var buffer bytes.Buffer
 	descriptors := dbm.databaseConfig.LoadDatabases()
 
-	for _, d := range descriptors {
-		_, err := dbm.openDatabase(d)
+	if len(descriptors) > 0 {
+		for _, d := range descriptors {
+			_, err := dbm.openDatabase(d)
 
-		if err != nil {
-			slog.Fatalf("Erro trying to load %s: %s\n[%s]\n\nQuiting...", d.Name, err, string(d.ToJSON()))
-			os.Exit(1)
+			if err != nil {
+				slog.Fatalf("Erro trying to load %s: %s\n[%s]\n\nQuiting...", d.Name, err, string(d.ToJSON()))
+				os.Exit(1)
+			}
+
+			buffer.WriteString(d.Name + " ")
 		}
-
-		buffer.WriteString(d.Name + " ")
+	} else {
+		buffer.WriteString("none")
 	}
 
 	slog.Infof("Databases loaded: %s", buffer.String())

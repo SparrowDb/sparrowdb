@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/SparrowDb/sparrowdb/errors"
 	"github.com/SparrowDb/sparrowdb/slog"
 )
 
@@ -77,17 +78,24 @@ func (sc *SparrowConfig) GetStringMode() string {
 func NewSparrowConfig(filePath string) *SparrowConfig {
 	filePath = filePath + DefaultSparrowConfigFile
 
-	xmlFile, _ := os.Open(filePath)
+	xmlFile, err := os.Open(filePath)
+	if err != nil {
+		slog.Fatalf(errors.ErrFileNotFound.Error(), filePath)
+	}
 
 	defer xmlFile.Close()
 
 	data, _ := ioutil.ReadAll(xmlFile)
 
 	cfg := SparrowConfig{}
-	xml.Unmarshal(data, &cfg)
 
+	if err := xml.Unmarshal(data, &cfg); err != nil {
+		slog.Fatalf(errors.ErrParseFile.Error(), filePath)
+	}
+
+	// validates instance mode R, W or Q
 	if !cfg.isValid() {
-		slog.Fatalf("Not valid SparrowDB mode, it must be [R]ead, [W]write or [RW]read-write")
+		slog.Fatalf(errors.ErrWrongInstanceMode.Error())
 	}
 
 	return &cfg
