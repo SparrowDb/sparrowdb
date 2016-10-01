@@ -20,6 +20,7 @@ func init() {
 	commandTable["delete"] = ParseDeleteStmt
 	commandTable["select"] = ParseSelectStmt
 	commandTable["create_snapshot"] = ParseCreateSnapshotStmt
+	commandTable["info_database"] = ParseInfoDatabasetStmt
 }
 
 func parseStmt(q *Query, r *json.RawMessage) error {

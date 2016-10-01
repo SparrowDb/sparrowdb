@@ -88,6 +88,21 @@ func (qe *QueryExecutor) ShowDatabases(query *Query, results chan *QueryResult) 
 	results <- &qr
 }
 
+// InfoDatabase process show database info
+func (qe *QueryExecutor) InfoDatabase(query *Query, results chan *QueryResult) {
+	qp := query.Params.(*InfoDatabaseStmt)
+	qr := QueryResult{}
+
+	if db, ok := qe.dbManager.GetDatabase(qp.Name); ok == true {
+		qr.AddValue(db.Descriptor)
+		qr.AddValue(db.Info())
+	} else {
+		qr.AddErrorStr(errors.ErrDatabaseNotFound.Error())
+	}
+
+	results <- &qr
+}
+
 // Delete delets entry from database with tombstone
 func (qe *QueryExecutor) Delete(query *Query, results chan *QueryResult) {
 	qp := query.Params.(*DeleteStmt)

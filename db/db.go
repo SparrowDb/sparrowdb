@@ -31,6 +31,14 @@ type Database struct {
 	compFinish chan bool
 }
 
+// DatabaseInfo returns database information
+type DatabaseInfo struct {
+	DhCount       int   `json:"datafile_count"`
+	CommitlogSize int64 `json:"commitlog_size"`
+	CacheItems    int64 `json:"cache_item_count"`
+	CacheUsed     int64 `json:"cache_used_bytes"`
+}
+
 type dataHolder struct {
 	path        string
 	sto         engine.Storage
@@ -224,6 +232,15 @@ func (db *Database) GetDataByKey(key string) (*model.DataDefinition, bool) {
 	}
 
 	return nil, false
+}
+
+// Info returns information about database
+func (db *Database) Info() DatabaseInfo {
+	dbi := DatabaseInfo{}
+	dbi.DhCount = len(db.dhList)
+	dbi.CommitlogSize, _ = db.commitlog.Size()
+	_, dbi.CacheUsed, dbi.CacheItems = db.cache.Usage()
+	return dbi
 }
 
 // LoadData loads index and bloom filter from each data file
