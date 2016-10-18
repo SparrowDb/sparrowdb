@@ -158,6 +158,12 @@ func (sh *ServeHandler) upload(request *RequestData) {
 		}
 
 		dataKey := request.request.FormValue("key")
+
+		if isValidKey := spql.ValidateDatabaseName.MatchString(dataKey); !isValidKey {
+			sh.writeError(request, "{}", errors.ErrImageInvalidKey)
+			return
+		}
+
 		dataToken := uuid.TimeUUID().String()
 
 		// create new DataDefinition with requested values

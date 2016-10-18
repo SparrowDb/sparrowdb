@@ -34,6 +34,12 @@ var (
 	// ErrInsertImage error message when can't insert image
 	ErrInsertImage = errors.New("Could not insert images")
 
+	// ErrImageInvalidKey error message when key is invalid (contains special chars)
+	ErrImageInvalidKey = errors.New("Invalid key")
+
+	// ErrDatabaseName error message when database name is invalid (contains special chars)
+	ErrDatabaseName = errors.New("Invalid database name")
+
 	// ErrReadDir error message when try to read directory
 	ErrReadDir = errors.New("Could not read directory")
 

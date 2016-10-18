@@ -2,7 +2,8 @@ package spql
 
 import (
 	"encoding/json"
-	"errors"
+
+	"github.com/SparrowDb/sparrowdb/errors"
 )
 
 // CreateDatabaseStmt holds database parsed arguments from query
@@ -26,7 +27,7 @@ func ParseCreateDatabaseStmt(q *Query, raw *json.RawMessage) error {
 
 	err := ValidateDatabaseName.MatchString(stmt.Name)
 	if !err {
-		return errors.New("Invalid database name")
+		return errors.ErrDatabaseName
 	}
 
 	return nil
