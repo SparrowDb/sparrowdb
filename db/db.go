@@ -193,6 +193,24 @@ func (db *Database) InsertData(df *model.DataDefinition) error {
 	return nil
 }
 
+// InsertCheckRevision checks the revision of the data, df not exists
+// insert it. If df exits checks the revision, if input rev is greater
+// than the rev of stored df, it will be updated, otherwise the new df
+// will be discarted
+func (db *Database) InsertCheckRevision(df *model.DataDefinition, rev uint32) (uint32, error) {
+	storedDf, exists := db.GetDataByKey(df.Key)
+
+	if exists == false || rev > storedDf.Revision {
+		if err := db.InsertData(df); err != nil {
+			return 0, errors.ErrInsertImage
+		}
+		return 0, nil
+	}
+
+	err := fmt.Errorf(errors.ErrWrongRevision.Error(), df.Key, rev)
+	return storedDf.Revision, err
+}
+
 // GetDataByKey returns pointer to DataDefinition and bool if found the data
 func (db *Database) GetDataByKey(key string) (*model.DataDefinition, bool) {
 	defer func() {

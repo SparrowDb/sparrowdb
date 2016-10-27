@@ -24,6 +24,20 @@ type ServeHandler struct {
 	queryExecutor *spql.QueryExecutor
 }
 
+const (
+	statusOk         = 200
+	statusBadRequest = 400
+	statusNotFound   = 404
+	statusConflict   = 409
+)
+
+func (sh *ServeHandler) writeResponse(status int, request *RequestData, result *spql.QueryResult) {
+	request.responseWriter.Header().Set("Content-Type", "application/json")
+	request.responseWriter.WriteHeader(status)
+	request.responseWriter.Write(result.Value())
+}
+
+/*
 func (sh *ServeHandler) writeResponse(request *RequestData, result *spql.QueryResult) {
 	request.responseWriter.Header().Set("Content-Type", "application/json")
 	request.responseWriter.Write(result.Value())
@@ -38,7 +52,7 @@ func (sh *ServeHandler) writeError(request *RequestData, query string, errs ...e
 	result.AddValue(strings.Replace(query, "\n", "", -1))
 	request.responseWriter.WriteHeader(404)
 	request.responseWriter.Write(result.Value())
-}
+}*/
 
 func (sh *ServeHandler) user(request *RequestData) {
 	body := request.request.Body
@@ -49,10 +63,11 @@ func (sh *ServeHandler) user(request *RequestData) {
 
 	qr, err := spql.ParseUserStmt(qStr)
 	if err != nil {
-		sh.writeError(request, "{}", err)
+		qr.AddErrorStr(err.Error())
+		sh.writeResponse(statusBadRequest, request, qr)
 		return
 	}
-	sh.writeResponse(request, qr)
+	sh.writeResponse(statusOk, request, qr)
 }
 
 func (sh *ServeHandler) serveQuery(request *RequestData) {
@@ -62,10 +77,13 @@ func (sh *ServeHandler) serveQuery(request *RequestData) {
 	buf.ReadFrom(body)
 	qStr := buf.String()
 
+	results := &spql.QueryResult{}
+
 	if sh.dbManager.Config.AuthenticationActive {
 		userToken, _ := spql.GetTokenFromRequest(qStr)
 		if !auth.IsLogged(userToken) {
-			sh.writeError(request, "{}", errors.ErrInvalidToken)
+			results.AddErrorStr(errors.ErrInvalidToken.Error())
+			sh.writeResponse(statusBadRequest, request, results)
 			return
 		}
 	}
@@ -73,24 +91,29 @@ func (sh *ServeHandler) serveQuery(request *RequestData) {
 	p := spql.NewParser(qStr)
 	q, err := p.ParseQuery()
 	if err != nil {
-		sh.writeError(request, qStr, err)
+		results.AddErrorStr(err.Error())
+		sh.writeResponse(statusBadRequest, request, results)
 		return
 	}
 
-	results := <-sh.queryExecutor.ExecuteQuery(q)
+	results = <-sh.queryExecutor.ExecuteQuery(q)
 
 	if results == nil {
-		sh.writeError(request, qStr, errors.ErrEmptyQueryResult)
+		results.AddErrorStr(errors.ErrEmptyQueryResult.Error())
+		sh.writeResponse(statusBadRequest, request, results)
 		return
 	}
 
 	monitor.IncHTTPQueries()
-	sh.writeResponse(request, results)
+	sh.writeResponse(statusOk, request, results)
 }
 
 func (sh *ServeHandler) get(request *RequestData) {
+	results := &spql.QueryResult{}
+
 	if len(request.params) < 2 {
-		sh.writeError(request, "{}", errors.ErrWrongRequest)
+		results.AddErrorStr(errors.ErrWrongRequest.Error())
+		sh.writeResponse(statusBadRequest, request, results)
 		return
 	}
 
@@ -100,7 +123,8 @@ func (sh *ServeHandler) get(request *RequestData) {
 	// Check if database exists
 	sto, ok := sh.dbManager.GetDatabase(dbname)
 	if !ok {
-		sh.writeError(request, "{}", errors.ErrDatabaseNotFound)
+		results.AddErrorStr(errors.ErrDatabaseNotFound.Error())
+		sh.writeResponse(statusBadRequest, request, results)
 		return
 	}
 
@@ -109,20 +133,23 @@ func (sh *ServeHandler) get(request *RequestData) {
 
 	// Check if found requested data or DataDefinition is deleted
 	if result == nil || result.Status == model.DataDefinitionRemoved {
-		sh.writeError(request, "{}", errors.ErrEmptyQueryResult)
+		results.AddErrorStr(errors.ErrEmptyQueryResult.Error())
+		sh.writeResponse(statusBadRequest, request, results)
 		return
 	}
 
 	// Token verification if enabled
 	if sto.Descriptor.TokenActive {
 		if len(request.params) != 3 {
-			sh.writeError(request, "{}", errors.ErrWrongRequest)
+			results.AddErrorStr(errors.ErrWrongRequest.Error())
+			sh.writeResponse(statusBadRequest, request, results)
 			return
 		}
 		token := request.params[2]
 
 		if token != result.Token {
-			sh.writeError(request, "{}", errors.ErrWrongToken)
+			results.AddErrorStr(errors.ErrWrongToken.Error())
+			sh.writeResponse(statusBadRequest, request, results)
 			return
 		}
 	}
@@ -147,60 +174,77 @@ func (sh *ServeHandler) upload(request *RequestData) {
 	sto, ok := sh.dbManager.GetDatabase(dbname)
 
 	b := buf.Bytes()
+	results := &spql.QueryResult{}
 
-	if ok {
-		// checks if user request needs script execution
-		if scriptName := request.request.FormValue("script"); len(strings.TrimSpace(scriptName)) > 0 {
-			if b, err = script.Execute(scriptName, b); err != nil {
-				sh.writeError(request, "{}", errors.ErrInsertImage)
-				return
-			}
-		}
-
-		dataKey := request.request.FormValue("key")
-
-		if isValidKey := spql.ValidateDatabaseName.MatchString(dataKey); !isValidKey {
-			sh.writeError(request, "{}", errors.ErrImageInvalidKey)
-			return
-		}
-
-		dataToken := uuid.TimeUUID().String()
-
-		// create new DataDefinition with requested values
-		df := &model.DataDefinition{
-			Key: dataKey,
-
-			// default store UUID to keep information of insert time
-			// and eliminates attacks aimed at guessing valid URLs for photos
-			Token: dataToken,
-
-			// get file extension and remove dot before ext name
-			Ext: filepath.Ext(fhandler.Filename)[1:],
-
-			Size: uint32(len(b)),
-
-			// Default status 1 (Active)
-			Status: model.DataDefinitionActive,
-
-			Buf: b,
-		}
-
-		// try to insert image in database
-		if err := sto.InsertData(df); err != nil {
-			sh.writeError(request, "{}", errors.ErrInsertImage)
-			return
-		}
-
-		// write ok response
-		result := &spql.QueryResult{Database: dbname}
-		result.AddValue(df.QueryResult())
-		sh.writeResponse(request, result)
-
-		// increment upload statistics
-		monitor.IncHTTPUploads()
-	} else {
-		sh.writeError(request, "{}", errors.ErrDatabaseNotFound)
+	if !ok {
+		results.AddErrorStr(errors.ErrDatabaseNotFound.Error())
+		sh.writeResponse(statusBadRequest, request, results)
+		return
 	}
+	results.Database = dbname
+	dataKey := request.request.FormValue("key")
+
+	var dataRev uint32
+
+	if _rev := request.request.FormValue("rev"); len(strings.TrimSpace(_rev)) > 0 {
+		_dataRev, err := strconv.Atoi(_rev)
+		if err != nil {
+			results.AddErrorStr(err.Error())
+			sh.writeResponse(statusBadRequest, request, results)
+			return
+		}
+		dataRev = uint32(_dataRev)
+	}
+
+	// checks if user request needs script execution
+	if scriptName := request.request.FormValue("script"); len(strings.TrimSpace(scriptName)) > 0 {
+		if b, err = script.Execute(scriptName, b); err != nil {
+			results.AddErrorStr(errors.ErrInsertImage.Error())
+			sh.writeResponse(statusBadRequest, request, results)
+			return
+		}
+	}
+
+	if isValidKey := spql.ValidateDatabaseName.MatchString(dataKey); !isValidKey {
+		results.AddErrorStr(errors.ErrImageInvalidKey.Error())
+		sh.writeResponse(statusBadRequest, request, results)
+		return
+	}
+
+	dataToken := uuid.TimeUUID().String()
+
+	// create new DataDefinition with requested values
+	df := &model.DataDefinition{
+		Key: dataKey,
+
+		// default store UUID to keep information of insert time
+		// and eliminates attacks aimed at guessing valid URLs for photos
+		Token: dataToken,
+
+		// get file extension and remove dot before ext name
+		Ext: filepath.Ext(fhandler.Filename)[1:],
+
+		Size: uint32(len(b)),
+
+		// Default status 1 (Active)
+		Status: model.DataDefinitionActive,
+
+		Buf: b,
+	}
+
+	// try to insert image in database
+	if _, err := sto.InsertCheckRevision(df, dataRev); err != nil {
+		results.AddErrorStr(err.Error())
+		sh.writeResponse(statusConflict, request, results)
+		return
+	}
+
+	// write ok response
+	results.AddValue(df.QueryResult())
+	sh.writeResponse(statusOk, request, results)
+
+	// increment upload statistics
+	monitor.IncHTTPUploads()
 }
 
 // NewServeHandler returns new ServeHandler

@@ -27,12 +27,18 @@ var (
 	// ErrEmptyQueryResult error message for empty query result
 	ErrEmptyQueryResult = errors.New("Empty query result")
 
+	// ErrParse error on parse
+	ErrParse = errors.New("Could not parse %s")
+
 	// ErrWrongToken error message when user inputs wrong token
 	// for image request
 	ErrWrongToken = errors.New("Wrong token")
 
 	// ErrInsertImage error message when can't insert image
 	ErrInsertImage = errors.New("Could not insert images")
+
+	// ErrWrongRevision error message when can't insert image
+	ErrWrongRevision = errors.New("Could not insert image %s invalid revision %v")
 
 	// ErrImageInvalidKey error message when key is invalid (contains special chars)
 	ErrImageInvalidKey = errors.New("Invalid key")

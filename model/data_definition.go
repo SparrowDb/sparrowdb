@@ -16,12 +16,13 @@ const (
 
 // DataDefinition holds the stored item
 type DataDefinition struct {
-	Key    string
-	Size   uint32
-	Token  string
-	Ext    string
-	Status uint16
-	Buf    []byte
+	Key      string
+	Size     uint32
+	Token    string
+	Ext      string
+	Status   uint16
+	Revision uint32
+	Buf      []byte
 }
 
 // DataDefinitionResult holds DataDefinition query result
@@ -31,15 +32,17 @@ type DataDefinitionResult struct {
 	Token     string
 	Timestamp string
 	Ext       string
+	Revision  uint32
 }
 
 // QueryResult convert DataDefinition to DataDefinitionResult
 func (df *DataDefinition) QueryResult() *DataDefinitionResult {
 	dfr := DataDefinitionResult{
-		Key:   df.Key,
-		Size:  df.Size,
-		Token: df.Token,
-		Ext:   df.Ext,
+		Key:      df.Key,
+		Size:     df.Size,
+		Token:    df.Token,
+		Ext:      df.Ext,
+		Revision: df.Revision,
 	}
 
 	uuid, _ := uuid.ParseUUID(df.Token)
@@ -56,6 +59,7 @@ func (df *DataDefinition) ToByteStream() *util.ByteStream {
 	byteStream.PutUInt32(df.Size)
 	byteStream.PutString(df.Ext)
 	byteStream.PutUInt16(df.Status)
+	byteStream.PutUInt32(df.Revision)
 
 	encoded := compression.Compress(df.Buf)
 	byteStream.PutBytes(encoded)
@@ -71,6 +75,7 @@ func NewDataDefinitionFromByteStream(bs *util.ByteStream) *DataDefinition {
 	df.Size = bs.GetUInt32()
 	df.Ext = bs.GetString()
 	df.Status = bs.GetUInt16()
+	df.Revision = bs.GetUInt32()
 
 	buf := bs.GetBytes()
 	if decoded, err := compression.Decompress(buf); err == nil {
