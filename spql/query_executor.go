@@ -143,7 +143,7 @@ func (qe *QueryExecutor) doSelect(qp *SelectStmt, qr *QueryResult, db *db.Databa
 	if qp.Key == "" {
 
 	} else {
-		if d, ok := db.GetDataByKey(qp.Key); ok {
+		if d, _, ok := db.GetDataByKey(qp.Key); ok {
 			qr.AddValue(d.QueryResult())
 			result <- qr
 		}

@@ -22,6 +22,7 @@ type DataDefinition struct {
 	Ext      string
 	Status   uint16
 	Revision uint32
+	Version  []uint32
 	Buf      []byte
 }
 
@@ -61,10 +62,22 @@ func (df *DataDefinition) ToByteStream() *util.ByteStream {
 	byteStream.PutUInt16(df.Status)
 	byteStream.PutUInt32(df.Revision)
 
+	vcount := uint32(len(df.Version))
+	byteStream.PutUInt32(vcount)
+	var idx uint32
+	for idx = 0; idx < vcount; idx++ {
+		byteStream.PutUInt32(df.Version[idx])
+	}
+
 	encoded := compression.Compress(df.Buf)
 	byteStream.PutBytes(encoded)
 
 	return byteStream
+}
+
+// AddVersion adds version to DataDefinition
+func (df *DataDefinition) AddVersion(version uint32) {
+	df.Version = append(df.Version, version)
 }
 
 // NewDataDefinitionFromByteStream convert ByteStream to DataDefinition
@@ -76,6 +89,12 @@ func NewDataDefinitionFromByteStream(bs *util.ByteStream) *DataDefinition {
 	df.Ext = bs.GetString()
 	df.Status = bs.GetUInt16()
 	df.Revision = bs.GetUInt32()
+
+	vcount := bs.GetUInt32()
+	df.Version = make([]uint32, 0)
+	for idx := 0; idx < int(vcount); idx++ {
+		df.Version = append(df.Version, bs.GetUInt32())
+	}
 
 	buf := bs.GetBytes()
 	if decoded, err := compression.Decompress(buf); err == nil {

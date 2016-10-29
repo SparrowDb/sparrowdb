@@ -186,7 +186,7 @@ func (db *Database) InsertData(df *model.DataDefinition) error {
 		db.commitlog = NewCommitLog(db.Descriptor.Path)
 	}
 
-	if err = db.commitlog.Add(df.Key, df.Status, bs); err != nil {
+	if err = db.commitlog.Add(df.Key, df.Status, df.Version, bs); err != nil {
 		return err
 	}
 
@@ -198,21 +198,30 @@ func (db *Database) InsertData(df *model.DataDefinition) error {
 // than the rev of stored df, it will be updated, otherwise the new df
 // will be discarted
 func (db *Database) InsertCheckRevision(df *model.DataDefinition, rev uint32) (uint32, error) {
-	storedDf, exists := db.GetDataByKey(df.Key)
-
-	if exists == false || rev > storedDf.Revision {
-		if err := db.InsertData(df); err != nil {
-			return 0, errors.ErrInsertImage
+	storedDf, idx, exists := db.GetDataByKey(df.Key)
+	if exists == false {
+		if err := db.InsertData(df); err == nil {
+			return df.Revision, nil
 		}
-		return 0, nil
+	} else {
+		if rev > storedDf.Revision {
+			df.Revision = rev
+			df.Version = append(df.Version, storedDf.Version...)
+			df.Version = append(df.Version, idx)
+			if err := db.InsertData(df); err == nil {
+				return df.Revision, nil
+			}
+		}
 	}
 
 	err := fmt.Errorf(errors.ErrWrongRevision.Error(), df.Key, rev)
 	return storedDf.Revision, err
 }
 
-// GetDataByKey returns pointer to DataDefinition and bool if found the data
-func (db *Database) GetDataByKey(key string) (*model.DataDefinition, bool) {
+// GetDataByKey returns pointer to DataDefinition, bool if found the data
+// and if found in data holder, return data holder index array, or if found
+// in cache or commitlog return -1
+func (db *Database) GetDataByKey(key string) (*model.DataDefinition, uint32, bool) {
 	defer func() {
 		if x := recover(); x != nil {
 		}
@@ -223,33 +232,35 @@ func (db *Database) GetDataByKey(key string) (*model.DataDefinition, bool) {
 	// Search for given key in cache
 	if c := db.cache.Get(hkey); c != nil {
 		bs := util.NewByteStreamFromBytes(c)
-		return model.NewDataDefinitionFromByteStream(bs), true
+		return model.NewDataDefinitionFromByteStream(bs), 0, true
 	}
 
 	// Search in commitlog
 	if bs := db.commitlog.Get(key); bs != nil {
 		db.cache.Put(hkey, bs.Bytes())
-		return model.NewDataDefinitionFromByteStream(bs), true
+		return model.NewDataDefinitionFromByteStream(bs), 0, true
 	}
 
 	// Search in data files
+	return db.getDataByKeyDataHolder(hkey)
+}
+
+func (db *Database) getDataByKeyDataHolder(hkey uint32) (*model.DataDefinition, uint32, bool) {
 	strKey := strconv.Itoa(int(hkey))
 	dhListLen := len(db.dhList) - 1
 
-	// Search from the newest dataholder until the oldest
 	for curr := dhListLen; curr >= 0; curr-- {
 		if db.dhList[curr].bloomfilter.Contains(strKey) {
 			if e, eIdx := db.dhList[curr].summary.LookUp(hkey); eIdx == true {
 				bs, err := db.dhList[curr].Get(e.Offset)
 				if err != nil {
-					return nil, false
+					return nil, 0, false
 				}
-				return model.NewDataDefinitionFromByteStream(bs), true
+				return model.NewDataDefinitionFromByteStream(bs), uint32(curr), true
 			}
 		}
 	}
-
-	return nil, false
+	return nil, 0, false
 }
 
 // Info returns information about database

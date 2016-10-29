@@ -229,6 +229,10 @@ func (sh *ServeHandler) upload(request *RequestData) {
 		// Default status 1 (Active)
 		Status: model.DataDefinitionActive,
 
+		Revision: 0,
+
+		Version: make([]uint32, 0),
+
 		Buf: b,
 	}
 

@@ -1,10 +1,10 @@
 package db
 
 import (
-	"github.com/elgs/cron"
 	"github.com/SparrowDb/sparrowdb/db/index"
 	"github.com/SparrowDb/sparrowdb/model"
 	"github.com/SparrowDb/sparrowdb/util"
+	"github.com/elgs/cron"
 )
 
 var (
@@ -62,7 +62,8 @@ func doCompaction(db *Database) {
 				if c := containsKey(v.Key, &tombstones); c == false {
 					bs, _ := dh.Get(v.Offset)
 					df := model.NewDataDefinitionFromByteStream(bs)
-					db.commitlog.Add(df.Key, df.Status, bs)
+					_ = df
+					//db.commitlog.Add(df.Key, df.Status, bs)
 				}
 			}
 			util.DeleteDir(dh.path)

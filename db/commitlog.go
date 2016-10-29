@@ -50,7 +50,7 @@ func (c *Commitlog) Get(key string) *util.ByteStream {
 }
 
 // Add add entry to commitlog
-func (c *Commitlog) Add(key string, status uint16, bs *util.ByteStream) error {
+func (c *Commitlog) Add(key string, status uint16, version []uint32, bs *util.ByteStream) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	var err error
@@ -64,9 +64,11 @@ func (c *Commitlog) Add(key string, status uint16, bs *util.ByteStream) error {
 		hKey := util.Hash32(key)
 
 		if eidx := c.writeIndex(&index.Entry{
-			Key:    hKey,
-			Offset: pos,
-			Status: status,
+			Key:      hKey,
+			Offset:   pos,
+			Status:   status,
+			Revision: uint32(len(version)),
+			Version:  version,
 		}); eidx != nil {
 			c.sto.Truncate(pos)
 		}
