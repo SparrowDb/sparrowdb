@@ -109,13 +109,17 @@ func (qe *QueryExecutor) Delete(query *Query, results chan *QueryResult) {
 	qr := QueryResult{}
 
 	if db, ok := qe.dbManager.GetDatabase(qp.Name); ok == true {
-		result := <-qe.dbManager.GetData(qp.Name, qp.Key)
+		storedDf, idx, exists := db.GetDataByKey(qp.Key)
 
 		// Check if found requested data or DataDefinition is deleted
-		if result == nil || result.Status == model.DataDefinitionRemoved {
+		if exists == false || storedDf.Status == model.DataDefinitionRemoved {
 			qr.AddErrorStr(fmt.Sprintf(errDataNotFound, qp.Key, qp.Name))
 		} else {
-			tbs := model.NewTombstone(result)
+			tbs := model.NewTombstone(storedDf)
+
+			tbs.Revision = 0
+			tbs.Version = append(tbs.Version, storedDf.Version...)
+			tbs.Version = append(tbs.Version, idx)
 			db.InsertData(tbs)
 		}
 	} else {
