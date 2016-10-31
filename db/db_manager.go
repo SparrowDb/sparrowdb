@@ -113,7 +113,7 @@ func (dbm *DBManager) getData(dbname string, strKey string, result chan *model.D
 	defer close(result)
 
 	if db, hasDb := dbm.GetDatabase(dbname); hasDb {
-		if data, _, ret := db.GetDataByKey(strKey); ret {
+		if data, ret := db.GetDataByKey(strKey); ret {
 			result <- data
 		} else {
 			result <- nil

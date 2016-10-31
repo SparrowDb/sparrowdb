@@ -198,16 +198,19 @@ func (db *Database) InsertData(df *model.DataDefinition) error {
 // than the rev of stored df, it will be updated, otherwise the new df
 // will be discarted
 func (db *Database) InsertCheckRevision(df *model.DataDefinition, rev uint32) (uint32, error) {
-	storedDf, idx, exists := db.GetDataByKey(df.Key)
+	hkey := util.Hash32(df.Key)
+
+	entry, idx, exists := db.GetDataIndexByKey(hkey)
 	if exists == false {
 		if err := db.InsertData(df); err == nil {
 			return df.Revision, nil
 		}
 	} else {
+		storedDf, _ := db.GetDataByIndexEntry(idx, entry)
 		if rev > storedDf.Revision {
 			df.Revision = rev
-			df.Version = append(df.Version, storedDf.Version...)
-			df.Version = append(df.Version, idx)
+			df.AddVersion(storedDf.Version...)
+			df.AddVersion(uint32(idx))
 			if err := db.InsertData(df); err == nil {
 				return df.Revision, nil
 			}
@@ -215,13 +218,13 @@ func (db *Database) InsertCheckRevision(df *model.DataDefinition, rev uint32) (u
 	}
 
 	err := fmt.Errorf(errors.ErrWrongRevision.Error(), df.Key, rev)
-	return storedDf.Revision, err
+	return 0, err
 }
 
 // GetDataByKey returns pointer to DataDefinition, bool if found the data
 // and if found in data holder, return data holder index array, or if found
 // in cache or commitlog return -1
-func (db *Database) GetDataByKey(key string) (*model.DataDefinition, uint32, bool) {
+func (db *Database) GetDataByKey(key string) (*model.DataDefinition, bool) {
 	defer func() {
 		if x := recover(); x != nil {
 		}
@@ -232,35 +235,47 @@ func (db *Database) GetDataByKey(key string) (*model.DataDefinition, uint32, boo
 	// Search for given key in cache
 	if c := db.cache.Get(hkey); c != nil {
 		bs := util.NewByteStreamFromBytes(c)
-		return model.NewDataDefinitionFromByteStream(bs), 0, true
+		return model.NewDataDefinitionFromByteStream(bs), true
 	}
 
 	// Search in commitlog
 	if bs := db.commitlog.Get(key); bs != nil {
 		db.cache.Put(hkey, bs.Bytes())
-		return model.NewDataDefinitionFromByteStream(bs), 0, true
+		return model.NewDataDefinitionFromByteStream(bs), true
 	}
 
 	// Search in data files
-	return db.getDataByKeyDataHolder(hkey)
+	entry, idx, found := db.GetDataIndexByKey(hkey)
+	if found {
+		return db.GetDataByIndexEntry(idx, entry)
+	}
+
+	return nil, false
 }
 
-func (db *Database) getDataByKeyDataHolder(hkey uint32) (*model.DataDefinition, uint32, bool) {
+// GetDataIndexByKey search key in index, retuns the index entry,
+// the data holder index in dhList and if found
+func (db *Database) GetDataIndexByKey(hkey uint32) (*index.Entry, int, bool) {
 	strKey := strconv.Itoa(int(hkey))
 	dhListLen := len(db.dhList) - 1
 
-	for curr := dhListLen; curr >= 0; curr-- {
+	for curr := dhListLen; curr > -1; curr-- {
 		if db.dhList[curr].bloomfilter.Contains(strKey) {
 			if e, eIdx := db.dhList[curr].summary.LookUp(hkey); eIdx == true {
-				bs, err := db.dhList[curr].Get(e.Offset)
-				if err != nil {
-					return nil, 0, false
-				}
-				return model.NewDataDefinitionFromByteStream(bs), uint32(curr), true
+				return e, curr, eIdx
 			}
 		}
 	}
 	return nil, 0, false
+}
+
+// GetDataByIndexEntry get the image in data holder passing its index
+func (db *Database) GetDataByIndexEntry(dhIdx int, entry *index.Entry) (*model.DataDefinition, bool) {
+	bs, err := db.dhList[dhIdx].Get(entry.Offset)
+	if err != nil {
+		return nil, false
+	}
+	return model.NewDataDefinitionFromByteStream(bs), true
 }
 
 // Info returns information about database

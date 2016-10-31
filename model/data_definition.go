@@ -76,8 +76,8 @@ func (df *DataDefinition) ToByteStream() *util.ByteStream {
 }
 
 // AddVersion adds version to DataDefinition
-func (df *DataDefinition) AddVersion(version uint32) {
-	df.Version = append(df.Version, version)
+func (df *DataDefinition) AddVersion(version ...uint32) {
+	df.Version = append(df.Version, version...)
 }
 
 // NewDataDefinitionFromByteStream convert ByteStream to DataDefinition
