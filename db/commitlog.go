@@ -30,7 +30,7 @@ type Commitlog struct {
 // Get returns ByteStream with requested data, nil if not found
 func (c *Commitlog) Get(key string) *util.ByteStream {
 	// Search in index if found, get from data file
-	hKey := util.Hash32(key)
+	hKey := util.DefaultHash(key)
 	if idx, ok := c.summary.LookUp(hKey); ok == true {
 		freader, _ := c.sto.Open(c.desc)
 		r := newReader(freader.(io.ReaderAt))
@@ -61,7 +61,7 @@ func (c *Commitlog) Add(key string, status uint16, version []uint32, bs *util.By
 	writer := newWriter(fwriter)
 
 	if err = writer.Append(key, bs.Bytes()); err == nil {
-		hKey := util.Hash32(key)
+		hKey := util.DefaultHash(key)
 
 		if eidx := c.writeIndex(&index.Entry{
 			Key:      hKey,

@@ -37,23 +37,6 @@ func (sh *ServeHandler) writeResponse(status int, request *RequestData, result *
 	request.responseWriter.Write(result.Value())
 }
 
-/*
-func (sh *ServeHandler) writeResponse(request *RequestData, result *spql.QueryResult) {
-	request.responseWriter.Header().Set("Content-Type", "application/json")
-	request.responseWriter.Write(result.Value())
-}
-
-func (sh *ServeHandler) writeError(request *RequestData, query string, errs ...error) {
-	result := &spql.QueryResult{}
-	for _, v := range errs {
-		result.AddErrorStr(v.Error())
-	}
-
-	result.AddValue(strings.Replace(query, "\n", "", -1))
-	request.responseWriter.WriteHeader(404)
-	request.responseWriter.Write(result.Value())
-}*/
-
 func (sh *ServeHandler) user(request *RequestData) {
 	body := request.request.Body
 

@@ -2,8 +2,8 @@ package util
 
 import "github.com/SparrowDb/sparrowdb/util/murmurhash3"
 
-// Hash32 hashes string with default seed = 0 into uint32
-func Hash32(s string) uint32 {
+// DefaultHash hashes string with default seed = 0 into uint32
+func DefaultHash(s string) uint32 {
 	return Hash32Seed(s, 0)
 }
 

@@ -163,7 +163,7 @@ func (db *Database) InsertData(df *model.DataDefinition) error {
 	db.mu.Lock()
 	defer db.mu.Unlock()
 
-	hKey := util.Hash32(df.Key)
+	hKey := util.DefaultHash(df.Key)
 	bs := df.ToByteStream()
 
 	// Put in cache
@@ -198,7 +198,7 @@ func (db *Database) InsertData(df *model.DataDefinition) error {
 // than the rev of stored df, it will be updated, otherwise the new df
 // will be discarted
 func (db *Database) InsertCheckRevision(df *model.DataDefinition, rev uint32) (uint32, error) {
-	hkey := util.Hash32(df.Key)
+	hkey := util.DefaultHash(df.Key)
 
 	entry, idx, exists := db.GetDataIndexByKey(hkey)
 	if exists == false {
@@ -230,7 +230,7 @@ func (db *Database) GetDataByKey(key string) (*model.DataDefinition, bool) {
 		}
 	}()
 
-	hkey := util.Hash32(key)
+	hkey := util.DefaultHash(key)
 
 	// Search for given key in cache
 	if c := db.cache.Get(hkey); c != nil {
@@ -245,8 +245,7 @@ func (db *Database) GetDataByKey(key string) (*model.DataDefinition, bool) {
 	}
 
 	// Search in data files
-	entry, idx, found := db.GetDataIndexByKey(hkey)
-	if found {
+	if entry, idx, found := db.GetDataIndexByKey(hkey); found == true {
 		return db.GetDataByIndexEntry(idx, entry)
 	}
 
