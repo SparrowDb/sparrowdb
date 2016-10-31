@@ -110,7 +110,7 @@ func (qe *QueryExecutor) Delete(query *Query, results chan *QueryResult) {
 	qr := QueryResult{}
 
 	if db, ok := qe.dbManager.GetDatabase(qp.Name); ok == true {
-		hkey := util.Hash32(qp.Key)
+		hkey := util.DefaultHash(qp.Key)
 		entry, idx, found := db.GetDataIndexByKey(hkey)
 
 		// Check if data is in index
