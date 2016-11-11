@@ -1,6 +1,7 @@
 # SparrowDb
 main
 debug
+sparrow
 sparrow.pid
 data/
 config/database.xml

@@ -21,7 +21,7 @@ import (
 
 const (
 	// Version SparrowDb version
-	Version = "0.0.1"
+	Version = "1.0.0"
 )
 
 var (
