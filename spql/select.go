@@ -7,9 +7,8 @@ import (
 
 // SelectStmt holds database parsed arguments from query
 type SelectStmt struct {
-	Name  string `json:"name"`
-	Key   string `json:"key"`
-	Field string `json:"field"`
+	Name string `json:"name"`
+	Key  string `json:"key"`
 }
 
 // ParseSelectStmt parse raw json to query.params
@@ -28,12 +27,6 @@ func ParseSelectStmt(q *Query, raw *json.RawMessage) error {
 
 	if err := ValidateDatabaseName.MatchString(stmt.Key); !err {
 		return errors.New("Invalid key")
-	}
-
-	if stmt.Key != "" {
-		if err := ValidateFieldName(stmt.Field); !err {
-			return errors.New("Invalid Field")
-		}
 	}
 
 	return err
