@@ -201,6 +201,7 @@ func (db *Database) InsertCheckRevision(df *model.DataDefinition, rev uint32) (u
 	hkey := util.DefaultHash(df.Key)
 
 	entry, idx, exists := db.GetDataIndexByKey(hkey)
+	//slog.Infof(">>>>>>>>>>>>>>>>%v", hkey)
 	if exists == false {
 		if err := db.InsertData(df); err == nil {
 			return df.Revision, nil

@@ -4,49 +4,27 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"strings"
 
 	"github.com/SparrowDb/sparrowdb/db"
-	"github.com/SparrowDb/sparrowdb/monitor"
 	"github.com/SparrowDb/sparrowdb/slog"
 	"github.com/SparrowDb/sparrowdb/spql"
+	"github.com/gin-gonic/gin"
 )
 
 // HTTPServer holds HTTP server configuration and routes
 type HTTPServer struct {
 	Config        *db.SparrowConfig
-	mux           *http.ServeMux
+	router        *gin.Engine
 	dbManager     *db.DBManager
-	routers       map[string]*controllerInfo
 	queryExecutor *spql.QueryExecutor
 	listener      net.Listener
 }
 
-type controllerInfo struct {
-	route      string
-	httpMethod string
-	method     func(request *RequestData)
-}
-
-func (httpServer *HTTPServer) add(c *controllerInfo) {
-	parts := strings.Split(c.route[1:], "/")
-	httpServer.routers[parts[0]] = c
-}
-
-func (httpServer *HTTPServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	parts := strings.Split(r.URL.Path[1:], "/")
-
-	if parts[0] == "favicon.ico" {
-		return
-	}
-
-	monitor.IncHTTPRequests()
-
-	if controller, ok := httpServer.routers[parts[0]]; ok {
-		parts := strings.Split(r.URL.Path[1:], "/")
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Server", "SparrowDb")
-		controller.method(&RequestData{responseWriter: w, request: r, params: parts[1:]})
+func (httpServer *HTTPServer) BasicMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Server", "SparrowDb")
+		c.Next()
 	}
 }
 
@@ -58,26 +36,16 @@ func (httpServer *HTTPServer) Start() {
 		slog.Fatalf(err.Error())
 	}
 
-	slog.Infof("Starting HTTP Server %s:%s", httpServer.Config.HTTPHost, httpServer.Config.HTTPPort)
-
 	handler := NewServeHandler(httpServer.dbManager, httpServer.queryExecutor)
 
-	httpServer.add(&controllerInfo{route: "/user", httpMethod: "POST", method: handler.user})
+	httpServer.router.Use(httpServer.BasicMiddleware())
 
-	r, w, q := httpServer.Config.GetMode()
-	if r == true {
-		httpServer.add(&controllerInfo{route: "/g", httpMethod: "GET", method: handler.get})
-	}
-	if w == true {
-		httpServer.add(&controllerInfo{route: "/upload", httpMethod: "POST", method: handler.upload})
-	}
-	if q == true {
-		httpServer.add(&controllerInfo{route: "/query", httpMethod: "POST", method: handler.serveQuery})
-	}
+	httpServer.router.GET("/ping", handler.ping)
+	httpServer.router.POST("/query", handler.serveQuery)
+	httpServer.router.POST("/upload", handler.upload)
+	httpServer.router.GET("/g/:dbname/:key", handler.get)
 
-	httpServer.mux.Handle("/", httpServer)
-
-	http.Serve(httpServer.listener, httpServer.mux)
+	http.Serve(httpServer.listener, httpServer.router)
 }
 
 // Stop stops HTTP server listener
@@ -88,11 +56,12 @@ func (httpServer *HTTPServer) Stop() {
 
 // NewHTTPServer returns new HTTPServer
 func NewHTTPServer(config *db.SparrowConfig, dbm *db.DBManager) HTTPServer {
+	gin.SetMode(gin.ReleaseMode)
+
 	return HTTPServer{
 		Config:        config,
 		dbManager:     dbm,
 		queryExecutor: spql.NewQueryExecutor(dbm),
-		mux:           http.NewServeMux(),
-		routers:       make(map[string]*controllerInfo),
+		router:        gin.New(),
 	}
 }
