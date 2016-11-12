@@ -15,8 +15,8 @@ import (
 	"github.com/SparrowDb/sparrowdb/script"
 	"github.com/SparrowDb/sparrowdb/slog"
 	"github.com/SparrowDb/sparrowdb/spql"
+	"github.com/SparrowDb/sparrowdb/util/uuid"
 	"github.com/gin-gonic/gin"
-	"github.com/influxdata/influxdb/uuid"
 )
 
 // ServeHandler holds main http methods

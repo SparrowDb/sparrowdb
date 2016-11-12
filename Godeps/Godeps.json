@@ -1,6 +1,6 @@
 {
-	"ImportPath": "github.com/sparrowdb",
-	"GoVersion": "go1.6",
+	"ImportPath": "github.com/SparrowDb/sparrowdb",
+	"GoVersion": "go1.7",
 	"GodepVersion": "v74",
 	"Deps": [
 		{
@@ -69,12 +69,35 @@
 			"Rev": "9eb6958bd525c084882a58056a3240e52c07cf13"
 		},
 		{
+			"ImportPath": "github.com/gin-gonic/gin",
+			"Comment": "v1.0-4-gbb159f9",
+			"Rev": "bb159f9260a262fccbdbd6f37f8575d1e7e6aaa0"
+		},
+		{
+			"ImportPath": "github.com/gin-gonic/gin/binding",
+			"Comment": "v1.0-4-gbb159f9",
+			"Rev": "bb159f9260a262fccbdbd6f37f8575d1e7e6aaa0"
+		},
+		{
+			"ImportPath": "github.com/gin-gonic/gin/render",
+			"Comment": "v1.0-4-gbb159f9",
+			"Rev": "bb159f9260a262fccbdbd6f37f8575d1e7e6aaa0"
+		},
+		{
 			"ImportPath": "github.com/golang/glog",
 			"Rev": "23def4e6c14b4da8ac2ed8007337bc5eb5007998"
 		},
 		{
+			"ImportPath": "github.com/golang/protobuf/proto",
+			"Rev": "df1d3ca07d2d07bba352d5b73c4313b4e2a6203e"
+		},
+		{
 			"ImportPath": "github.com/golang/snappy",
 			"Rev": "d9eb7a3d35ec988b8585d4a0068e462c27d28380"
+		},
+		{
+			"ImportPath": "github.com/manucorporat/sse",
+			"Rev": "ee05b128a739a0fb76c7ebd3ae4810c1de808d6d"
 		},
 		{
 			"ImportPath": "github.com/yuin/gopher-lua",
@@ -93,8 +116,21 @@
 			"Rev": "e57b64049898d04ad03d3cc75ffa770eb29aeae0"
 		},
 		{
+			"ImportPath": "golang.org/x/net/context",
+			"Rev": "f841c39de738b1d0df95b5a7187744f0e03d8112"
+		},
+		{
 			"ImportPath": "golang.org/x/net/websocket",
 			"Rev": "f841c39de738b1d0df95b5a7187744f0e03d8112"
+		},
+		{
+			"ImportPath": "gopkg.in/go-playground/validator.v8",
+			"Comment": "v8.18.1",
+			"Rev": "5f57d2222ad794d0dffb07e664ea05e2ee07d60c"
+		},
+		{
+			"ImportPath": "gopkg.in/yaml.v2",
+			"Rev": "a5b47d31c556af34a302ce5d659e6fea44d90de0"
 		}
 	]
 }
