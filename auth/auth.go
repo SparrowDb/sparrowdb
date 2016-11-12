@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/SparrowDb/sparrowdb/db"
@@ -51,6 +52,12 @@ type User struct {
 	Password string `xml:"password" json:"password"`
 }
 
+// UserClaim authorization claim
+type UserClaim struct {
+	Username string `json:"username"`
+	jwt.StandardClaims
+}
+
 // LoadUserConfig loads users from configuration file
 func LoadUserConfig(filePath string, dbConfig *db.SparrowConfig) {
 	path := filepath.Join(filePath, defaultUserFile)
@@ -73,9 +80,13 @@ func LoadUserConfig(filePath string, dbConfig *db.SparrowConfig) {
 }
 
 func createToken(user User, expire int) (string, error) {
-	token := jwt.New(jwt.GetSigningMethod("HS512"))
-	token.Claims["username"] = user.Username
-	token.Claims["exp"] = time.Now().Add(time.Duration(expire) * time.Millisecond).Unix()
+	claims := UserClaim{
+		user.Username,
+		jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(time.Duration(expire) * time.Millisecond).Unix(),
+		},
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte(secret))
 }
 
@@ -93,7 +104,14 @@ func ValidateToken(token string) (*jwt.Token, error) {
 
 // ParseFromRequest parses token from request
 func ParseFromRequest(req *http.Request) (*jwt.Token, error) {
-	return jwt.ParseFromRequest(req, keyLookupFn)
+	_tok := req.Header.Get("Authorization")
+	var token string
+
+	if len(_tok) > 6 && strings.ToUpper(_tok[0:7]) == "BEARER " {
+		token = _tok[7:]
+	}
+
+	return ValidateToken(token)
 }
 
 // Authenticate authenticates user and returns token
