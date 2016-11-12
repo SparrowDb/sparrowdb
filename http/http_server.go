@@ -40,10 +40,19 @@ func (httpServer *HTTPServer) Start() {
 
 	httpServer.router.Use(httpServer.basicMiddleware())
 
+	r, w, q := httpServer.Config.GetMode()
+
 	httpServer.router.GET("/ping", handler.ping)
-	httpServer.router.POST("/query", handler.serveQuery)
-	httpServer.router.POST("/upload", handler.upload)
-	httpServer.router.GET("/g/:dbname/:key", handler.get)
+
+	if r == true {
+		httpServer.router.GET("/g/:dbname/:key", handler.get)
+	}
+	if w == true {
+		httpServer.router.POST("/upload", handler.upload)
+	}
+	if q == true {
+		httpServer.router.POST("/query", handler.serveQuery)
+	}
 
 	http.Serve(httpServer.listener, httpServer.router)
 }
