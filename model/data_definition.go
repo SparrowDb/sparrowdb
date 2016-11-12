@@ -34,6 +34,7 @@ type DataDefinitionResult struct {
 	Timestamp string
 	Ext       string
 	Revision  uint32
+	Version   []uint32
 }
 
 // QueryResult convert DataDefinition to DataDefinitionResult
@@ -44,6 +45,7 @@ func (df *DataDefinition) QueryResult() *DataDefinitionResult {
 		Token:    df.Token,
 		Ext:      df.Ext,
 		Revision: df.Revision,
+		Version:  df.Version,
 	}
 
 	uuid, _ := uuid.ParseUUID(df.Token)

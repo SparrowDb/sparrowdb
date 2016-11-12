@@ -61,6 +61,7 @@ func (sh *ServeHandler) serveQuery(c *gin.Context) {
 
 	results = <-sh.queryExecutor.ExecuteQuery(&q)
 	if results == nil {
+		results := &spql.QueryResult{}
 		results.AddErrorStr(errors.ErrEmptyQueryResult.Error())
 		c.JSON(http.StatusBadRequest, results)
 		return
