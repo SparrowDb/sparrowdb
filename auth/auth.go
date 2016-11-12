@@ -2,15 +2,18 @@ package auth
 
 import (
 	"encoding/xml"
+	"fmt"
 	"io/ioutil"
+	"math/rand"
+	"net/http"
 	"os"
 	"path/filepath"
-	"sync"
 	"time"
 
 	"github.com/SparrowDb/sparrowdb/db"
 	"github.com/SparrowDb/sparrowdb/slog"
-	"github.com/SparrowDb/sparrowdb/util/uuid"
+
+	"github.com/dgrijalva/jwt-go"
 )
 
 const (
@@ -18,62 +21,34 @@ const (
 )
 
 var (
-	//onlineUsers map[string]onlineUser
-	userList    map[string]*User
-	tokenList   map[string]string
-	cleanupTime time.Duration
-	muUser      sync.RWMutex
-	userExpire  time.Duration
+	userList map[string]*User
+	secret   string
+	letters  = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 )
 
+func init() {
+	userList = make(map[string]*User, 0)
+	secret = randSeq(256)
+}
+
+func randSeq(n int) string {
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = letters[rand.Intn(len(letters))]
+	}
+	return string(b)
+}
+
+// UsersConfig user from xml file
 type UsersConfig struct {
 	XMLName xml.Name `xml:"users"`
 	Users   []User   `xml:"user"`
 }
 
+// User holds user info
 type User struct {
-	Username string `xml:"username"`
-	Password string `xml:"password"`
-	expires  time.Time
-	token    string
-	online   bool
-}
-
-func (u *User) expired() bool {
-	return u.expires.Before(time.Now())
-}
-
-func (u *User) update() {
-	expiration := time.Now().Add(userExpire * time.Millisecond)
-	u.expires = expiration
-}
-
-func init() {
-	cleanupTime = 3000 * time.Millisecond
-	userList = make(map[string]*User)
-	tokenList = make(map[string]string)
-	startCleanUp()
-}
-
-func startCleanUp() {
-	ticker := time.Tick(cleanupTime)
-
-	go func() {
-		for {
-			select {
-			case <-ticker:
-				for _, item := range userList {
-					if item.online {
-						if item.expired() {
-							item.online = false
-							delete(tokenList, item.token)
-							item.token = ""
-						}
-					}
-				}
-			}
-		}
-	}()
+	Username string `xml:"username" json:"username"`
+	Password string `xml:"password" json:"password"`
 }
 
 // LoadUserConfig loads users from configuration file
@@ -87,8 +62,6 @@ func LoadUserConfig(filePath string, dbConfig *db.SparrowConfig) {
 
 	defer xmlFile.Close()
 
-	userExpire = time.Duration(dbConfig.UserExpire)
-
 	data, _ := ioutil.ReadAll(xmlFile)
 
 	users := UsersConfig{}
@@ -99,38 +72,41 @@ func LoadUserConfig(filePath string, dbConfig *db.SparrowConfig) {
 	}
 }
 
-// IsLogged checks if user is logged, if yes
-// update expire time
-func IsLogged(token string) bool {
-	if v, ok := tokenList[token]; ok == true {
-		user, _ := userList[v]
-		if user.expired() {
-			return false
-		}
-		user.update()
-		return true
+func createToken(user User, expire int) (string, error) {
+	token := jwt.New(jwt.GetSigningMethod("HS512"))
+	token.Claims["username"] = user.Username
+	token.Claims["exp"] = time.Now().Add(time.Duration(expire) * time.Millisecond).Unix()
+	return token.SignedString([]byte(secret))
+}
+
+func keyLookupFn(token *jwt.Token) (interface{}, error) {
+	if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+		return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 	}
-	return false
+	return []byte(secret), nil
+}
+
+// ValidateToken checks if token is valid
+func ValidateToken(token string) (*jwt.Token, error) {
+	return jwt.Parse(token, keyLookupFn)
+}
+
+// ParseFromRequest parses token from request
+func ParseFromRequest(req *http.Request) (*jwt.Token, error) {
+	return jwt.ParseFromRequest(req, keyLookupFn)
 }
 
 // Authenticate authenticates user and returns token
-func Authenticate(reqUser User) (bool, string) {
+func Authenticate(reqUser User, expire int) (string, bool) {
 	user, found := userList[reqUser.Username]
 	if found == false || (user.Password != reqUser.Password) {
-		return false, ""
+		return "", false
 	}
 
-	user.update()
-
-	if user.online {
-		return true, user.token
+	tokenString, err := createToken(reqUser, expire)
+	if err != nil {
+		return "", false
 	}
 
-	token := uuid.TimeUUID().String()
-	user.token = token
-	user.online = true
-
-	tokenList[token] = user.Username
-
-	return true, token
+	return tokenString, true
 }

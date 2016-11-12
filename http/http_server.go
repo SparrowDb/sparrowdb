@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/SparrowDb/sparrowdb/auth"
 	"github.com/SparrowDb/sparrowdb/db"
 	"github.com/SparrowDb/sparrowdb/slog"
 	"github.com/SparrowDb/sparrowdb/spql"
@@ -28,6 +29,18 @@ func (httpServer *HTTPServer) basicMiddleware() gin.HandlerFunc {
 	}
 }
 
+func (httpServer *HTTPServer) authMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		token, err := auth.ParseFromRequest(c.Request)
+
+		if err != nil || !token.Valid {
+			c.AbortWithStatus(http.StatusUnauthorized)
+		}
+
+		c.Next()
+	}
+}
+
 // Start starts HTTP server listener
 func (httpServer *HTTPServer) Start() {
 	var err error
@@ -38,21 +51,33 @@ func (httpServer *HTTPServer) Start() {
 
 	handler := NewServeHandler(httpServer.dbManager, httpServer.queryExecutor)
 
+	// register basic middleware, for cors and server name
 	httpServer.router.Use(httpServer.basicMiddleware())
 
+	// auth group
+	authorized := httpServer.router.Group("/")
+
+	// Checks if auth is active, if true, register auth middleware
+	// and login route
+	if httpServer.Config.AuthenticationActive {
+		authorized.Use(httpServer.authMiddleware())
+		httpServer.router.POST("/user/login", handler.userLogin)
+	}
+
+	// register routes based on configuration file permission
 	r, w, q := httpServer.Config.GetMode()
-
-	httpServer.router.GET("/ping", handler.ping)
-
+	if w == true {
+		authorized.POST("/upload", handler.upload)
+	}
+	if q == true {
+		authorized.POST("/query", handler.serveQuery)
+	}
 	if r == true {
 		httpServer.router.GET("/g/:dbname/:key", handler.get)
 	}
-	if w == true {
-		httpServer.router.POST("/upload", handler.upload)
-	}
-	if q == true {
-		httpServer.router.POST("/query", handler.serveQuery)
-	}
+
+	// register generic routes
+	httpServer.router.GET("/ping", handler.ping)
 
 	http.Serve(httpServer.listener, httpServer.router)
 }

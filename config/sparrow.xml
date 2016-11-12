@@ -12,6 +12,6 @@
   <dataholder_cron_compaction>0 0 1 ? * TUE,FRI</dataholder_cron_compaction>
   <generate_token>false</generate_token>
   <enable_authentication>false</enable_authentication>
-  <user_expire>50000</user_expire>
+  <user_expire>300000</user_expire>
   <mode>RWQ</mode>
 </Config>

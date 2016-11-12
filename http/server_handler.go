@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/SparrowDb/sparrowdb/auth"
 	"github.com/SparrowDb/sparrowdb/db"
 	"github.com/SparrowDb/sparrowdb/errors"
 	"github.com/SparrowDb/sparrowdb/model"
@@ -28,6 +29,16 @@ type ServeHandler struct {
 func (sh *ServeHandler) ping(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"message": "pong",
+	})
+}
+
+func (sh *ServeHandler) userLogin(c *gin.Context) {
+	var user auth.User
+	c.BindJSON(&user)
+
+	tk, _ := auth.Authenticate(user, sh.dbManager.Config.UserExpire)
+	c.JSON(200, gin.H{
+		"token": tk,
 	})
 }
 
