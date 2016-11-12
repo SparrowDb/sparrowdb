@@ -201,13 +201,20 @@ func (db *Database) InsertCheckRevision(df *model.DataDefinition, rev uint32) (u
 	hkey := util.DefaultHash(df.Key)
 
 	entry, idx, exists := db.GetDataIndexByKey(hkey)
-	//slog.Infof(">>>>>>>>>>>>>>>>%v", hkey)
 	if exists == false {
 		if err := db.InsertData(df); err == nil {
 			return df.Revision, nil
 		}
 	} else {
-		storedDf, _ := db.GetDataByIndexEntry(idx, entry)
+		var storedDf *model.DataDefinition
+
+		if idx == -1 {
+			bs := db.commitlog.Get(df.Key)
+			storedDf = model.NewDataDefinitionFromByteStream(bs)
+		} else {
+			storedDf, _ = db.GetDataByIndexEntry(idx, entry)
+		}
+
 		if rev > storedDf.Revision {
 			df.Revision = rev
 			df.AddVersion(storedDf.Version...)
@@ -254,10 +261,15 @@ func (db *Database) GetDataByKey(key string) (*model.DataDefinition, bool) {
 }
 
 // GetDataIndexByKey search key in index, retuns the index entry,
-// the data holder index in dhList and if found
+// data holder index or -1 if the key is in commitlog and bool if found.
 func (db *Database) GetDataIndexByKey(hkey uint32) (*index.Entry, int, bool) {
 	strKey := strconv.Itoa(int(hkey))
 	dhListLen := len(db.dhList) - 1
+
+	table := db.commitlog.GetSummary()
+	if e, eIdx := table.LookUp(hkey); eIdx == true {
+		return e, -1, eIdx
+	}
 
 	for curr := dhListLen; curr > -1; curr-- {
 		if db.dhList[curr].bloomfilter.Contains(strKey) {

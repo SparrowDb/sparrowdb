@@ -20,7 +20,7 @@ type HTTPServer struct {
 	listener      net.Listener
 }
 
-func (httpServer *HTTPServer) BasicMiddleware() gin.HandlerFunc {
+func (httpServer *HTTPServer) basicMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 		c.Writer.Header().Set("Server", "SparrowDb")
@@ -38,7 +38,7 @@ func (httpServer *HTTPServer) Start() {
 
 	handler := NewServeHandler(httpServer.dbManager, httpServer.queryExecutor)
 
-	httpServer.router.Use(httpServer.BasicMiddleware())
+	httpServer.router.Use(httpServer.basicMiddleware())
 
 	httpServer.router.GET("/ping", handler.ping)
 	httpServer.router.POST("/query", handler.serveQuery)
