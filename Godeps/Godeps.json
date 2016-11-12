@@ -64,6 +64,11 @@
 			"Rev": "74ddf82598bc4745b965729e9c6a463bedd33049"
 		},
 		{
+			"ImportPath": "github.com/dgrijalva/jwt-go",
+			"Comment": "v2.6.0",
+			"Rev": "a2c85815a77d0f951e33ba4db5ae93629a1530af"
+		},
+		{
 			"ImportPath": "github.com/elgs/cron",
 			"Comment": "v1-20-g9eb6958",
 			"Rev": "9eb6958bd525c084882a58056a3240e52c07cf13"
