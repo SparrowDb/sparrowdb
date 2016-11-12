@@ -186,7 +186,7 @@ func (db *Database) InsertData(df *model.DataDefinition) error {
 		db.commitlog = NewCommitLog(db.Descriptor.Path)
 	}
 
-	if err = db.commitlog.Add(df.Key, df.Status, df.Version, bs); err != nil {
+	if err = db.commitlog.Add(df.Key, df.Status, df.Revision, bs); err != nil {
 		return err
 	}
 
@@ -194,39 +194,29 @@ func (db *Database) InsertData(df *model.DataDefinition) error {
 }
 
 // InsertCheckRevision checks the revision of the data, df not exists
-// insert it. If df exits checks the revision, if input rev is greater
-// than the rev of stored df, it will be updated, otherwise the new df
-// will be discarted
-func (db *Database) InsertCheckRevision(df *model.DataDefinition, rev uint32) (uint32, error) {
-	hkey := util.DefaultHash(df.Key)
+// insert it. If exits and is upsert, override old data and increment
+// revision
+func (db *Database) InsertCheckRevision(df *model.DataDefinition, upsert bool) (uint32, error) {
+	storedDf, ok := db.GetDataByKey(df.Key)
 
-	entry, idx, exists := db.GetDataIndexByKey(hkey)
-	if exists == false {
-		if err := db.InsertData(df); err == nil {
-			return df.Revision, nil
+	if ok {
+		if storedDf.Status == model.DataDefinitionRemoved {
+			upsert = true
 		}
-	} else {
-		var storedDf *model.DataDefinition
 
-		if idx == -1 {
-			bs := db.commitlog.Get(df.Key)
-			storedDf = model.NewDataDefinitionFromByteStream(bs)
+		if upsert {
+			df.Revision = storedDf.Revision
+			df.Revision++
 		} else {
-			storedDf, _ = db.GetDataByIndexEntry(idx, entry)
-		}
-
-		if rev > storedDf.Revision {
-			df.Revision = rev
-			df.AddVersion(storedDf.Version...)
-			df.AddVersion(uint32(idx))
-			if err := db.InsertData(df); err == nil {
-				return df.Revision, nil
-			}
+			return 0, fmt.Errorf(errors.ErrKeyExists.Error(), df.Key)
 		}
 	}
 
-	err := fmt.Errorf(errors.ErrWrongRevision.Error(), df.Key, rev)
-	return 0, err
+	if err := db.InsertData(df); err != nil {
+		return 0, err
+	}
+
+	return df.Revision, nil
 }
 
 // GetDataByKey returns pointer to DataDefinition, bool if found the data

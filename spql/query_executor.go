@@ -9,7 +9,6 @@ import (
 	"github.com/SparrowDb/sparrowdb/errors"
 	"github.com/SparrowDb/sparrowdb/model"
 	"github.com/SparrowDb/sparrowdb/slog"
-	"github.com/SparrowDb/sparrowdb/util"
 )
 
 // QueryExecutor holds query executor data
@@ -110,26 +109,19 @@ func (qe *QueryExecutor) Delete(query *Query, results chan *QueryResult) {
 	qr := QueryResult{}
 
 	if db, ok := qe.dbManager.GetDatabase(qp.Name); ok == true {
-		hkey := util.DefaultHash(qp.Key)
-		entry, idx, found := db.GetDataIndexByKey(hkey)
+		storedDf, found := db.GetDataByKey(qp.Key)
 
 		// Check if data is in index
-		if found == false {
-			qr.AddErrorStr(fmt.Sprintf(errDataNotFound, qp.Key, qp.Name))
-		}
-
-		// get data from data holder
-		storedDf, _ := db.GetDataByIndexEntry(idx, entry)
-
-		// check if data is already marked as tombstone
-		if storedDf.Status == model.DataDefinitionRemoved {
-			qr.AddErrorStr(fmt.Sprintf(errDataNotFound, qp.Key, qp.Name))
+		if found {
+			// check if data is already marked as tombstone
+			if storedDf.Status == model.DataDefinitionRemoved {
+				qr.AddErrorStr(fmt.Sprintf(errDataNotFound, qp.Key, qp.Name))
+			} else {
+				tbs := model.NewTombstone(storedDf)
+				db.InsertCheckRevision(tbs, true)
+			}
 		} else {
-			tbs := model.NewTombstone(storedDf)
-			tbs.Revision = 0
-			tbs.AddVersion(storedDf.Version...)
-			tbs.AddVersion(uint32(idx))
-			db.InsertData(tbs)
+			qr.AddErrorStr(fmt.Sprintf(errDataNotFound, qp.Key, qp.Name))
 		}
 	} else {
 		qr.AddErrorStr(errors.ErrDatabaseNotFound.Error())

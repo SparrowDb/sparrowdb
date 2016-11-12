@@ -40,6 +40,9 @@ var (
 	// ErrWrongRevision error message when can't insert image
 	ErrWrongRevision = errors.New("Could not insert image %s invalid revision %v")
 
+	// ErrKeyExists error message when insert image and key exists
+	ErrKeyExists = errors.New("Could not insert image (%s), key already exits")
+
 	// ErrImageInvalidKey error message when key is invalid (contains special chars)
 	ErrImageInvalidKey = errors.New("Invalid key")
 

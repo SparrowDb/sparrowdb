@@ -129,6 +129,12 @@ func (sh *ServeHandler) upload(c *gin.Context) {
 	io.Copy(buf, file)
 
 	dbname := c.PostForm("dbname")
+
+	upsert := false
+	if _upsert := c.DefaultPostForm("upsert", "false"); _upsert == "true" {
+		upsert = true
+	}
+
 	sto, ok := sh.dbManager.GetDatabase(dbname)
 
 	b := buf.Bytes()
@@ -142,7 +148,7 @@ func (sh *ServeHandler) upload(c *gin.Context) {
 	results.Database = dbname
 	dataKey := c.PostForm("key")
 
-	var dataRev uint32
+	/*/var dataRev uint32
 
 	if _rev := c.PostForm("rev"); len(strings.TrimSpace(_rev)) > 0 {
 		_dataRev, err := strconv.Atoi(_rev)
@@ -152,7 +158,7 @@ func (sh *ServeHandler) upload(c *gin.Context) {
 			return
 		}
 		dataRev = uint32(_dataRev)
-	}
+	}*/
 
 	// checks if user request needs script execution
 	if scriptName := c.PostForm("script"); len(strings.TrimSpace(scriptName)) > 0 {
@@ -189,13 +195,11 @@ func (sh *ServeHandler) upload(c *gin.Context) {
 
 		Revision: 0,
 
-		Version: make([]uint32, 0),
-
 		Buf: b,
 	}
 
 	// try to insert image in database
-	if _, err := sto.InsertCheckRevision(df, dataRev); err != nil {
+	if _, err := sto.InsertCheckRevision(df, upsert); err != nil {
 		results.AddErrorStr(err.Error())
 		c.JSON(http.StatusConflict, results)
 		return
