@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"strings"
 
+	"fmt"
+
 	"github.com/SparrowDb/sparrowdb/auth"
 	"github.com/SparrowDb/sparrowdb/db"
 	"github.com/SparrowDb/sparrowdb/errors"
@@ -148,22 +150,10 @@ func (sh *ServeHandler) upload(c *gin.Context) {
 	results.Database = dbname
 	dataKey := c.PostForm("key")
 
-	/*/var dataRev uint32
-
-	if _rev := c.PostForm("rev"); len(strings.TrimSpace(_rev)) > 0 {
-		_dataRev, err := strconv.Atoi(_rev)
-		if err != nil {
-			results.AddErrorStr(err.Error())
-			c.JSON(http.StatusBadRequest, results)
-			return
-		}
-		dataRev = uint32(_dataRev)
-	}*/
-
 	// checks if user request needs script execution
 	if scriptName := c.PostForm("script"); len(strings.TrimSpace(scriptName)) > 0 {
 		if b, err = script.Execute(scriptName, b); err != nil {
-			results.AddErrorStr(errors.ErrInsertImage.Error())
+			results.AddErrorStr(fmt.Sprintf(errors.ErrScriptNotExists.Error(), scriptName))
 			c.JSON(http.StatusBadRequest, results)
 			return
 		}
