@@ -96,51 +96,6 @@ func (sh *ServeHandler) dropDatabase(c *gin.Context) {
 	}
 }
 
-func (sh *ServeHandler) get(c *gin.Context) {
-	resp := NewResponse()
-	resp.Database = c.Param("dbname")
-	key := c.Param("key")
-
-	// Check if database exists
-	sto, ok := sh.dbManager.GetDatabase(resp.Database)
-	if !ok {
-		resp.AddError(errors.ErrDatabaseNotFound)
-		c.JSON(http.StatusBadRequest, resp)
-		return
-	}
-
-	// Async get requested data
-	result := <-sh.dbManager.GetData(resp.Database, key)
-
-	// Check if found requested data or DataDefinition is deleted
-	if result == nil || result.Status == model.DataDefinitionRemoved {
-		resp.AddError(errors.ErrEmptyQueryResult)
-		c.JSON(http.StatusBadRequest, resp)
-		return
-	}
-
-	// Token verification if enabled
-	if sto.Descriptor.TokenActive {
-		token := c.DefaultQuery("token", "")
-
-		if token == "" {
-			resp.AddError(errors.ErrWrongRequest)
-			c.JSON(http.StatusBadRequest, resp)
-			return
-		}
-
-		if token != result.Token {
-			resp.AddError(errors.ErrWrongToken)
-			c.JSON(http.StatusBadRequest, resp)
-			return
-		}
-	}
-
-	c.Writer.Header().Add("Content-Type", "image/"+result.Ext)
-	c.Writer.Header().Add("Content-Length", strconv.Itoa(int(result.Size)))
-	c.Writer.Write(result.Buf)
-}
-
 func (sh *ServeHandler) uploadData(c *gin.Context) {
 	resp := NewResponse()
 	resp.Database = c.Param("dbname")
@@ -275,6 +230,70 @@ func (sh *ServeHandler) deleteData(c *gin.Context) {
 
 	// write ok response
 	c.JSON(status, resp)
+}
+
+func (sh *ServeHandler) getData(dbname, key, token string) (*model.DataDefinition, error) {
+	// Check if database exists
+	sto, ok := sh.dbManager.GetDatabase(dbname)
+	if !ok {
+		return nil, errors.ErrDatabaseNotFound
+	}
+
+	// Async get requested data
+	result := <-sh.dbManager.GetData(dbname, key)
+
+	// Check if found requested data or DataDefinition is deleted
+	if result == nil || result.Status == model.DataDefinitionRemoved {
+		return nil, errors.ErrEmptyQueryResult
+	}
+
+	// Token verification if enabled
+	if sto.Descriptor.TokenActive {
+		if token == "" {
+			return nil, errors.ErrWrongRequest
+		}
+
+		if token != result.Token {
+			return nil, errors.ErrWrongToken
+		}
+	}
+
+	return result, nil
+}
+
+func (sh *ServeHandler) get(c *gin.Context) {
+	resp := NewResponse()
+	resp.Database = c.Param("dbname")
+	key := c.Param("key")
+	token := c.Param("token")
+
+	df, err := sh.getData(resp.Database, key, token)
+	if err != nil {
+		resp.AddError(err)
+		c.JSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	c.Writer.Header().Add("Content-Type", "image/"+df.Ext)
+	c.Writer.Header().Add("Content-Length", strconv.Itoa(int(df.Size)))
+	c.Writer.Write(df.Buf)
+}
+
+func (sh *ServeHandler) getDataInfo(c *gin.Context) {
+	resp := NewResponse()
+	resp.Database = c.Param("dbname")
+	key := c.Param("key")
+	token := c.Param("token")
+
+	df, err := sh.getData(resp.Database, key, token)
+	if err != nil {
+		resp.AddError(err)
+		c.JSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	resp.AddContent("data", df.QueryResult())
+	c.IndentedJSON(http.StatusOK, resp)
 }
 
 // NewServeHandler returns new ServeHandler

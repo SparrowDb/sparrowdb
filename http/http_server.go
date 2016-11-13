@@ -69,6 +69,8 @@ func (httpServer *HTTPServer) Start() {
 
 		authorized.PUT("/api/:dbname/:key", handler.uploadData)
 		authorized.DELETE("/api/:dbname/:key", handler.deleteData)
+
+		httpServer.router.GET("/api/:dbname/:key", handler.getDataInfo)
 	}
 
 	httpServer.router.GET("/g/:dbname/:key", handler.get)
