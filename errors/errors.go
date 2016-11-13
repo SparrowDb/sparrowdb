@@ -3,6 +3,9 @@ package errors
 import "errors"
 
 var (
+	// ErrInvalidName error message when drop database
+	ErrInvalidName = errors.New("Invalid name")
+
 	// ErrCreateDatabase error message when create database
 	ErrCreateDatabase = errors.New("Could not create database")
 

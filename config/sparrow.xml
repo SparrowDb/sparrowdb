@@ -13,7 +13,7 @@
   <generate_token>false</generate_token>
   <enable_authentication>false</enable_authentication>
   <user_expire>300000</user_expire>
-  <mode>RWQ</mode>
+  <read_only>false</read_only>
   <enable_cluster>false</enable_cluster>
   <publisher_servers>nats://localhost:4222</publisher_servers>
 </Config>

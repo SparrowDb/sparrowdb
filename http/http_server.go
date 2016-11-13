@@ -8,17 +8,15 @@ import (
 	"github.com/SparrowDb/sparrowdb/auth"
 	"github.com/SparrowDb/sparrowdb/db"
 	"github.com/SparrowDb/sparrowdb/slog"
-	"github.com/SparrowDb/sparrowdb/spql"
 	"github.com/gin-gonic/gin"
 )
 
 // HTTPServer holds HTTP server configuration and routes
 type HTTPServer struct {
-	Config        *db.SparrowConfig
-	router        *gin.Engine
-	dbManager     *db.DBManager
-	queryExecutor *spql.QueryExecutor
-	listener      net.Listener
+	Config    *db.SparrowConfig
+	router    *gin.Engine
+	dbManager *db.DBManager
+	listener  net.Listener
 }
 
 func (httpServer *HTTPServer) basicMiddleware() gin.HandlerFunc {
@@ -49,7 +47,7 @@ func (httpServer *HTTPServer) Start() {
 		slog.Fatalf(err.Error())
 	}
 
-	handler := NewServeHandler(httpServer.dbManager, httpServer.queryExecutor)
+	handler := NewServeHandler(httpServer.dbManager)
 
 	// register basic middleware, for cors and server name
 	httpServer.router.Use(httpServer.basicMiddleware())
@@ -65,18 +63,15 @@ func (httpServer *HTTPServer) Start() {
 	}
 
 	// register routes based on configuration file permission
-	r, w, q := httpServer.Config.GetMode()
-	if w == true {
-		authorized.POST("/upload", handler.upload)
-	}
-	if q == true {
-		authorized.POST("/query", handler.serveQuery)
-	}
-	if r == true {
-		httpServer.router.GET("/g/:dbname/:key", handler.get)
+	if !httpServer.Config.ReadOnly {
+		authorized.PUT("/api/:dbname", handler.createDatabase)
+		authorized.DELETE("/api/:dbname", handler.dropDatabase)
+
+		authorized.PUT("/api/:dbname/:key", handler.uploadData)
+		authorized.DELETE("/api/:dbname/:key", handler.deleteData)
 	}
 
-	// register generic routes
+	httpServer.router.GET("/g/:dbname/:key", handler.get)
 	httpServer.router.GET("/ping", handler.ping)
 
 	http.Serve(httpServer.listener, httpServer.router)
@@ -93,9 +88,8 @@ func NewHTTPServer(config *db.SparrowConfig, dbm *db.DBManager) HTTPServer {
 	gin.SetMode(gin.ReleaseMode)
 
 	return HTTPServer{
-		Config:        config,
-		dbManager:     dbm,
-		queryExecutor: spql.NewQueryExecutor(dbm),
-		router:        gin.New(),
+		Config:    config,
+		dbManager: dbm,
+		router:    gin.New(),
 	}
 }

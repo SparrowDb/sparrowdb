@@ -15,7 +15,7 @@ type XMLDatabaseList struct {
 // DatabaseDescriptor holds database configuration
 type DatabaseDescriptor struct {
 	XMLName        xml.Name `xml:"database"`
-	Name           string   `xml:"name"`
+	Name           string   `xml:"name" valid:"alphanum,required,length(3|50)"`
 	MaxDataLogSize uint64   `xml:"max_datalog_size"`
 	MaxCacheSize   uint64   `xml:"max_cache_size"`
 	BloomFilterFp  float32  `xml:"bloomfilter_fpp"`

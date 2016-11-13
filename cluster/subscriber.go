@@ -4,22 +4,18 @@ import (
 	"encoding/json"
 
 	"github.com/SparrowDb/sparrowdb/db"
-	"github.com/SparrowDb/sparrowdb/errors"
 	"github.com/SparrowDb/sparrowdb/model"
 	"github.com/SparrowDb/sparrowdb/slog"
-	"github.com/SparrowDb/sparrowdb/spql"
-	"github.com/SparrowDb/sparrowdb/util"
-	"github.com/SparrowDb/sparrowdb/util/uuid"
 	"github.com/nats-io/nats"
 )
 
 var (
-	_config        *db.SparrowConfig
-	_dbm           *db.DBManager
-	_queryExecutor *spql.QueryExecutor
-	_connection    *nats.Conn
-	_encon         *nats.EncodedConn
-	_enconData     *nats.EncodedConn
+	_config *db.SparrowConfig
+	_dbm    *db.DBManager
+	//_queryExecutor *spql.QueryExecutor
+	_connection *nats.Conn
+	_encon      *nats.EncodedConn
+	_enconData  *nats.EncodedConn
 
 	_sparrowQuerySub = "sparrow.query"
 	_sparrowDataSub  = "sparrow.data"
@@ -76,7 +72,7 @@ func connect() {
 }
 
 func registerReceiverBinder() {
-	_encon.Subscribe(_sparrowQuerySub, func(m *message) {
+	/*_encon.Subscribe(_sparrowQuerySub, func(m *message) {
 		if m.Name != _config.NodeName {
 			var qr spql.QueryRequest
 			str := m.Content.(string)
@@ -115,15 +111,15 @@ func registerReceiverBinder() {
 				db.InsertCheckUpsert(df, true)
 			}
 		}
-	})
+	})*/
 }
 
 // PublishQuery publishes query
-func PublishQuery(query spql.QueryRequest) {
-	if query.Action == "select" {
-		return
-	}
-
+func PublishQuery(query interface{}) {
+	/*	if query.Action == "select" {
+			return
+		}
+	*/
 	b, _ := json.Marshal(query)
 	m := message{
 		_config.NodeName,
@@ -157,7 +153,5 @@ func Close() {
 func Start(config *db.SparrowConfig, dbm *db.DBManager) {
 	slog.Infof("Starting Cluster service")
 	_config = config
-	_dbm = dbm
-	_queryExecutor = spql.NewQueryExecutor(dbm)
 	connect()
 }

@@ -29,9 +29,6 @@ func (dbm *DBManager) checkAndFillDescriptor(descriptor *DatabaseDescriptor) {
 	if len(strings.TrimSpace(descriptor.SnapshotPath)) == 0 {
 		descriptor.SnapshotPath = filepath.Join(dbm.Config.SnapshotPath, descriptor.Name)
 	}
-	if len(strings.TrimSpace(descriptor.Mode)) == 0 {
-		descriptor.Mode = dbm.Config.Mode
-	}
 	if len(strings.TrimSpace(descriptor.CronExp)) == 0 {
 		descriptor.CronExp = dbm.Config.CronExp
 	}

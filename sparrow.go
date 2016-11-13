@@ -101,7 +101,7 @@ func main() {
 
 	instance.sparrowConfig = db.NewSparrowConfig(*configPathFlag)
 	instance.databaseConfig = db.NewDatabaseConfig(*configPathFlag)
-	slog.Infof("Database Mode: %s", instance.sparrowConfig.GetStringMode())
+	slog.Infof("Database read-only: %v", instance.sparrowConfig.ReadOnly)
 
 	auth.LoadUserConfig(*configPathFlag, instance.sparrowConfig)
 

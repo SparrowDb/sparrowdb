@@ -2,13 +2,14 @@ package http
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"net/http"
 	"path/filepath"
 	"strconv"
 	"strings"
 
-	"fmt"
+	govalidator "gopkg.in/asaskevich/govalidator.v4"
 
 	"github.com/SparrowDb/sparrowdb/auth"
 	"github.com/SparrowDb/sparrowdb/cluster"
@@ -18,15 +19,13 @@ import (
 	"github.com/SparrowDb/sparrowdb/monitor"
 	"github.com/SparrowDb/sparrowdb/script"
 	"github.com/SparrowDb/sparrowdb/slog"
-	"github.com/SparrowDb/sparrowdb/spql"
 	"github.com/SparrowDb/sparrowdb/util/uuid"
 	"github.com/gin-gonic/gin"
 )
 
 // ServeHandler holds main http methods
 type ServeHandler struct {
-	dbManager     *db.DBManager
-	queryExecutor *spql.QueryExecutor
+	dbManager *db.DBManager
 }
 
 func (sh *ServeHandler) ping(c *gin.Context) {
@@ -45,60 +44,78 @@ func (sh *ServeHandler) userLogin(c *gin.Context) {
 	})
 }
 
-func (sh *ServeHandler) serveQuery(c *gin.Context) {
-	var qr spql.QueryRequest
-	results := &spql.QueryResult{}
+func (sh *ServeHandler) createDatabase(c *gin.Context) {
+	resp := NewResponse()
+	resp.Database = c.Param("dbname")
 
-	if err := c.BindJSON(&qr); err != nil {
-		results.AddErrorStr(err.Error())
-		c.JSON(http.StatusBadRequest, results)
+	var req model.CreateDatabase
+	c.BindJSON(&req)
+
+	databaseCfg := db.DatabaseDescriptor{
+		Name:           resp.Database,
+		MaxDataLogSize: req.MaxDataLogSize,
+		MaxCacheSize:   req.MaxCacheSize,
+		BloomFilterFp:  req.BloomFilterFp,
+		CronExp:        req.CronExp,
+		Path:           req.Path,
+		SnapshotPath:   req.SnapshotPath,
+	}
+
+	if _, err := govalidator.ValidateStruct(databaseCfg); err != nil {
+		resp.AddError(err)
+		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
 
-	q, err := qr.ParseQuery()
-	if err != nil {
-		results.AddErrorStr(err.Error())
-		c.JSON(http.StatusBadRequest, results)
+	if err := sh.dbManager.CreateDatabase(databaseCfg); err != nil {
+		resp.AddError(err)
+		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
 
-	if sh.dbManager.Config.EnableCluster {
-		cluster.PublishQuery(qr)
-	}
+	resp.AddContent(databaseCfg.Name, req)
+	c.JSON(http.StatusOK, resp)
+}
 
-	results = <-sh.queryExecutor.ExecuteQuery(&q)
-	if results == nil {
-		results := &spql.QueryResult{}
-		results.AddErrorStr(errors.ErrEmptyQueryResult.Error())
-		c.JSON(http.StatusBadRequest, results)
+func (sh *ServeHandler) dropDatabase(c *gin.Context) {
+	resp := NewResponse()
+	resp.Database = c.Param("dbname")
+
+	if govalidator.IsAlphanumeric(resp.Database) && govalidator.IsByteLength(resp.Database, 3, 50) {
+		if err := sh.dbManager.DropDatabase(resp.Database); err != nil {
+			resp.AddError(err)
+			c.JSON(http.StatusBadRequest, resp)
+			return
+		}
+		resp.AddContent(resp.Database, "ok")
+		c.JSON(http.StatusOK, resp)
+	} else {
+		resp.AddError(errors.ErrInvalidName)
+		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
-
-	monitor.IncHTTPQueries()
-
-	c.JSON(http.StatusOK, results)
 }
 
 func (sh *ServeHandler) get(c *gin.Context) {
-	results := &spql.QueryResult{}
-	dbname := c.Param("dbname")
+	resp := NewResponse()
+	resp.Database = c.Param("dbname")
 	key := c.Param("key")
 
 	// Check if database exists
-	sto, ok := sh.dbManager.GetDatabase(dbname)
+	sto, ok := sh.dbManager.GetDatabase(resp.Database)
 	if !ok {
-		results.AddErrorStr(errors.ErrDatabaseNotFound.Error())
-		c.JSON(http.StatusBadRequest, results)
+		resp.AddError(errors.ErrDatabaseNotFound)
+		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
 
 	// Async get requested data
-	result := <-sh.dbManager.GetData(dbname, key)
+	result := <-sh.dbManager.GetData(resp.Database, key)
 
 	// Check if found requested data or DataDefinition is deleted
 	if result == nil || result.Status == model.DataDefinitionRemoved {
-		results.AddErrorStr(errors.ErrEmptyQueryResult.Error())
-		c.JSON(http.StatusBadRequest, results)
+		resp.AddError(errors.ErrEmptyQueryResult)
+		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
 
@@ -107,14 +124,14 @@ func (sh *ServeHandler) get(c *gin.Context) {
 		token := c.DefaultQuery("token", "")
 
 		if token == "" {
-			results.AddErrorStr(errors.ErrWrongRequest.Error())
-			c.JSON(http.StatusBadRequest, results)
+			resp.AddError(errors.ErrWrongRequest)
+			c.JSON(http.StatusBadRequest, resp)
 			return
 		}
 
 		if token != result.Token {
-			results.AddErrorStr(errors.ErrWrongToken.Error())
-			c.JSON(http.StatusBadRequest, results)
+			resp.AddError(errors.ErrWrongToken)
+			c.JSON(http.StatusBadRequest, resp)
 			return
 		}
 	}
@@ -124,7 +141,23 @@ func (sh *ServeHandler) get(c *gin.Context) {
 	c.Writer.Write(result.Buf)
 }
 
-func (sh *ServeHandler) upload(c *gin.Context) {
+func (sh *ServeHandler) uploadData(c *gin.Context) {
+	resp := NewResponse()
+	resp.Database = c.Param("dbname")
+
+	if r := (govalidator.IsAlphanumeric(resp.Database) && govalidator.IsByteLength(resp.Database, 3, 50)); r == false {
+		resp.AddError(errors.ErrInvalidName)
+		c.JSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	dataKey := c.Param("key")
+	if r := (govalidator.IsAlphanumeric(dataKey) && govalidator.IsByteLength(dataKey, 1, 50)); r == false {
+		resp.AddError(errors.ErrImageInvalidKey)
+		c.JSON(http.StatusBadRequest, resp)
+		return
+	}
+
 	file, fhandler, err := c.Request.FormFile("uploadfile")
 	if err != nil {
 		slog.Errorf(err.Error())
@@ -135,39 +168,28 @@ func (sh *ServeHandler) upload(c *gin.Context) {
 	buf := new(bytes.Buffer)
 	io.Copy(buf, file)
 
-	dbname := c.PostForm("dbname")
-
 	upsert := false
 	if _upsert := c.DefaultPostForm("upsert", "false"); _upsert == "true" {
 		upsert = true
 	}
 
-	sto, ok := sh.dbManager.GetDatabase(dbname)
+	sto, ok := sh.dbManager.GetDatabase(resp.Database)
 
 	b := buf.Bytes()
-	results := spql.QueryResult{}
 
 	if !ok {
-		results.AddErrorStr(errors.ErrDatabaseNotFound.Error())
-		c.JSON(http.StatusBadRequest, results)
+		resp.AddError(errors.ErrDatabaseNotFound)
+		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
-	results.Database = dbname
-	dataKey := c.PostForm("key")
 
 	// checks if user request needs script execution
 	if scriptName := c.PostForm("script"); len(strings.TrimSpace(scriptName)) > 0 {
 		if b, err = script.Execute(scriptName, b); err != nil {
-			results.AddErrorStr(fmt.Sprintf(errors.ErrScriptNotExists.Error(), scriptName))
-			c.JSON(http.StatusBadRequest, results)
+			resp.AddErrorStr(fmt.Sprintf(errors.ErrScriptNotExists.Error(), scriptName))
+			c.JSON(http.StatusBadRequest, resp)
 			return
 		}
-	}
-
-	if isValidKey := spql.ValidateDatabaseName.MatchString(dataKey); !isValidKey {
-		results.AddErrorStr(errors.ErrImageInvalidKey.Error())
-		c.JSON(http.StatusBadRequest, results)
-		return
 	}
 
 	dataToken := uuid.TimeUUID().String()
@@ -195,27 +217,69 @@ func (sh *ServeHandler) upload(c *gin.Context) {
 
 	// try to insert image in database
 	if _, err := sto.InsertCheckUpsert(df, upsert); err != nil {
-		results.AddErrorStr(err.Error())
-		c.JSON(http.StatusConflict, results)
+		resp.AddError(err)
+		c.JSON(http.StatusConflict, resp)
 		return
 	}
 
 	// write ok response
-	results.AddValue(df.QueryResult())
-	c.JSON(http.StatusOK, results)
+	resp.AddContent("data", df.QueryResult())
+	c.JSON(http.StatusOK, resp)
 
 	if sh.dbManager.Config.EnableCluster {
-		cluster.PublishData(*df, dbname)
+		cluster.PublishData(*df, resp.Database)
 	}
 
 	// increment upload statistics
 	monitor.IncHTTPUploads()
 }
 
+func (sh *ServeHandler) deleteData(c *gin.Context) {
+	resp := NewResponse()
+	status := http.StatusBadRequest
+	resp.Database = c.Param("dbname")
+
+	if r := (govalidator.IsAlphanumeric(resp.Database) && govalidator.IsByteLength(resp.Database, 3, 50)); r == false {
+		resp.AddError(errors.ErrInvalidName)
+		c.JSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	dataKey := c.Param("key")
+	if r := (govalidator.IsAlphanumeric(dataKey) && govalidator.IsByteLength(dataKey, 1, 50)); r == false {
+		resp.AddError(errors.ErrImageInvalidKey)
+		c.JSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	if db, ok := sh.dbManager.GetDatabase(resp.Database); ok == true {
+		storedDf, found := db.GetDataByKey(dataKey)
+
+		// Check if data is in index
+		if found {
+			// check if data is already marked as tombstone
+			if storedDf.Status == model.DataDefinitionRemoved {
+				resp.AddErrorStr(fmt.Sprintf("Key %s not found in %s", dataKey, resp.Database))
+			} else {
+				tbs := model.NewTombstone(storedDf)
+				db.InsertCheckUpsert(tbs, true)
+				resp.AddContent(resp.Database, "ok")
+				status = http.StatusOK
+			}
+		} else {
+			resp.AddErrorStr(fmt.Sprintf("Key %s not found in %s", dataKey, resp.Database))
+		}
+	} else {
+		resp.AddError(errors.ErrDatabaseNotFound)
+	}
+
+	// write ok response
+	c.JSON(status, resp)
+}
+
 // NewServeHandler returns new ServeHandler
-func NewServeHandler(dbm *db.DBManager, queryExecutor *spql.QueryExecutor) *ServeHandler {
+func NewServeHandler(dbm *db.DBManager) *ServeHandler {
 	return &ServeHandler{
-		dbManager:     dbm,
-		queryExecutor: queryExecutor,
+		dbManager: dbm,
 	}
 }
