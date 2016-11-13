@@ -42,14 +42,14 @@ Show databases:
 
 Sending an image to database:
 
-	curl -i -X POST -H "Content-Type: multipart/form-data"  \
+	curl -i -X PUT -H "Content-Type: multipart/form-data"  \
         -F "uploadfile=@image.jpg" \
         http://127.0.0.1:8081/api/database_name/image_key
 
 
 Querying an image:
 
-	curl -X GET  http://127.0.0.1:8081/api/database_name/image_key
+	curl -X GET http://127.0.0.1:8081/api/database_name/image_key
 
 
 Accessing image from browser:
