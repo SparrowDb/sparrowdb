@@ -66,6 +66,7 @@ func (httpServer *HTTPServer) Start() {
 	if !httpServer.Config.ReadOnly {
 		authorized.PUT("/api/:dbname", handler.createDatabase)
 		authorized.DELETE("/api/:dbname", handler.dropDatabase)
+		authorized.GET("/api/:dbname", handler.infoDatabase)
 
 		authorized.PUT("/api/:dbname/:key", handler.uploadData)
 		authorized.DELETE("/api/:dbname/:key", handler.deleteData)

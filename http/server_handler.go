@@ -96,6 +96,28 @@ func (sh *ServeHandler) dropDatabase(c *gin.Context) {
 	}
 }
 
+func (sh *ServeHandler) infoDatabase(c *gin.Context) {
+	resp := NewResponse()
+	status := http.StatusBadRequest
+	resp.Database = c.Param("dbname")
+
+	if r := (govalidator.IsAlphanumeric(resp.Database) && govalidator.IsByteLength(resp.Database, 3, 50)); r == false {
+		resp.AddError(errors.ErrInvalidName)
+		c.JSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	if db, ok := sh.dbManager.GetDatabase(resp.Database); ok == true {
+		resp.AddContent("config", db.Descriptor)
+		resp.AddContent("statistics", db.Info())
+	} else {
+		resp.AddError(errors.ErrDatabaseNotFound)
+	}
+
+	// write ok response
+	c.IndentedJSON(status, resp)
+}
+
 func (sh *ServeHandler) uploadData(c *gin.Context) {
 	resp := NewResponse()
 	resp.Database = c.Param("dbname")

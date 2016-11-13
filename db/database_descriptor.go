@@ -23,7 +23,7 @@ type DatabaseDescriptor struct {
 	Path           string   `xml:"path"`
 	SnapshotPath   string   `xml:"snapshot_path"`
 	TokenActive    bool     `xml:"generate_token"`
-	Mode           string   `xml:"mode"`
+	ReadOnly       bool     `xml:"read_only"`
 }
 
 // ToJSON returns DatabaseDescriptor as JSON
