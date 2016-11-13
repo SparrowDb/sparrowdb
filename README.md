@@ -33,26 +33,23 @@ Using Sparrow
 ====================
 Creating a database:
 	
-	curl -X POST -d '{"type":"create_database", "params":{"name":"database_name"}}' http://127.0.0.1:8081/query
+	curl -X PUT http://127.0.0.1:8081/api/database_name
 
 Show databases:
 
-    curl -X POST -d '{"type":"show_databases"}' http://127.0.0.1:8081/query
+    curl -X GET http://127.0.0.1:8081/api/_all
 
 
 Sending an image to database:
 
 	curl -i -X POST -H "Content-Type: multipart/form-data"  \
         -F "uploadfile=@image.jpg" \
-        -F "dbname=database_name" \
-        -F "key=image_name" \
-        http://127.0.0.1:8081/upload
+        http://127.0.0.1:8081/api/database_name/image_key
 
 
 Querying an image:
 
-	curl -X POST -d '{"type": "select", "params": {"name": "database_name", "field": "key", "key": "image_name"}}' \ 
-        http://127.0.0.1:8081/query
+	curl -X GET  http://127.0.0.1:8081/api/database_name/image_key
 
 
 Accessing image from browser:
