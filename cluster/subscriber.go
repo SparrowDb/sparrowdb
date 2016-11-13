@@ -34,9 +34,30 @@ type message struct {
 	Content interface{}
 }
 
+func onreconnect(nc *nats.Conn) {
+	slog.Warnf("Reconnected to %v\n", nc.ConnectedUrl())
+}
+
+func ondisconnect(nc *nats.Conn) {
+	slog.Warnf("Disconnected from cluster\n")
+}
+
+func onclose(nc *nats.Conn) {
+	slog.Warnf("Connection closed. Reason: %q\n", nc.LastError())
+}
+
+func onerror(nc *nats.Conn, sub *nats.Subscription, err error) {
+	slog.Errorf("Cluster error:%v\n", err.Error())
+}
+
 func connect() {
 	var err error
 	_connection, err = nats.Connect(_config.PublisherServers)
+	_connection.SetReconnectHandler(onreconnect)
+	_connection.SetDisconnectHandler(ondisconnect)
+	_connection.SetClosedHandler(ondisconnect)
+	_connection.SetErrorHandler(onerror)
+
 	if err != nil {
 		slog.Fatalf(err.Error())
 	}
