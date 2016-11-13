@@ -59,6 +59,7 @@ Accessing image from browser:
 	
 	http://localhost:8081/g/database_name/image_key
 
+
 Token
 ====================
 
@@ -67,6 +68,7 @@ If is set in database configuration file, generate_token = true, SparrowDB will 
 Accessing image from browser with token:
 	
 	http://localhost:8081/g/database_name/image_key/token_value
+
 
 Image Processing
 ====================
@@ -90,6 +92,26 @@ out = s.grayscale(image)
 -- set new output for image
 s.setOutputImage(out)
 ```
+
+
+Replication
+====================
+
+SparrowDB integrates with [NATS](https://github.com/nats-io/gnatsd) to replicate all data using pub/sub.
+
+To use Sparrow in cluster mode, change the following options in config/sparrow.xml:
+
+	<enable_cluster>false</enable_cluster>
+
+
+And set NATS servers:
+
+	<publisher_servers>nats://localhost:4222</publisher_servers>
+
+
+Or multiple servers:
+
+	<publisher_servers>nats://localhost:4222, nats://localhost:4223, nats://localhost:4224</publisher_servers>
 
 
 
