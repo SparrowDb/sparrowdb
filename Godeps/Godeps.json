@@ -105,6 +105,26 @@
 			"Rev": "ee05b128a739a0fb76c7ebd3ae4810c1de808d6d"
 		},
 		{
+			"ImportPath": "github.com/nats-io/nats",
+			"Comment": "v1.2.2",
+			"Rev": "61923ed1eaf8398000991fbbee2ef11ab5a5be0d"
+		},
+		{
+			"ImportPath": "github.com/nats-io/nats/encoders/builtin",
+			"Comment": "v1.2.2",
+			"Rev": "61923ed1eaf8398000991fbbee2ef11ab5a5be0d"
+		},
+		{
+			"ImportPath": "github.com/nats-io/nats/util",
+			"Comment": "v1.2.2",
+			"Rev": "61923ed1eaf8398000991fbbee2ef11ab5a5be0d"
+		},
+		{
+			"ImportPath": "github.com/nats-io/nuid",
+			"Comment": "v1.0.0",
+			"Rev": "289cccf02c178dc782430d534e3c1f5b72af807f"
+		},
+		{
 			"ImportPath": "github.com/yuin/gopher-lua",
 			"Rev": "e57b64049898d04ad03d3cc75ffa770eb29aeae0"
 		},

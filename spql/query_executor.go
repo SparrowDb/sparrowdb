@@ -118,7 +118,7 @@ func (qe *QueryExecutor) Delete(query *Query, results chan *QueryResult) {
 				qr.AddErrorStr(fmt.Sprintf(errDataNotFound, qp.Key, qp.Name))
 			} else {
 				tbs := model.NewTombstone(storedDf)
-				db.InsertCheckRevision(tbs, true)
+				db.InsertCheckUpsert(tbs, true)
 			}
 		} else {
 			qr.AddErrorStr(fmt.Sprintf(errDataNotFound, qp.Key, qp.Name))

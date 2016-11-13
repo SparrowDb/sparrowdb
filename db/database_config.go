@@ -5,6 +5,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 
 	"github.com/SparrowDb/sparrowdb/errors"
 	"github.com/SparrowDb/sparrowdb/slog"
@@ -40,7 +41,7 @@ func (cfg *DatabaseConfig) DropDatabase(dbname string) {
 }
 
 func (cfg *DatabaseConfig) saveXMLFile() {
-	filePath := cfg.filepath + DefaultDatabaseConfigFile
+	filePath := filepath.Join(cfg.filepath, DefaultDatabaseConfigFile)
 	file, _ := os.Create(filePath)
 	xmlWriter := io.Writer(file)
 
@@ -53,7 +54,7 @@ func (cfg *DatabaseConfig) saveXMLFile() {
 
 // LoadDatabases load DatabaseConfigNode from XML file
 func (cfg *DatabaseConfig) LoadDatabases() []DatabaseDescriptor {
-	filePath := cfg.filepath + DefaultDatabaseConfigFile
+	filePath := filepath.Join(cfg.filepath, DefaultDatabaseConfigFile)
 
 	xmlFile, err := os.Open(filePath)
 	if err != nil {

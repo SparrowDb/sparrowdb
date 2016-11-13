@@ -1,5 +1,5 @@
 <Config>
-  <node_name>TESTE_LOCAL</node_name>
+  <node_name>SparrowNode1</node_name>
   <http_port>8081</http_port>
   <http_host>0.0.0.0</http_host>
   <ws_port>8082</ws_port>
@@ -14,4 +14,6 @@
   <enable_authentication>false</enable_authentication>
   <user_expire>300000</user_expire>
   <mode>RWQ</mode>
+  <enable_cluster>false</enable_cluster>
+  <publisher_servers>nats://localhost:4222</publisher_servers>
 </Config>

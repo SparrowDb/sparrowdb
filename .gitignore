@@ -4,7 +4,6 @@ debug
 sparrow
 sparrow.pid
 data/
-config/database.xml
 vendor/
 scritps/
 snapshot/

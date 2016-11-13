@@ -95,10 +95,9 @@ func (db *Database) InsertData(df *model.DataDefinition) error {
 	return nil
 }
 
-// InsertCheckRevision checks the revision of the data, df not exists
-// insert it. If exits and is upsert, override old data and increment
-// revision
-func (db *Database) InsertCheckRevision(df *model.DataDefinition, upsert bool) (uint32, error) {
+// InsertCheckUpsert if df not exists insert it. If exits and is upsert,
+// override old data
+func (db *Database) InsertCheckUpsert(df *model.DataDefinition, upsert bool) (uint32, error) {
 	storedDf, ok := db.GetDataByKey(df.Key)
 
 	if ok {
@@ -106,10 +105,7 @@ func (db *Database) InsertCheckRevision(df *model.DataDefinition, upsert bool) (
 			upsert = true
 		}
 
-		if upsert {
-			df.Revision = storedDf.Revision
-			df.Revision++
-		} else {
+		if !upsert {
 			return 0, fmt.Errorf(errors.ErrKeyExists.Error(), df.Key)
 		}
 	}

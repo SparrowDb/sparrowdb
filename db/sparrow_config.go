@@ -33,6 +33,8 @@ type SparrowConfig struct {
 	TokenActive          bool    `xml:"generate_token"`
 	AuthenticationActive bool    `xml:"enable_authentication"`
 	UserExpire           int     `xml:"user_expire"`
+	EnableCluster        bool    `xml:"enable_cluster"`
+	PublisherServers     string  `xml:"publisher_servers"`
 }
 
 func (sc *SparrowConfig) isValid() bool {

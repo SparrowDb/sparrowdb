@@ -11,6 +11,7 @@ import (
 	"fmt"
 
 	"github.com/SparrowDb/sparrowdb/auth"
+	"github.com/SparrowDb/sparrowdb/cluster"
 	"github.com/SparrowDb/sparrowdb/db"
 	"github.com/SparrowDb/sparrowdb/errors"
 	"github.com/SparrowDb/sparrowdb/model"
@@ -59,6 +60,10 @@ func (sh *ServeHandler) serveQuery(c *gin.Context) {
 		results.AddErrorStr(err.Error())
 		c.JSON(http.StatusBadRequest, results)
 		return
+	}
+
+	if sh.dbManager.Config.EnableCluster {
+		cluster.PublishQuery(qr)
 	}
 
 	results = <-sh.queryExecutor.ExecuteQuery(&q)
@@ -189,7 +194,7 @@ func (sh *ServeHandler) upload(c *gin.Context) {
 	}
 
 	// try to insert image in database
-	if _, err := sto.InsertCheckRevision(df, upsert); err != nil {
+	if _, err := sto.InsertCheckUpsert(df, upsert); err != nil {
 		results.AddErrorStr(err.Error())
 		c.JSON(http.StatusConflict, results)
 		return
@@ -198,6 +203,10 @@ func (sh *ServeHandler) upload(c *gin.Context) {
 	// write ok response
 	results.AddValue(df.QueryResult())
 	c.JSON(http.StatusOK, results)
+
+	if sh.dbManager.Config.EnableCluster {
+		cluster.PublishData(*df, dbname)
+	}
 
 	// increment upload statistics
 	monitor.IncHTTPUploads()
