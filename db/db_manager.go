@@ -8,6 +8,8 @@ import (
 	"strings"
 	"sync"
 
+	govalidator "gopkg.in/asaskevich/govalidator.v4"
+
 	"github.com/SparrowDb/sparrowdb/errors"
 	"github.com/SparrowDb/sparrowdb/model"
 	"github.com/SparrowDb/sparrowdb/slog"
@@ -49,6 +51,10 @@ func (dbm *DBManager) CreateDatabase(descriptor DatabaseDescriptor) error {
 	dbm.mu.RLock()
 	defer dbm.mu.RUnlock()
 
+	if govalidator.Contains(descriptor.Name, "_all") {
+		goto err
+	}
+
 	if _, ok := dbm.GetDatabase(descriptor.Name); !ok {
 		// check in descriptor which values must be set
 		// as default value
@@ -65,6 +71,7 @@ func (dbm *DBManager) CreateDatabase(descriptor DatabaseDescriptor) error {
 		return nil
 	}
 
+err:
 	return errors.ErrCreateDatabase
 }
 

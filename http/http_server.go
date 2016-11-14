@@ -66,6 +66,8 @@ func (httpServer *HTTPServer) Start() {
 	if !httpServer.Config.ReadOnly {
 		authorized.PUT("/api/:dbname", handler.createDatabase)
 		authorized.DELETE("/api/:dbname", handler.dropDatabase)
+
+		// If :dbname is "_all" it will retrieve all databases
 		authorized.GET("/api/:dbname", handler.infoDatabase)
 
 		authorized.PUT("/api/:dbname/:key", handler.uploadData)

@@ -96,26 +96,39 @@ func (sh *ServeHandler) dropDatabase(c *gin.Context) {
 	}
 }
 
-func (sh *ServeHandler) infoDatabase(c *gin.Context) {
-	resp := NewResponse()
-	status := http.StatusBadRequest
-	resp.Database = c.Param("dbname")
-
+func (sh *ServeHandler) getDatabaseInfo(resp *Response) int {
 	if r := (govalidator.IsAlphanumeric(resp.Database) && govalidator.IsByteLength(resp.Database, 3, 50)); r == false {
 		resp.AddError(errors.ErrInvalidName)
-		c.JSON(http.StatusBadRequest, resp)
-		return
+		return http.StatusBadRequest
 	}
 
 	if db, ok := sh.dbManager.GetDatabase(resp.Database); ok == true {
 		resp.AddContent("config", db.Descriptor)
 		resp.AddContent("statistics", db.Info())
-	} else {
-		resp.AddError(errors.ErrDatabaseNotFound)
+		return http.StatusOK
 	}
 
-	// write ok response
-	c.IndentedJSON(status, resp)
+	resp.AddError(errors.ErrDatabaseNotFound)
+	return http.StatusBadRequest
+}
+
+func (sh *ServeHandler) getDatabaseList(resp *Response) int {
+	resp.AddContent("_all", sh.dbManager.GetDatabasesNames())
+	return http.StatusBadRequest
+}
+
+func (sh *ServeHandler) infoDatabase(c *gin.Context) {
+	resp := NewResponse()
+	dbname := c.Param("dbname")
+	resp.Database = dbname
+
+	if dbname == "_all" {
+		sh.getDatabaseList(resp)
+	} else {
+		sh.getDatabaseInfo(resp)
+	}
+
+	c.IndentedJSON(200, resp)
 }
 
 func (sh *ServeHandler) uploadData(c *gin.Context) {
