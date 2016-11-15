@@ -1,2 +1,24 @@
   <databases>
+      <database>
+          <name>teste1</name>
+          <max_datalog_size>52428800</max_datalog_size>
+          <max_cache_size>31457280</max_cache_size>
+          <bloomfilter_fpp>0.001</bloomfilter_fpp>
+          <dataholder_cron_compaction>0 0 1 ? * TUE,FRI</dataholder_cron_compaction>
+          <path>data/teste1</path>
+          <snapshot_path>snapshot/teste1</snapshot_path>
+          <generate_token>false</generate_token>
+          <read_only>false</read_only>
+      </database>
+      <database>
+          <name>teste9</name>
+          <max_datalog_size>52428800</max_datalog_size>
+          <max_cache_size>31457280</max_cache_size>
+          <bloomfilter_fpp>0.001</bloomfilter_fpp>
+          <dataholder_cron_compaction>0 0 1 ? * TUE,FRI</dataholder_cron_compaction>
+          <path>data/teste9</path>
+          <snapshot_path>snapshot/teste9</snapshot_path>
+          <generate_token>false</generate_token>
+          <read_only>false</read_only>
+      </database>
   </databases>

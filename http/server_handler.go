@@ -103,7 +103,16 @@ func (sh *ServeHandler) getDatabaseInfo(resp *Response) int {
 	}
 
 	if db, ok := sh.dbManager.GetDatabase(resp.Database); ok == true {
-		resp.AddContent("config", db.Descriptor)
+		resp.AddContent("config", map[string]interface{}{
+			"max_datalog_size":           db.Descriptor.MaxDataLogSize,
+			"max_cache_size":             db.Descriptor.MaxCacheSize,
+			"bloomfilter_fpp":            db.Descriptor.BloomFilterFp,
+			"dataholder_cron_compaction": db.Descriptor.CronExp,
+			"path":           db.Descriptor.Path,
+			"snapshot_path":  db.Descriptor.SnapshotPath,
+			"generate_token": db.Descriptor.TokenActive,
+			"read_only":      db.Descriptor.ReadOnly,
+		})
 		resp.AddContent("statistics", db.Info())
 		return http.StatusOK
 	}
