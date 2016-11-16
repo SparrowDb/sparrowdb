@@ -144,7 +144,7 @@ func (dbm *DBManager) LoadDatabases() {
 			_, err := dbm.openDatabase(d)
 
 			if err != nil {
-				slog.Fatalf("Erro trying to load %s: %s\n[%s]\n\nQuiting...", d.Name, err, string(d.ToJSON()))
+				slog.Fatalf("%s [%s]\nQuiting...", err, d.Path)
 				os.Exit(1)
 			}
 
