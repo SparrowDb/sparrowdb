@@ -18,7 +18,6 @@ import (
 	"github.com/SparrowDb/sparrowdb/model"
 	"github.com/SparrowDb/sparrowdb/monitor"
 	"github.com/SparrowDb/sparrowdb/script"
-	"github.com/SparrowDb/sparrowdb/slog"
 	"github.com/SparrowDb/sparrowdb/util/uuid"
 	"github.com/gin-gonic/gin"
 )
@@ -159,7 +158,8 @@ func (sh *ServeHandler) uploadData(c *gin.Context) {
 
 	file, fhandler, err := c.Request.FormFile("uploadfile")
 	if err != nil {
-		slog.Errorf(err.Error())
+		resp.AddError(err)
+		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
 	defer file.Close()
