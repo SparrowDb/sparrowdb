@@ -23,6 +23,12 @@ func (httpServer *HTTPServer) basicMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 		c.Writer.Header().Set("Server", "SparrowDb")
+
+		if c.Request.Method == "OPTIONS" {
+			c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+			c.Writer.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+		}
+
 		c.Next()
 	}
 }
@@ -78,6 +84,7 @@ func (httpServer *HTTPServer) Start() {
 
 	httpServer.router.GET("/g/:dbname/:key", handler.get)
 	httpServer.router.GET("/ping", handler.ping)
+	httpServer.router.OPTIONS("/*cors", func(c *gin.Context) {})
 
 	http.Serve(httpServer.listener, httpServer.router)
 }
