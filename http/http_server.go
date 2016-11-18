@@ -70,19 +70,25 @@ func (httpServer *HTTPServer) Start() {
 
 	// register routes based on configuration file permission
 	if !httpServer.Config.ReadOnly {
+		// database create/delete
 		authorized.PUT("/api/:dbname", handler.createDatabase)
 		authorized.DELETE("/api/:dbname", handler.dropDatabase)
 
-		// If :dbname is "_all" it will retrieve all databases
-		authorized.GET("/api/:dbname", handler.infoDatabase)
-
+		// image insert/delete
 		authorized.PUT("/api/:dbname/:key", handler.uploadData)
 		authorized.DELETE("/api/:dbname/:key", handler.deleteData)
-
-		httpServer.router.GET("/api/:dbname/:key", handler.getDataInfo)
 	}
 
+	// If :dbname is "_all" it will retrieve all databases or dbname
+	// is a valid database name, it will retrive database information
+	authorized.GET("/api/:dbname", handler.infoDatabase)
+
+	// get image information by database/image_key
+	httpServer.router.GET("/api/:dbname/:key", handler.getDataInfo)
+
+	// get image by database/image_key
 	httpServer.router.GET("/g/:dbname/:key", handler.get)
+
 	httpServer.router.GET("/ping", handler.ping)
 	httpServer.router.OPTIONS("/*cors", func(c *gin.Context) {})
 
