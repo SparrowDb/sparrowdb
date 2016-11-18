@@ -10,7 +10,6 @@ import (
 	"syscall"
 
 	"github.com/SparrowDb/sparrowdb/auth"
-	"github.com/SparrowDb/sparrowdb/cluster"
 	"github.com/SparrowDb/sparrowdb/compression"
 	"github.com/SparrowDb/sparrowdb/db"
 	"github.com/SparrowDb/sparrowdb/http"
@@ -71,11 +70,6 @@ func init() {
 func handleSignal(c chan os.Signal) {
 	<-c
 	instance.serviceManager.StopAll()
-
-	if instance.sparrowConfig.EnableCluster {
-		cluster.Close()
-	}
-
 	slog.Infof("Quinting SparrowDB")
 	os.Exit(1)
 }
@@ -111,10 +105,6 @@ func main() {
 	instance.httpServer = http.NewHTTPServer(instance.sparrowConfig, instance.dbManager)
 	instance.wsServer = monitor.NewWebSocketServer(instance.sparrowConfig)
 	monitor.StartMonitor(&instance.wsServer)
-
-	if instance.sparrowConfig.EnableCluster {
-		cluster.Start(instance.sparrowConfig, instance.dbManager)
-	}
 
 	instance.serviceManager = service.NewManager()
 	instance.serviceManager.AddService("wsServer", &instance.wsServer)

@@ -12,7 +12,6 @@ import (
 	govalidator "gopkg.in/asaskevich/govalidator.v4"
 
 	"github.com/SparrowDb/sparrowdb/auth"
-	"github.com/SparrowDb/sparrowdb/cluster"
 	"github.com/SparrowDb/sparrowdb/db"
 	"github.com/SparrowDb/sparrowdb/errors"
 	"github.com/SparrowDb/sparrowdb/model"
@@ -224,10 +223,6 @@ func (sh *ServeHandler) uploadData(c *gin.Context) {
 	// write ok response
 	resp.AddContent("data", df.QueryResult())
 	c.JSON(http.StatusOK, resp)
-
-	if sh.dbManager.Config.EnableCluster {
-		cluster.PublishData(*df, resp.Database)
-	}
 
 	// increment upload statistics
 	monitor.IncHTTPUploads()

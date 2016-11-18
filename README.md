@@ -91,27 +91,6 @@ s.setOutputImage(out)
 ```
 
 
-Replication
-====================
-
-SparrowDB integrates with [NATS](https://github.com/nats-io/gnatsd) to replicate all data using pub/sub.
-
-To use Sparrow in cluster mode, change the following options in config/sparrow.xml:
-
-	<enable_cluster>false</enable_cluster>
-
-
-And set NATS servers:
-
-	<publisher_servers>nats://localhost:4222</publisher_servers>
-
-
-Or multiple servers:
-
-	<publisher_servers>nats://localhost:4222, nats://localhost:4223, nats://localhost:4224</publisher_servers>
-
-
-
 License
 ====================
 This software is under MIT license.
