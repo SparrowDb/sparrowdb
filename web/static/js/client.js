@@ -61,8 +61,6 @@ var Client = (function() {
                         .append('<tr><td>' + key + '</td><td>' + r.content.statistics[key] + '</td></tr>');
                 });
             });
-
-            console.log(r)
         });
     }
 

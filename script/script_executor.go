@@ -18,11 +18,11 @@ const (
 // Execute executes script that is in scripts folder
 func Execute(script string, b []byte) ([]byte, error) {
 	// check script file
-	scriptpath := filepath.Join("scripts", script+".lua")
-	if _, err := os.Stat(scriptpath); err != nil {
-		if os.IsNotExist(err) {
-			return nil, err
-		}
+	pwd, _ := os.Getwd()
+	scriptpath := filepath.Join(pwd, "scripts", script+".lua")
+
+	if _, err := os.Stat(scriptpath); os.IsNotExist(err) {
+		return nil, err
 	}
 
 	// lua interpreter
