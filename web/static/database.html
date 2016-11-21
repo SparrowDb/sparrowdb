@@ -1,0 +1,159 @@
+<div>
+    <h2>Database</h2>
+    <div class="row" style="margin-bottom:20px">
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#createDbModal">
+            Create Database
+        </button>
+    </div>
+    <div class="row">
+        <div id="treeview"></div>
+    </div>
+</div>
+
+<div class="modal fade" id="createDbModal" tabindex="-1" role="dialog" aria-labelledby="createDbModal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">Create Database</h4>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label for="dbnameInput">Name</label>
+                        <input type="text" class="form-control" id="dbnameInput" placeholder="Database name">
+                    </div>
+                    <div class="form-group">
+                        <label for="paramsInput">Params</label>
+                        <textarea id="paramsInput" class="form-control">{}</textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="createDbBtn">Create</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalInfoDb" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="modalInfoDbLabel"></h4>
+            </div>
+            <div class="modal-body">
+                <div>
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li role="presentation" class="active">
+                            <a href="#config" aria-controls="config" role="tab" data-toggle="tab">Configuration</a>
+                        </li>
+                        <li role="presentation">
+                            <a href="#statistics" aria-controls="statistics" role="tab" data-toggle="tab">Statistics</a>
+                        </li>
+                        <li role="presentation">
+                            <a href="#upload" aria-controls="upload" role="tab" data-toggle="tab">Upload</a>
+                        </li>
+                        <li role="presentation">
+                            <a href="#imginfo" aria-controls="imginfo" role="tab" data-toggle="tab">Image Information</a>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content">
+                        <div role="tabpanel" class="tab-pane active" id="config">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-bordered" border="1" id="tblInfoCfg">
+                                    <thead>
+                                        <td>Key</td>
+                                        <td>Value</td>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div role="tabpanel" class="tab-pane" id="statistics">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-bordered" border="1" id="tblInfoStatistic">
+                                    <thead>
+                                        <td>Key</td>
+                                        <td>Value</td>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div role="tabpanel" class="tab-pane" id="upload">
+                            <form>
+                                <div class="form-group">
+                                    <label for="frmFile">Image</label>
+                                    <input type="file" class="form-control" id="frmFile">
+                                </div>
+                                <div class="form-group">
+                                    <label for="frmKey">Key</label>
+                                    <input type="text" class="form-control" id="frmKey" placeholder="Image key" value="key1">
+                                </div>
+                                <div class="form-group">
+                                    <label for="frmScript">Upsert</label>
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" id="frmUpsert"> Upsert
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="frmScript">Script</label>
+                                    <input type="text" class="form-control" id="frmScript" placeholder="Script" value="grayscale">
+                                </div>
+                                <button type="button" id="btnUpload" class="btn btn-default">Send</button>
+                            </form>
+                        </div>
+                        <div role="tabpanel" class="tab-pane" id="imginfo">
+                            <form class="form-inline">
+                                <div class="form-group">
+                                    <label class="sr-only" for="imgKey">Image key</label>
+                                    <input type="text" class="form-control" id="imgKey" placeholder="Image key">
+                                </div>
+                                <button type="button" class="btn btn-default">Search</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    Client.getClient().showDatabases().success(function(r) {
+        var nodes = r.content._all.map(function(o) {
+            return {
+                text: o
+            }
+        });
+        $('#treeview').treeview({
+            data: [{
+                text: "localhost",
+                nodes: nodes
+            }],
+            onNodeSelected: function(event, data) {
+                Client.showInfoModal(data.text);
+            }
+        });
+
+        $('#createDbBtn').click(function() {
+            Client.getClient().createDatabase($('#dbnameInput').val(), $('#paramsInput').val())
+                .success(function() {
+                    alert('Database created');
+                }).error(function() {
+                    alert('Could not create database');
+                });
+        });
+    });
+</script>

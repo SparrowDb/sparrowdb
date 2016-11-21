@@ -35,5 +35,4 @@ _testmain.go
 
 # Others
 .vscode
-*.html
 *.bin
