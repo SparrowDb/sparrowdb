@@ -131,6 +131,8 @@
 </div>
 
 <script>
+    var _currentDb = null;
+
     Client.getClient().showDatabases().success(function(r) {
         var nodes = r.content._all.map(function(o) {
             return {
@@ -143,6 +145,7 @@
                 nodes: nodes
             }],
             onNodeSelected: function(event, data) {
+                _currentDb = data.text;
                 Client.showInfoModal(data.text);
             }
         });
@@ -153,6 +156,18 @@
                     alert('Database created');
                 }).error(function() {
                     alert('Could not create database');
+                });
+        });
+
+        $('#btnUpload').click(function() {
+            Client.getClient().uploadImage(_currentDb, $('#frmKey').val(), $('#frmFile'), {
+                    upsert: $('#frmUpsert').is(":checked"),
+                    script: $('#frmScript').val()
+                })
+                .success(function() {
+                    alert('Image sent');
+                }).error(function(r) {
+                    alert('Could send image: ' + r.responseJSON.error[0]);
                 });
         });
     });
