@@ -13,10 +13,10 @@ import (
 	"github.com/SparrowDb/sparrowdb/compression"
 	"github.com/SparrowDb/sparrowdb/db"
 	"github.com/SparrowDb/sparrowdb/http"
-	"github.com/SparrowDb/sparrowdb/monitor"
 	"github.com/SparrowDb/sparrowdb/service"
 	"github.com/SparrowDb/sparrowdb/slog"
 	"github.com/SparrowDb/sparrowdb/util"
+	"github.com/SparrowDb/sparrowdb/web"
 )
 
 const (
@@ -38,7 +38,7 @@ type Instance struct {
 	databaseConfig *db.DatabaseConfig
 	dbManager      *db.DBManager
 	httpServer     http.HTTPServer
-	wsServer       monitor.WSServer
+	httpUI         web.UIServer
 	serviceManager service.Manager
 }
 
@@ -103,12 +103,11 @@ func main() {
 	instance.dbManager.LoadDatabases()
 
 	instance.httpServer = http.NewHTTPServer(instance.sparrowConfig, instance.dbManager)
-	instance.wsServer = monitor.NewWebSocketServer(instance.sparrowConfig)
-	monitor.StartMonitor(&instance.wsServer)
+	instance.httpUI = web.NewUIServer(instance.sparrowConfig)
 
 	instance.serviceManager = service.NewManager()
-	instance.serviceManager.AddService("wsServer", &instance.wsServer)
 	instance.serviceManager.AddService("httpServer", &instance.httpServer)
+	instance.serviceManager.AddService("httpUI", &instance.httpUI)
 	instance.serviceManager.AddService("dbManager", instance.dbManager)
 	instance.serviceManager.StartAll()
 }

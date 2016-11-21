@@ -15,7 +15,6 @@ import (
 	"github.com/SparrowDb/sparrowdb/db"
 	"github.com/SparrowDb/sparrowdb/errors"
 	"github.com/SparrowDb/sparrowdb/model"
-	"github.com/SparrowDb/sparrowdb/monitor"
 	"github.com/SparrowDb/sparrowdb/script"
 	"github.com/SparrowDb/sparrowdb/util/uuid"
 	"github.com/gin-gonic/gin"
@@ -36,10 +35,14 @@ func (sh *ServeHandler) userLogin(c *gin.Context) {
 	var user auth.User
 	c.BindJSON(&user)
 
-	tk, _ := auth.Authenticate(user, sh.dbManager.Config.UserExpire)
-	c.JSON(200, gin.H{
-		"token": tk,
-	})
+	tk, ok := auth.Authenticate(user, sh.dbManager.Config.UserExpire)
+	if ok {
+		c.JSON(http.StatusOK, gin.H{
+			"token": tk,
+		})
+	} else {
+		c.AbortWithStatus(http.StatusUnauthorized)
+	}
 }
 
 func (sh *ServeHandler) createDatabase(c *gin.Context) {
@@ -223,9 +226,6 @@ func (sh *ServeHandler) uploadData(c *gin.Context) {
 	// write ok response
 	resp.AddContent("data", df.QueryResult())
 	c.JSON(http.StatusOK, resp)
-
-	// increment upload statistics
-	monitor.IncHTTPUploads()
 }
 
 func (sh *ServeHandler) deleteData(c *gin.Context) {

@@ -19,8 +19,8 @@ type SparrowConfig struct {
 	NodeName             string  `xml:"node_name"`
 	HTTPPort             string  `xml:"http_port"`
 	HTTPHost             string  `xml:"http_host"`
-	WSPort               string  `xml:"ws_port"`
-	WSHost               string  `xml:"ws_host"`
+	AdminPort            string  `xml:"admin_port"`
+	AdminHost            string  `xml:"admin_host"`
 	ReadOnly             bool    `xml:"read_only"`
 	MaxDataLogSize       uint64  `xml:"max_datalog_size"`
 	MaxCacheSize         uint64  `xml:"max_cache_size"`

@@ -5,7 +5,6 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/SparrowDb/sparrowdb/auth"
 	"github.com/SparrowDb/sparrowdb/db"
 	"github.com/SparrowDb/sparrowdb/slog"
 	"github.com/gin-gonic/gin"
@@ -19,32 +18,6 @@ type HTTPServer struct {
 	listener  net.Listener
 }
 
-func (httpServer *HTTPServer) basicMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-		c.Writer.Header().Set("Server", "SparrowDb")
-
-		if c.Request.Method == "OPTIONS" {
-			c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-			c.Writer.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
-		}
-
-		c.Next()
-	}
-}
-
-func (httpServer *HTTPServer) authMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		token, err := auth.ParseFromRequest(c.Request)
-
-		if err != nil || !token.Valid {
-			c.AbortWithStatus(http.StatusUnauthorized)
-		}
-
-		c.Next()
-	}
-}
-
 // Start starts HTTP server listener
 func (httpServer *HTTPServer) Start() {
 	var err error
@@ -56,7 +29,7 @@ func (httpServer *HTTPServer) Start() {
 	handler := NewServeHandler(httpServer.dbManager)
 
 	// register basic middleware, for cors and server name
-	httpServer.router.Use(httpServer.basicMiddleware())
+	httpServer.router.Use(BasicMiddleware())
 
 	// auth group
 	authorized := httpServer.router.Group("/")
@@ -64,7 +37,9 @@ func (httpServer *HTTPServer) Start() {
 	// Checks if auth is active, if true, register auth middleware
 	// and login route
 	if httpServer.Config.AuthenticationActive {
-		authorized.Use(httpServer.authMiddleware())
+		authorized.Use(AuthMiddleware(func(c *gin.Context) {
+			c.AbortWithStatus(http.StatusUnauthorized)
+		}))
 		httpServer.router.POST("/user/login", handler.userLogin)
 	}
 
@@ -104,7 +79,6 @@ func (httpServer *HTTPServer) Stop() {
 // NewHTTPServer returns new HTTPServer
 func NewHTTPServer(config *db.SparrowConfig, dbm *db.DBManager) HTTPServer {
 	gin.SetMode(gin.ReleaseMode)
-
 	return HTTPServer{
 		Config:    config,
 		dbManager: dbm,

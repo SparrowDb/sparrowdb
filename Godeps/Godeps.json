@@ -125,10 +125,6 @@
 			"Rev": "f841c39de738b1d0df95b5a7187744f0e03d8112"
 		},
 		{
-			"ImportPath": "golang.org/x/net/websocket",
-			"Rev": "f841c39de738b1d0df95b5a7187744f0e03d8112"
-		},
-		{
 			"ImportPath": "gopkg.in/asaskevich/govalidator.v4",
 			"Comment": "v4",
 			"Rev": "7664702784775e51966f0885f5cd27435916517b"
