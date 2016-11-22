@@ -49,6 +49,10 @@ var Client = (function() {
             $('#modalInfoDb').modal('show')
             $('#modalInfoDbLabel').html(dbname);
 
+            $('#modalInfoDb').on('hidden.bs.modal', function(e) {
+                self.changePage('database');
+            });
+
             $('#modalInfoDb').on('shown.bs.modal', function() {
                 $('#tblInfoCfg').find('tbody').empty();
                 Object.keys(r.content.config).forEach(function(key) {

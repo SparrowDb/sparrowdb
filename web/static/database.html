@@ -135,6 +135,7 @@
                 </div>
             </div>
             <div class="modal-footer">
+                <button type="button" class="btn btn-danger" id="btnDropDb">Drop Database</button>
                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
             </div>
         </div>
@@ -192,6 +193,20 @@
                 }).error(function(r) {
                     alert('Could get image info: ' + r.responseJSON.error.join("\n"));
                 });
+        });
+
+        $('#btnDropDb').click(function() {
+            if (confirm("Press a button") == true) {
+                Client.getClient().dropDatabase(_currentDb).success(function(r) {
+                    $('#modalInfoDb').modal('hide');
+                }).error(function(xhr) {
+                    if (xhr.status == 404) {
+                        self.changePage('database');
+                        return;
+                    }
+                    alert('Could not drop database')
+                });
+            }
         });
     });
 </script>
