@@ -196,7 +196,7 @@
         });
 
         $('#btnDropDb').click(function() {
-            if (confirm("Press a button") == true) {
+            if (confirm("Drop " + _currentDb + " ?") == true) {
                 Client.getClient().dropDatabase(_currentDb).success(function(r) {
                     $('#modalInfoDb').modal('hide');
                 }).error(function(xhr) {
