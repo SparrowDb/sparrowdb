@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"image"
 	"image/draw"
+	_ "image/gif"
+	_ "image/jpeg"
 	"image/png"
 	"os"
 	"path/filepath"
@@ -21,8 +23,10 @@ func Execute(script string, b []byte) ([]byte, error) {
 	pwd, _ := os.Getwd()
 	scriptpath := filepath.Join(pwd, "scripts", script+".lua")
 
-	if _, err := os.Stat(scriptpath); os.IsNotExist(err) {
-		return nil, err
+	if _, err := os.Stat(scriptpath); err != nil {
+		if os.IsNotExist(err) == false {
+			return nil, err
+		}
 	}
 
 	// lua interpreter
