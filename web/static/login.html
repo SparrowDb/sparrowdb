@@ -1,16 +1,17 @@
-<div>
-    <form class="form-signin" style="max-width: 330px;margin: 0 auto;">
+<form class="form-signin" style="max-width: 330px;margin: 0 auto;">
+    <div class="row">
         <h2 class="form-signin-heading">Login</h2>
+        <label for="inputUser" class="sr-only">Host</label>
+        <input type="text" id="inputUser" class="form-control" placeholder="Host (127.0.0.1:8082)" ng-model="loginData.host" required>
         <label for="inputUser" class="sr-only">Username</label>
-        <input type="text" id="inputUser" class="form-control" placeholder="Username" value="sparrow" required autofocus>
+        <input type="text" class="form-control" placeholder="Username" ng-model="loginData.username" required autofocus>
         <label for="inputPassword" class="sr-only">Password</label>
-        <input type="password" id="inputPassword" class="form-control" value="sparrow" placeholder="Password" required>
-        <button class="btn btn-lg btn-primary btn-block" type="button" id="btnLogin">Login</button>
-    </form>
-</div>
-
-<script>
-    $('#btnLogin').click(function() {
-        Client.login($('#inputUser').val(), $('#inputPassword').val());
-    });
-</script>
+        <input type="password" class="form-control" ng-model="loginData.password" placeholder="Password" required>
+        <button class="btn btn-lg btn-primary btn-block" type="button" ng-click="doLogin()">Login</button>
+    </div>
+    <div class="row" style="margin-top: 15px">
+        <p class="bg-danger" style="padding: 5px" ng-show="error != ''">
+            <b>{{error}}</b>
+        </p>
+    </div>
+</form>
