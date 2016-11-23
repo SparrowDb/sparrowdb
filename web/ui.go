@@ -34,8 +34,6 @@ type UIServer struct {
 // Start starts HTTP server listener
 func (s *UIServer) Start() {
 	var err error
-	//hostAddr := fmt.Sprintf("127.0.0.1:%s", s.Config.HTTPPort)
-
 	s.listener, err = net.Listen("tcp", fmt.Sprintf("%s:%s", s.Config.AdminHost, s.Config.AdminPort))
 	if err != nil {
 		slog.Fatalf(err.Error())
@@ -44,16 +42,8 @@ func (s *UIServer) Start() {
 	s.router.Use(http.BasicMiddleware())
 
 	pwd, _ := os.Getwd()
-	//s.router.LoadHTMLGlob(filepath.Join(pwd, "web", "templates/*"))
 	s.router.StaticFS("/", _http.Dir(filepath.Join(pwd, "web", "static")))
 	s.router.OPTIONS("/*cors", func(c *gin.Context) {})
-
-	/*s.router.GET("/", func(c *gin.Context) {
-		s.router.SetHTMLTemplate(buildTemplate("base.html"))
-		c.HTML(_http.StatusOK, "base", gin.H{
-			"hostAddr": hostAddr,
-		})
-	})*/
 
 	_http.Serve(s.listener, s.router)
 }
