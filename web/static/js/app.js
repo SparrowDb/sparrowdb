@@ -19,7 +19,7 @@ app.config(function($routeProvider) {  
         });
 });
 
-app.factory('sparrow', function() {
+app.factory('sparrow', function($location) {
     var self = {};
     self.token = '';
     self.currentDb = null;
@@ -31,6 +31,10 @@ app.factory('sparrow', function() {
     };
 
     self.getClient = function() {
+        if (self.client == null) {
+            $location.path("/login");
+            return;
+        }
         return self.client;
     };
 
@@ -92,6 +96,7 @@ app.controller('mainController', function($scope, $location, sparrow, $rootScope
 
 app.controller('dbController', function($scope, $location, sparrow, $rootScope) {
     $scope.currentDb = sparrow.currentDb;
+    $scope.uploadData = {};
 
     var updateInfo = function() {
         sparrow.getClient().infoDatabase(sparrow.currentDb)
@@ -99,11 +104,33 @@ app.controller('dbController', function($scope, $location, sparrow, $rootScope) 
                 $scope.$apply(function() {
                     $scope.info = r.content;
                 });
-            }).error(function(xhr) {});
+            }).error(function(xhr) {
+                $location.path("/");
+            });
     }
     updateInfo();
 
     $scope.refresh = function() {
         updateInfo();
+    }
+
+    $scope.uploadImage = function() {
+        var fileUpload = angular.element(document.querySelector('#frmFile'));
+
+        var options = {};
+        options.script = $scope.uploadData.script || '';
+        options.upsert = $scope.uploadData.upsert || false;
+
+        sparrow.getClient().uploadImage(
+                sparrow.currentDb,
+                $scope.uploadData.key,
+                fileUpload,
+                options
+            )
+            .success(function(r) {
+                alert('Image ' + $scope.uploadData.key + ' sent to ' + sparrow.currentDb);
+            }).error(function(xhr) {
+                alert('Could not send image.\n' + xhr.responseJSON.error.join("\n"));
+            });
     }
 });
