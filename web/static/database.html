@@ -1,6 +1,5 @@
 <h3> Database: {{currentDb}}</h3>
 
-
 <div class="row">
     <button type="button" class="btn btn-primary" ng-click="refresh()">Refresh</button>
     <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalUpload">Upload</button>
@@ -95,17 +94,21 @@
                 <form class="form-inline">
                     <div class="form-group">
                         <label class="sr-only" for="imgKey">Image key</label>
-                        <input type="text" class="form-control" id="imgKey" placeholder="Image key">
+                        <input type="text" class="form-control" ng-model="searchData.key" value="" placeholder="Image key">
                     </div>
-                    <button type="button" class="btn btn-default" id="btnImageInfo">Search</button>
+                    <button type="button" class="btn btn-default" ng-click="imageInfo()">Search</button>
 
                     <div class="table-responsive">
-                        <table class="table table-striped table-bordered" border="1" id="tblInfoImage">
+                        <table class="table table-striped table-bordered" border="1">
                             <thead>
                                 <td>Key</td>
                                 <td>Value</td>
                             </thead>
                             <tbody>
+                                <tr ng-repeat="(key, value) in imgInfo.data">
+                                    <td>{{key}}</td>
+                                    <td>{{value}}</td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>

@@ -23,6 +23,7 @@ app.factory('sparrow', function($location) {
     var self = {};
     self.token = '';
     self.currentDb = null;
+    self.currentUser = 'sparrow';
 
     self.connect = function(_host) {
         self.client = new SparrowDb({
@@ -46,12 +47,12 @@ app.controller('loginController', function($scope, $location, sparrow, $rootScop
     $scope.error = '';
 
     $scope.doLogin = function() {
-        console.log($scope.loginData)
         sparrow.connect($scope.loginData.host);
 
         sparrow.getClient().login($scope.loginData.username, $scope.loginData.password)
             .success(function(r) {
                 sparrow.token = r.token;
+                sparrow.currentUser = $scope.loginData.username;
                 $rootScope.$apply(function() {
                     $location.path("/");
                 });
@@ -95,8 +96,9 @@ app.controller('mainController', function($scope, $location, sparrow, $rootScope
 
 
 app.controller('dbController', function($scope, $location, sparrow, $rootScope) {
-    $scope.currentDb = sparrow.currentDb;
+    $scope.current = sparrow.currentDb;
     $scope.uploadData = {};
+    $scope.searchData = { key: '' };
 
     var updateInfo = function() {
         sparrow.getClient().infoDatabase(sparrow.currentDb)
@@ -131,6 +133,28 @@ app.controller('dbController', function($scope, $location, sparrow, $rootScope) 
                 alert('Image ' + $scope.uploadData.key + ' sent to ' + sparrow.currentDb);
             }).error(function(xhr) {
                 alert('Could not send image.\n' + xhr.responseJSON.error.join("\n"));
+            });
+    }
+
+    $scope.imageInfo = function() {
+        if ($scope.searchData.key == '') {
+            alert('Insert a key');
+            return;
+        }
+
+        sparrow.getClient().imageInfo(
+                sparrow.currentDb,
+                $scope.searchData.key
+            )
+            .success(function(r) {
+                $scope.$apply(function() {
+                    $scope.imgInfo = r.content;
+                });
+            }).error(function(xhr) {
+                $scope.$apply(function() {
+                    $scope.imgInfo = {};
+                });
+                alert('Could not get image info.\n' + xhr.responseJSON.error.join("\n"));
             });
     }
 });
