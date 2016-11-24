@@ -31,6 +31,7 @@ type SparrowConfig struct {
 	TokenActive          bool    `xml:"generate_token"`
 	AuthenticationActive bool    `xml:"enable_authentication"`
 	UserExpire           int     `xml:"user_expire"`
+	EnableWebUI          bool    `xml:"enable_webui"`
 }
 
 // NewSparrowConfig return configuration from file

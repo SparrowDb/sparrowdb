@@ -99,15 +99,19 @@ func main() {
 
 	auth.LoadUserConfig(*configPathFlag, instance.sparrowConfig)
 
+	instance.serviceManager = service.NewManager()
+
 	instance.dbManager = db.NewDBManager(instance.sparrowConfig, instance.databaseConfig)
 	instance.dbManager.LoadDatabases()
+	instance.serviceManager.AddService("dbManager", instance.dbManager)
 
 	instance.httpServer = http.NewHTTPServer(instance.sparrowConfig, instance.dbManager)
-	instance.httpUI = web.NewUIServer(instance.sparrowConfig)
-
-	instance.serviceManager = service.NewManager()
 	instance.serviceManager.AddService("httpServer", &instance.httpServer)
-	instance.serviceManager.AddService("httpUI", &instance.httpUI)
-	instance.serviceManager.AddService("dbManager", instance.dbManager)
+
+	if instance.sparrowConfig.EnableWebUI {
+		instance.httpUI = web.NewUIServer(instance.sparrowConfig)
+		instance.serviceManager.AddService("httpUI", &instance.httpUI)
+	}
+
 	instance.serviceManager.StartAll()
 }

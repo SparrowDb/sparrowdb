@@ -12,6 +12,7 @@
   <dataholder_cron_compaction>0 0 1 ? * TUE,FRI</dataholder_cron_compaction>
   <generate_token>false</generate_token>
   <enable_authentication>false</enable_authentication>
+  <enable_webui>true</enable_webui>
   <user_expire>300000</user_expire>
   <read_only>false</read_only>
 </Config>
