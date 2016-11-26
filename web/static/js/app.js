@@ -96,7 +96,7 @@ app.controller('mainController', function($scope, $location, sparrow, $rootScope
 
 
 app.controller('dbController', function($scope, $location, sparrow, $rootScope) {
-    $scope.current = sparrow.currentDb;
+    $scope.currentDb = sparrow.currentDb;
     $scope.uploadData = {};
     $scope.searchData = { key: '' };
 
