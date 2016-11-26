@@ -39,6 +39,14 @@ app.factory('sparrow', function($location) {
         return self.client;
     };
 
+    self.checkError = function(xhr, cb) {
+        if (xhr.status == 0) {
+            alert("Lost connection with server");
+        } else {
+            cb(xhr);
+        }
+    };
+
     return self;
 });
 
@@ -57,8 +65,10 @@ app.controller('loginController', function($scope, $location, sparrow, $rootScop
                     $location.path("/");
                 });
             }).error(function(xhr) {
-                $scope.$apply(function() {
-                    $scope.error = 'Invalid user and/or password';
+                sparrow.checkError(xhr, function() {
+                    $scope.$apply(function() {
+                        $scope.error = 'Invalid user and/or password';
+                    });
                 });
             });
     };
@@ -82,13 +92,15 @@ app.controller('mainController', function($scope, $location, sparrow, $rootScope
                 .success(function(r) {
                     alert('Database dropped')
                 }).error(function(xhr) {
-                    if (xhr.status == 404) {
-                        $rootScope.$apply(function() {
-                            $location.path("/");
-                        });
-                        return;
-                    }
-                    alert('Could not drop database');
+                    sparrow.checkError(xhr, function() {
+                        if (xhr.status == 404) {
+                            $rootScope.$apply(function() {
+                                $location.path("/");
+                            });
+                            return;
+                        }
+                        alert('Could not drop database');
+                    });
                 });
         }
     }
@@ -107,7 +119,9 @@ app.controller('dbController', function($scope, $location, sparrow, $rootScope) 
                     $scope.info = r.content;
                 });
             }).error(function(xhr) {
-                $location.path("/");
+                sparrow.checkError(xhr, function() {
+                    $location.path("/");
+                });
             });
     }
     updateInfo();
@@ -132,7 +146,9 @@ app.controller('dbController', function($scope, $location, sparrow, $rootScope) 
             .success(function(r) {
                 alert('Image ' + $scope.uploadData.key + ' sent to ' + sparrow.currentDb);
             }).error(function(xhr) {
-                alert('Could not send image.\n' + xhr.responseJSON.error.join("\n"));
+                sparrow.checkError(xhr, function() {
+                    alert('Could not send image.\n' + xhr.responseJSON.error.join("\n"));
+                });
             });
     }
 
@@ -151,10 +167,12 @@ app.controller('dbController', function($scope, $location, sparrow, $rootScope) 
                     $scope.imgInfo = r.content;
                 });
             }).error(function(xhr) {
-                $scope.$apply(function() {
-                    $scope.imgInfo = {};
+                sparrow.checkError(xhr, function() {
+                    $scope.$apply(function() {
+                        $scope.imgInfo = {};
+                    });
+                    alert('Could not get image info.\n' + xhr.responseJSON.error.join("\n"));
                 });
-                alert('Could not get image info.\n' + xhr.responseJSON.error.join("\n"));
             });
     }
 });
