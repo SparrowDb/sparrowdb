@@ -41,7 +41,7 @@ app.factory('sparrow', function($location) {
 
     self.checkError = function(xhr, cb) {
         if (xhr.status == 0) {
-            alert("Lost connection with server");
+            bootbox.alert("Lost connection with server");
         } else {
             cb(xhr);
         }
@@ -87,10 +87,11 @@ app.controller('mainController', function($scope, $location, sparrow, $rootScope
     }
 
     $scope.dbDrop = function(db) {
-        if (confirm('Drop ' + db + ' ?') == true) {
+        bootbox.confirm('Drop ' + db + ' ?', function(r) {
+            if (r == false) return;
             sparrow.getClient().dropDatabase(_currentDb)
                 .success(function(r) {
-                    alert('Database dropped')
+                    bootbox.alert('Database dropped')
                 }).error(function(xhr) {
                     sparrow.checkError(xhr, function() {
                         if (xhr.status == 404) {
@@ -99,10 +100,10 @@ app.controller('mainController', function($scope, $location, sparrow, $rootScope
                             });
                             return;
                         }
-                        alert('Could not drop database');
+                        bootbox.alert('Could not drop database');
                     });
                 });
-        }
+        });
     }
 });
 
@@ -144,17 +145,17 @@ app.controller('dbController', function($scope, $location, sparrow, $rootScope) 
                 options
             )
             .success(function(r) {
-                alert('Image ' + $scope.uploadData.key + ' sent to ' + sparrow.currentDb);
+                bootbox.alert('Image ' + $scope.uploadData.key + ' sent to ' + sparrow.currentDb);
             }).error(function(xhr) {
                 sparrow.checkError(xhr, function() {
-                    alert('Could not send image.\n' + xhr.responseJSON.error.join("\n"));
+                    bootbox.alert('Could not send image.\n' + xhr.responseJSON.error.join("\n"));
                 });
             });
     }
 
     $scope.imageInfo = function() {
         if ($scope.searchData.key == '') {
-            alert('Insert a key');
+            bootbox.alert('Insert a key');
             return;
         }
 
@@ -171,7 +172,7 @@ app.controller('dbController', function($scope, $location, sparrow, $rootScope) 
                     $scope.$apply(function() {
                         $scope.imgInfo = {};
                     });
-                    alert('Could not get image info.\n' + xhr.responseJSON.error.join("\n"));
+                    bootbox.alert('Could not get image info.\n' + xhr.responseJSON.error.join("\n"));
                 });
             });
     }
