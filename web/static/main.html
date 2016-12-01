@@ -1,5 +1,10 @@
 <h3>Databases</h3>
+
 <div class="row">
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalCreateDb">Create Database</button>
+</div>
+
+<div class="row" style="margin-top:20px">
     <div class="table-responsive">
         <table class="table table-striped table-bordered table-hover">
             <thead>
@@ -7,7 +12,7 @@
                 <td></td>
             </thead>
             <tbody>
-                <tr ng-repeat="db in databases">
+                <tr ng-repeat="db in databases | orderBy: db">
                     <td>{{db}}</td>
                     <td width="15%">
                         <button type="button" class="btn btn-primary" ng-click="dbInfo(db)">Info</button>
@@ -16,5 +21,64 @@
                 </tr>
             </tbody>
         </table>
+    </div>
+</div>
+
+
+<div class="modal fade" id="modalCreateDb" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="modalInfoDbLabel"></h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" class="form-control" placeholder="Database name" ng-model="dbData.name">
+                </div>
+
+                <form class="form-inline">
+                    <div class="form-group">
+                        <select class="form-control" ng-model="input.dbparam">
+                            <option value="">Param key</option>
+                            <option value="read_only">read_only</option>
+                            <option value="max_cache_size">max_cache_size</option>
+                            <option value="bloomfilter_fpp">bloomfilter_fpp</option>
+                            <option value="dataholder_cron_compaction">dataholder_cron_compaction</option>
+                            <option value="data_file_directory">data_file_directory</option>
+                            <option value="snapshot_path">snapshot_path</option>
+                            <option value="generate_token">generate_token</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="Param value" ng-model="input.dbvalue">
+                    </div>
+                    <button type="button" class="btn btn-default" ng-click="addParam()">Add</button>
+                </form>
+
+                <table class="table table-striped table-bordered table-hover" style="margin-top:10px">
+                    <thead>
+                        <td><b>Param</b></td>
+                        <td><b>Value</b></td>
+                        <td></td>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="(key, value) in dbData.params">
+                            <td>{{key}}</td>
+                            <td>{{value}}</td>
+                            <td width="10%">
+                                <button type="button" class="btn btn-danger" ng-click="removeParam(key)">X</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <button type="button" class="btn btn-default" ng-click="createDb()">Create</button>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
     </div>
 </div>

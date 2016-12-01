@@ -75,23 +75,29 @@ app.controller('loginController', function($scope, $location, sparrow, $rootScop
 });
 
 app.controller('mainController', function($scope, $location, sparrow, $rootScope) {
-    sparrow.getClient().showDatabases().success(function(r) {
-        $scope.$apply(function() {
-            $scope.databases = r.content._all;
+    $scope.dbData = { name: '', params: {} };
+
+    function updateDbTable() {
+        sparrow.getClient().showDatabases().success(function(r) {
+            $scope.$apply(function() {
+                $scope.databases = r.content._all;
+            });
         });
-    });
+    }
+    updateDbTable();
 
     $scope.dbInfo = function(db) {
         sparrow.currentDb = db;
         $location.path("/db");
-    }
+    };
 
     $scope.dbDrop = function(db) {
         bootbox.confirm('Drop ' + db + ' ?', function(r) {
             if (r == false) return;
-            sparrow.getClient().dropDatabase(_currentDb)
+            sparrow.getClient().dropDatabase(db)
                 .success(function(r) {
                     bootbox.alert('Database dropped')
+                    updateDbTable();
                 }).error(function(xhr) {
                     sparrow.checkError(xhr, function() {
                         if (xhr.status == 404) {
@@ -104,7 +110,54 @@ app.controller('mainController', function($scope, $location, sparrow, $rootScope
                     });
                 });
         });
-    }
+    };
+
+    $scope.createDb = function() {
+        if ($scope.dbData.name == '') {
+            bootbox.alert('Insert a valid database name')
+            return;
+        };
+
+        sparrow.getClient().createDatabase($scope.dbData.name, $scope.dbData.params)
+            .success(function(r) {
+                bootbox.alert('Database created')
+                angular.element('#modalCreateDb').modal('hide');
+                updateDbTable();
+            }).error(function(xhr) {
+                sparrow.checkError(xhr, function() {
+                    if (xhr.status == 404) {
+                        $rootScope.$apply(function() {
+                            $location.path("/");
+                        });
+                        return;
+                    }
+                    bootbox.alert('Could not create database');
+                });
+            });
+    };
+
+    $scope.addParam = function() {
+        var p = $scope.input.dbparam.toLowerCase();
+        var v = $scope.input.dbvalue.toLowerCase();
+        if (p == '' || v == '') return;
+
+        switch (p) {
+            case 'read_only':
+            case 'generate_token':
+                v = (p == 'true') ? true : false;
+                break;
+            case 'max_cache_size':
+            case 'bloomfilter_fpp':
+                v = parseFloat(v);
+                break;
+        }
+
+        $scope.dbData.params[p] = v;
+    };
+
+    $scope.removeParam = function(key) {
+        delete $scope.dbData.params[key];
+    };
 });
 
 
