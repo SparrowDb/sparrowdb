@@ -62,8 +62,7 @@ func doCompaction(db *Database) {
 				if c := containsKey(v.Key, &tombstones); c == false {
 					bs, _ := dh.Get(v.Offset)
 					df := model.NewDataDefinitionFromByteStream(bs)
-					_ = df
-					//db.commitlog.Add(df.Key, df.Status, bs)
+					db.commitlog.Add(df.Key, df.Status, df.Revision, bs)
 				}
 			}
 			util.DeleteDir(dh.path)
