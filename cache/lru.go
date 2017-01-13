@@ -58,7 +58,10 @@ func (c *lru) Insert(n *Node) {
 
 	ln := &lruNode{n: n, refs: 2}
 	c.insertHead(ln)
-	c.incUsed(n.size)
+
+	if _, ok := c.kv[n.key]; !ok {
+		c.incUsed(n.size)
+	}
 
 	c.kv[n.key] = &ln
 
