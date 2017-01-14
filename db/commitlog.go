@@ -9,6 +9,7 @@ import (
 	"github.com/SparrowDb/sparrowdb/db/index"
 	"github.com/SparrowDb/sparrowdb/engine"
 	"github.com/SparrowDb/sparrowdb/errors"
+	"github.com/SparrowDb/sparrowdb/model"
 	"github.com/SparrowDb/sparrowdb/slog"
 	"github.com/SparrowDb/sparrowdb/util"
 )
@@ -29,8 +30,11 @@ type Commitlog struct {
 
 // Get returns ByteStream with requested data, nil if not found
 func (c *Commitlog) Get(key string) *util.ByteStream {
+	return c.getByHash(util.DefaultHash(key))
+}
+
+func (c *Commitlog) getByHash(hKey uint32) *util.ByteStream {
 	// Search in index if found, get from data file
-	hKey := util.DefaultHash(key)
 	if idx, ok := c.summary.LookUp(hKey); ok == true {
 		freader, _ := c.sto.Open(c.desc)
 		r := newReader(freader.(io.ReaderAt))
@@ -47,6 +51,20 @@ func (c *Commitlog) Get(key string) *util.ByteStream {
 		return bs
 	}
 	return nil
+}
+
+// Keys return all data keys from commitlog
+func (c *Commitlog) Keys() []string {
+	keys := make([]string, 0)
+
+	summary := c.summary.GetTable()
+	for _, v := range summary {
+		bs := c.getByHash(v.Key)
+		df := model.NewDataDefinitionFromByteStream(bs)
+		keys = append(keys, df.Key)
+	}
+
+	return keys
 }
 
 // Add add entry to commitlog

@@ -324,6 +324,21 @@ func (sh *ServeHandler) getDataInfo(c *gin.Context) {
 	key := c.Param("key")
 	token := c.Param("token")
 
+	if key == "_keys" {
+
+		sto, ok := sh.dbManager.GetDatabase(resp.Database)
+
+		if !ok {
+			resp.AddError(errors.ErrDatabaseNotFound)
+			c.JSON(http.StatusBadRequest, resp)
+			return
+		}
+
+		c.JSON(http.StatusOK, sto.Keys())
+
+		return
+	}
+
 	df, err := sh.getData(resp.Database, key, token)
 	if err != nil {
 		resp.AddError(err)

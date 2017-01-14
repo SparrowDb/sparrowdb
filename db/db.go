@@ -178,6 +178,22 @@ func (db *Database) GetDataByIndexEntry(dhIdx int, entry *index.Entry) (*model.D
 	return model.NewDataDefinitionFromByteStream(bs), true
 }
 
+// Keys returns all data keys from database
+func (db *Database) Keys() []string {
+	keys := make([]string, 0)
+	keys = append(keys, db.commitlog.Keys()...)
+
+	for dhIdx, dh := range db.dhList {
+		for _, entry := range dh.summary.GetTable() {
+			if df, found := db.GetDataByIndexEntry(dhIdx, entry); found == true {
+				keys = append(keys, df.Key)
+			}
+		}
+	}
+
+	return keys
+}
+
 // Info returns information about database
 func (db *Database) Info() DatabaseInfo {
 	dbi := DatabaseInfo{}
