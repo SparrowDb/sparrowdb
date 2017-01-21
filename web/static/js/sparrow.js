@@ -88,4 +88,8 @@
      this.deleteImage = function(dbname, key) {
          return this.doRequest('api/' + dbname + '/' + key, 'DELETE');
      };
+
+     this.keys = function(dbname) {
+         return this.doRequest('api/' + dbname + '/_keys', 'GET');
+     };
  };

@@ -206,6 +206,22 @@ app.controller('dbController', function($scope, $location, sparrow, $rootScope) 
             });
     }
 
+    $scope.showKeys = function() {
+        sparrow.getClient().keys(sparrow.currentDb)
+            .success(function(r) {
+                $scope.$apply(function() {
+                    $scope.keys = r;
+                });
+            }).error(function(xhr) {
+                sparrow.checkError(xhr, function() {
+                    $scope.$apply(function() {
+                        $scope.imgInfo = {};
+                    });
+                    bootbox.alert('Could not get image list.\n' + xhr.responseJSON.error.join("\n"));
+                });
+            });
+    }
+
     $scope.imageInfo = function() {
         if ($scope.searchData.key == '') {
             bootbox.alert('Insert a key');
