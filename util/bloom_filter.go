@@ -1,12 +1,16 @@
 package util
 
-import "math"
+import (
+	"math"
+
+	"github.com/willf/bitset"
+)
 
 // BloomFilter host data about  probabilistic data structure
 type BloomFilter struct {
 	size      uint32
 	hashCount uint32
-	array     []uint8
+	bset      *bitset.BitSet
 }
 
 func (bf *BloomFilter) calculateBitSetSize(elements uint32, falsePositive float64) uint32 {
@@ -36,14 +40,14 @@ func (bf *BloomFilter) getHashes(key string) []uint32 {
 // Add adds key to BloomFilter
 func (bf *BloomFilter) Add(key string) {
 	for _, v := range bf.getHashes(key) {
-		bf.array[v] = 1
+		bf.bset.Set(uint(v))
 	}
 }
 
 // Contains checks if perhaps BloomFilter contains the key
 func (bf *BloomFilter) Contains(key string) bool {
 	for _, v := range bf.getHashes(key) {
-		if bf.array[v] == 0 {
+		if bf.bset.Test(uint(v)) == false {
 			return false
 		}
 	}
@@ -51,34 +55,39 @@ func (bf *BloomFilter) Contains(key string) bool {
 }
 
 // ByteStream returns byte stream of bloom filter data
-func (bf *BloomFilter) ByteStream() *ByteStream {
+func (bf *BloomFilter) ByteStream() (*ByteStream, error) {
 	bs := NewByteStream()
 	bs.PutUInt32(bf.size)
 	bs.PutUInt32(bf.hashCount)
-	for _, v := range bf.array {
-		bs.PutUInt16(uint16(v))
+
+	b, err := bf.bset.MarshalBinary()
+	if err != nil {
+		return nil, err
 	}
-	return bs
+
+	bs.PutBytes(b)
+	bs.Reset()
+	return bs, nil
 }
 
 // NewBloomFilterFromByteStream convert ByteStream to BloomFilter
-func NewBloomFilterFromByteStream(bs *ByteStream) *BloomFilter {
+func NewBloomFilterFromByteStream(bs *ByteStream) (BloomFilter, error) {
 	bf := BloomFilter{}
 	bf.size = bs.GetUInt32()
 	bf.hashCount = bs.GetUInt32()
-	var i uint32
-	bf.array = make([]uint8, bf.size)
-	for i = 0; i < bf.size; i++ {
-		bf.array[i] = uint8(bs.GetUInt16())
+	bf.bset = bitset.New(uint(bf.size))
+	b := bs.GetBytes()
+	if err := bf.bset.UnmarshalBinary(b); err != nil {
+		return bf, err
 	}
-	return &bf
+	return bf, nil
 }
 
 // NewBloomFilter returns new BloomFilter
 func NewBloomFilter(elements uint32, falsePositive float32) BloomFilter {
 	bf := BloomFilter{}
 	bf.size = bf.calculateBitSetSize(elements, float64(falsePositive))
-	bf.array = make([]uint8, bf.size)
+	bf.bset = bitset.New(uint(bf.size))
 	bf.hashCount = bf.calculateHashCount(elements, float64(bf.size))
 	return bf
 }

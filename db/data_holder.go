@@ -66,7 +66,11 @@ func newDataHolder(sto *engine.Storage, dbPath string, bloomFilterFp float32) (*
 	}
 
 	writer := newBufWriter(bfw)
-	b := dh.bloomfilter.ByteStream()
+	b, errbs := dh.bloomfilter.ByteStream()
+	if errbs != nil {
+		return nil, errbs
+	}
+
 	if err = writer.Append(b.Bytes()); err == nil {
 		writer.Close()
 	}
@@ -104,7 +108,10 @@ func openDataHolder(path string) (*dataHolder, error) {
 
 	if b, err := r.Read(pos); err == nil {
 		bs := util.NewByteStreamFromBytes(b)
-		dh.bloomfilter = *util.NewBloomFilterFromByteStream(bs)
+		dh.bloomfilter, err = util.NewBloomFilterFromByteStream(bs)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &dh, nil
