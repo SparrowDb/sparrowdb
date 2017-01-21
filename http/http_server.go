@@ -35,13 +35,12 @@ func (httpServer *HTTPServer) Start() {
 	authorized := httpServer.router.Group("/")
 
 	// Checks if auth is active, if true, register auth middleware
-	// and login route
 	if httpServer.Config.AuthenticationActive {
 		authorized.Use(AuthMiddleware(func(c *gin.Context) {
 			c.AbortWithStatus(http.StatusUnauthorized)
 		}))
-		httpServer.router.POST("/user/login", handler.userLogin)
 	}
+	httpServer.router.POST("/user/login", handler.userLogin)
 
 	// register routes based on configuration file permission
 	if !httpServer.Config.ReadOnly {
