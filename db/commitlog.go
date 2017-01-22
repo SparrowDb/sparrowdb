@@ -30,10 +30,11 @@ type Commitlog struct {
 
 // Get returns ByteStream with requested data, nil if not found
 func (c *Commitlog) Get(key string) *util.ByteStream {
-	return c.getByHash(util.DefaultHash(key))
+	return c.GetByHash(util.DefaultHash(key))
 }
 
-func (c *Commitlog) getByHash(hKey uint32) *util.ByteStream {
+// GetByHash returns ByteStream with requested data, nil if not found
+func (c *Commitlog) GetByHash(hKey uint32) *util.ByteStream {
 	// Search in index if found, get from data file
 	if idx, ok := c.summary.LookUp(hKey); ok == true {
 		freader, _ := c.sto.Open(c.desc)
@@ -59,7 +60,7 @@ func (c *Commitlog) Keys() []string {
 
 	summary := c.summary.GetTable()
 	for _, v := range summary {
-		bs := c.getByHash(v.Key)
+		bs := c.GetByHash(v.Key)
 		df := model.NewDataDefinitionFromByteStream(bs)
 		keys = append(keys, df.Key)
 	}

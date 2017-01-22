@@ -46,6 +46,11 @@ func (d *DataHolder) Get(position int64) (*util.ByteStream, error) {
 	return bs, nil
 }
 
+// GetSummary get index summary of current data gile
+func (d *DataHolder) GetSummary() index.Summary {
+	return d.summary
+}
+
 // NewDataHolder returns new DataHolder pointer
 func NewDataHolder(sto *engine.Storage, dbPath string, bloomFilterFp float32) (*DataHolder, error) {
 	var err error
