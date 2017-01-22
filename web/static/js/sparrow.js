@@ -1,10 +1,5 @@
  function SparrowDb(config) {
      this.config = config || {};
-     this.token = "";
-
-     if (!config.host) {
-         this.config.host = 'localhost:8081';
-     }
 
      this.doRequest = function(url, method, data) {
          var options = {
@@ -21,10 +16,10 @@
              options.dataType = 'json';
          }
 
-         if (this.token != '') {
+         if (this.config.token != null) {
              var self = this;
              options.beforeSend = function(xhr, settings) {
-                 xhr.setRequestHeader('Authorization', 'Bearer ' + self.token);
+                 xhr.setRequestHeader('Authorization', 'Bearer ' + self.config.token);
              }
          }
 

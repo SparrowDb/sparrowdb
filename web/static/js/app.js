@@ -1,88 +1,97 @@
+var Storage = {
+    set: function(key, value) {
+        localStorage.setItem(key, value);
+    },
+    get: function(key) {
+        return localStorage.getItem(key);
+    },
+    remove: function(key) {
+        localStorage.removeItem(key);
+    }
+}
+
 var app = angular.module("sparrowUI", ["ngRoute"]);
-app.config(function($routeProvider) {  
+app.config(function($routeProvider, $locationProvider) {
     $routeProvider
         .when("/", {
-            templateUrl: "main.html" ,
+            templateUrl: "/main.html" ,
             controller: 'mainController'
         })
-        .when("/login", {
-            templateUrl: "login.html" ,
-            controller: 'loginController'
-        })
         .when("/db", {
-            templateUrl: "database.html",
+            templateUrl: "/database.html",
             controller: 'dbController'
         })
         .when("/db/upload", {
             templateUrl: "database.html",
             controller: 'dbController'
+        })
+        .when("/logout", {
+            controller: 'logoutController',
+            templateUrl: "main.html" ,
         });
 });
 
 app.factory('sparrow', function($location) {
     var self = {};
-    self.token = '';
     self.currentDb = null;
-    self.currentUser = 'sparrow';
+    self.currentUser = null;
+    self.client = null;
 
-    self.connect = function(_host) {
+    self.createClient = function(info) {
+        self.currentUser = info.username;
         self.client = new SparrowDb({
-            host: _host
+            host: info.host,
+            token: info.token
         });
     };
 
     self.getClient = function() {
         if (self.client == null) {
-            $location.path("/login");
+            window.location.href = '/login.html';
             return;
         }
         return self.client;
     };
 
-    self.checkError = function(xhr, cb) {
-        if (xhr.status == 0) {
-            bootbox.alert("Lost connection with server");
-        } else {
-            cb(xhr);
+    self.checkError = function(xhr) {
+        var message = 'Could not retrieve information';
+        if (xhr.status == 401) {
+            message = 'Not authorized';
         }
+        bootbox.alert(message, function() {
+            Storage.remove('sparrow-lgn');
+            window.location.href = '/login.html';
+        });
     };
 
     return self;
 });
 
-app.controller('loginController', function($scope, $location, sparrow, $rootScope) {
-    $scope.loginData = { host: '127.0.0.1:8081', username: 'sparrow', password: 'sparrow' };
-    $scope.error = '';
 
-    $scope.doLogin = function() {
-        sparrow.connect($scope.loginData.host);
-
-        sparrow.getClient().login($scope.loginData.username, $scope.loginData.password)
-            .success(function(r) {
-                sparrow.token = r.token;
-                sparrow.currentUser = $scope.loginData.username;
-                $rootScope.$apply(function() {
-                    $location.path("/");
-                });
-            }).error(function(xhr) {
-                sparrow.checkError(xhr, function() {
-                    $scope.$apply(function() {
-                        $scope.error = 'Invalid user and/or password';
-                    });
-                });
-            });
-    };
+app.controller('logoutController', function($scope, $location, sparrow, $rootScope) {
+    Storage.remove('sparrow-lgn');
+    window.location.href = '/login.html';
 });
 
-app.controller('mainController', function($scope, $location, sparrow, $rootScope) {
+app.controller('mainController', function($scope, $location, sparrow, $rootScope, $timeout) {
     $scope.dbData = { name: '', params: {} };
+
+    info = Storage.get('sparrow-lgn');
+    if (info == null) {
+        window.location.href = '/login.html';
+    }
+    info = JSON.parse(info);
+    sparrow.createClient(info);
+    $('#username').html(info.username);
 
     function updateDbTable() {
         sparrow.getClient().showDatabases().success(function(r) {
-            $scope.$apply(function() {
+            $rootScope.$apply(function() {
                 $scope.databases = r.content._all;
             });
-        });
+        }).error(function(xhr) {
+            sparrow.checkError(xhr);
+        });;
     }
     updateDbTable();
 
@@ -245,4 +254,29 @@ app.controller('dbController', function($scope, $location, sparrow, $rootScope) 
                 });
             });
     }
+});
+
+var applogin = angular.module("sparrowLogin", []);
+applogin.controller('loginController', function($scope, $location, $rootScope) {
+    $scope.loginData = { host: '127.0.0.1:8081', username: 'sparrow', password: 'sparrow' };
+    $scope.error = '';
+
+    if (Storage.get('sparrow-lgn') != null) {
+        window.location.href = '/';
+    }
+
+    $scope.doLogin = function() {
+        var sparrow = new SparrowDb({ host: $scope.loginData.host });
+        sparrow.login($scope.loginData.username, $scope.loginData.password)
+            .success(function(r) {
+                r.host = $scope.loginData.host;
+                r.username = $scope.loginData.username;
+                Storage.set('sparrow-lgn', JSON.stringify(r));
+                window.location.href = '/';
+            }).error(function(xhr) {
+                $scope.$apply(function() {
+                    bootbox.alert((xhr.status == 401) ? 'Invalid user and/or password' : 'Connection error');
+                });
+            });
+    };
 });

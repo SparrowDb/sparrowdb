@@ -1,17 +1,49 @@
-<form class="form-signin" style="max-width: 330px;margin: 0 auto;">
-    <div class="row">
-        <h2 class="form-signin-heading">Login</h2>
-        <label for="inputUser" class="sr-only">Host</label>
-        <input type="text" id="inputUser" class="form-control" placeholder="Host (127.0.0.1:8082)" ng-model="loginData.host" required>
-        <label for="inputUser" class="sr-only">Username</label>
-        <input type="text" class="form-control" placeholder="Username" ng-model="loginData.username" required autofocus>
-        <label for="inputPassword" class="sr-only">Password</label>
-        <input type="password" class="form-control" ng-model="loginData.password" placeholder="Password" required>
-        <button class="btn btn-lg btn-primary btn-block" type="button" ng-click="doLogin()">Login</button>
+<!DOCTYPE html>
+<html ng-app="sparrowLogin">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/gentelella.min.css">
+    <title>SparrowDB</title>
+</head>
+
+<body class="login" ng-controller="loginController">
+    <div class="login_wrapper">
+        <div class="animate form login_form">
+            <section class="login_content">
+                <img src="/img/logo.png" />
+                <h2>SparrowDb Admin</h2>
+
+                <form>
+                    <h1>Login Form</h1>
+                    <div>
+                        <input type="text" class="form-control" placeholder="Host (127.0.0.1:8082)" ng-model="loginData.host" required />
+                    </div>
+
+                    <div>
+                        <input type="text" class="form-control" placeholder="Username" ng-model="loginData.username" required />
+                    </div>
+                    <div>
+                        <input type="password" class="form-control" placeholder="Password" ng-model="loginData.password" placeholder="Password" required />
+                    </div>
+                    <div>
+                        <button class="btn btn-lg btn-primary btn-block" type="button" ng-click="doLogin()">Login</button>
+                    </div>
+                </form>
+            </section>
+        </div>
     </div>
-    <div class="row" style="margin-top: 15px">
-        <p class="bg-danger" style="padding: 5px" ng-show="error != ''">
-            <b>{{error}}</b>
-        </p>
-    </div>
-</form>
+
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/bootbox.min.js"></script>
+    <script src="/js/angular.min.js"></script>
+    <script src="/js/angular-route.min.js"></script>
+    <script src="/js/sparrow.js"></script>
+    <script src="/js/app.js"></script>
+</body>
+
+</html>
