@@ -52,9 +52,9 @@ func doCompaction(db *Database) {
 	// iterate over all dataHolders
 	for _, dh := range db.dhList {
 
-		// check if dataHolder has any tombstone
+		// check if DataHolder has any tombstone
 		if dhContainsAnyTombstone(&dh, &tombstones) {
-			// if found tombstone, get index table of dataHolder
+			// if found tombstone, get index table of DataHolder
 			// and reinsert in commitlog non tombstone entry
 			table := dh.summary.GetTable()
 
@@ -91,8 +91,8 @@ func geTombstonesFromDb(db *Database) []tombstoneMark {
 
 	// iterate over all dataHolders
 	for _, dh := range db.dhList {
-		// search in dataHolder index for tombstone
-		go func(dh *dataHolder, results chan []tombstoneMark) {
+		// search in DataHolder index for tombstone
+		go func(dh *DataHolder, results chan []tombstoneMark) {
 			var result []tombstoneMark
 
 			// get index table
@@ -129,7 +129,7 @@ func containsKey(key uint32, list *[]tombstoneMark) bool {
 	return false
 }
 
-func dhContainsAnyTombstone(dh *dataHolder, list *[]tombstoneMark) bool {
+func dhContainsAnyTombstone(dh *DataHolder, list *[]tombstoneMark) bool {
 	var result bool
 	dhs := dh.summary.GetTable()
 

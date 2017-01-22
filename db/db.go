@@ -2,7 +2,6 @@ package db
 
 import (
 	"fmt"
-	"io"
 	"io/ioutil"
 	"path/filepath"
 	"regexp"
@@ -12,7 +11,6 @@ import (
 
 	"github.com/SparrowDb/sparrowdb/cache"
 	"github.com/SparrowDb/sparrowdb/db/index"
-	"github.com/SparrowDb/sparrowdb/engine"
 	"github.com/SparrowDb/sparrowdb/errors"
 	"github.com/SparrowDb/sparrowdb/model"
 	"github.com/SparrowDb/sparrowdb/slog"
@@ -23,7 +21,7 @@ import (
 type Database struct {
 	Descriptor DatabaseDescriptor
 	commitlog  *Commitlog
-	dhList     []dataHolder
+	dhList     []DataHolder
 	cache      *cache.Cache
 	mu         sync.RWMutex
 
@@ -36,28 +34,6 @@ type DatabaseInfo struct {
 	CommitlogSize int64 `json:"commitlog_size"`
 	CacheItems    int64 `json:"cache_item_count"`
 	CacheUsed     int64 `json:"cache_used_bytes"`
-}
-
-func (d *dataHolder) Get(position int64) (*util.ByteStream, error) {
-	// Search in index if found, get from data file
-	freader, err := d.sto.Open(engine.FileDesc{Type: engine.FileData})
-	if err != nil {
-		slog.Errorf(errors.ErrFileCorrupted.Error(), d.path)
-		return nil, nil
-	}
-
-	r := newReader(freader.(io.ReaderAt))
-
-	// If found key but can't load it from file, it will return nil to avoid
-	// db crash. Returning nil will send to user empty query result
-	b, err := r.Read(position)
-	if err != nil {
-		slog.Errorf(errors.ErrFileCorrupted.Error(), d.path)
-		return nil, nil
-	}
-
-	bs := util.NewByteStreamFromBytes(b)
-	return bs, nil
 }
 
 // InsertData insert data into database
@@ -79,7 +55,7 @@ func (db *Database) InsertData(df *model.DataDefinition) error {
 
 	// Check if commitlog has the max file size
 	if size+int64(df.Size) > int64(db.Descriptor.MaxDataLogSize) {
-		ndh, err := newDataHolder(&db.commitlog.sto, db.Descriptor.Path, db.Descriptor.BloomFilterFp)
+		ndh, err := NewDataHolder(&db.commitlog.sto, db.Descriptor.Path, db.Descriptor.BloomFilterFp)
 		if err != nil {
 			return err
 		}
@@ -208,7 +184,7 @@ func (db *Database) LoadData() {
 	flist, _ := ioutil.ReadDir(db.Descriptor.Path)
 	for _, v := range flist {
 		if m, _ := regexp.MatchString("^([0-9]{19})$", v.Name()); m == true {
-			dh, err := openDataHolder(filepath.Join(db.Descriptor.Path, v.Name()))
+			dh, err := OpenDataHolder(filepath.Join(db.Descriptor.Path, v.Name()))
 			if err != nil {
 				slog.Fatalf(err.Error())
 			}

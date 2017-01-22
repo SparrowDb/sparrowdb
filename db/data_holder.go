@@ -10,17 +10,44 @@ import (
 
 	"github.com/SparrowDb/sparrowdb/db/index"
 	"github.com/SparrowDb/sparrowdb/engine"
+	"github.com/SparrowDb/sparrowdb/errors"
+	"github.com/SparrowDb/sparrowdb/slog"
 	"github.com/SparrowDb/sparrowdb/util"
 )
 
-type dataHolder struct {
+// DataHolder definitive data file after commitlog flush
+type DataHolder struct {
 	path        string
 	sto         engine.Storage
 	summary     index.Summary
 	bloomfilter util.BloomFilter
 }
 
-func newDataHolder(sto *engine.Storage, dbPath string, bloomFilterFp float32) (*dataHolder, error) {
+// Get get ByteStream from dataholder for a given position in data file
+func (d *DataHolder) Get(position int64) (*util.ByteStream, error) {
+	// Search in index if found, get from data file
+	freader, err := d.sto.Open(engine.FileDesc{Type: engine.FileData})
+	if err != nil {
+		slog.Errorf(errors.ErrFileCorrupted.Error(), d.path)
+		return nil, nil
+	}
+
+	r := newReader(freader.(io.ReaderAt))
+
+	// If found key but can't load it from file, it will return nil to avoid
+	// db crash. Returning nil will send to user empty query result
+	b, err := r.Read(position)
+	if err != nil {
+		slog.Errorf(errors.ErrFileCorrupted.Error(), d.path)
+		return nil, nil
+	}
+
+	bs := util.NewByteStreamFromBytes(b)
+	return bs, nil
+}
+
+// NewDataHolder returns new DataHolder pointer
+func NewDataHolder(sto *engine.Storage, dbPath string, bloomFilterFp float32) (*DataHolder, error) {
 	var err error
 
 	// commitlog full path
@@ -41,7 +68,7 @@ func newDataHolder(sto *engine.Storage, dbPath string, bloomFilterFp float32) (*
 	}
 
 	// Load dataholder
-	dh := dataHolder{path: newPath}
+	dh := DataHolder{path: newPath}
 	if dh.sto, err = engine.OpenFile(newPath); err != nil {
 		return nil, err
 	}
@@ -78,10 +105,11 @@ func newDataHolder(sto *engine.Storage, dbPath string, bloomFilterFp float32) (*
 	return &dh, nil
 }
 
-func openDataHolder(path string) (*dataHolder, error) {
+// OpenDataHolder opens data holder for a given path
+func OpenDataHolder(path string) (*DataHolder, error) {
 	var err error
 
-	dh := dataHolder{path: path}
+	dh := DataHolder{path: path}
 
 	dh.sto, err = engine.OpenFile(path)
 	if err != nil {
