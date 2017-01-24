@@ -53,15 +53,22 @@ app.factory('sparrow', function($location) {
         return self.client;
     };
 
-    self.checkError = function(xhr) {
+    self.checkError = function(xhr, cb) {
         var message = 'Could not retrieve information';
         if (xhr.status == 401) {
             message = 'Not authorized';
+        } else if (xhr.status == 0) {
+            message = 'Connection lost';
         }
-        bootbox.alert(message, function() {
-            Storage.remove('sparrow-lgn');
-            window.location.href = '/login.html';
-        });
+
+        if (cb !== undefined) {
+            cb(message);
+        } else {
+            bootbox.alert(message, function() {
+                Storage.remove('sparrow-lgn');
+                window.location.href = '/login.html';
+            });
+        }
     };
 
     return self;
