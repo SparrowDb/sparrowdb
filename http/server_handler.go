@@ -187,7 +187,7 @@ func (sh *ServeHandler) uploadData(c *gin.Context) {
 	// checks if user request needs script execution
 	if scriptName := c.PostForm("script"); len(strings.TrimSpace(scriptName)) > 0 {
 		if b, err = script.Execute(scriptName, b); err != nil {
-			resp.AddErrorStr(fmt.Sprintf(errors.ErrScriptNotExists.Error(), scriptName))
+			resp.AddError(err)
 			c.JSON(http.StatusBadRequest, resp)
 			return
 		}

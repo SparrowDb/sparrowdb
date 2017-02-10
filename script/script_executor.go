@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/SparrowDb/sparrowdb/errors"
 	"github.com/yuin/gopher-lua"
 )
 
@@ -19,13 +20,21 @@ const (
 
 // Execute executes script that is in scripts folder
 func Execute(script string, b []byte) ([]byte, error) {
-	// check script file
-	pwd, _ := os.Getwd()
-	scriptpath := filepath.Join(pwd, "scripts", script+".lua")
+	// check if image is supported
+	if IsSupportedFileType(b) == false {
+		return nil, errors.ErrNotSupportedFileType
+	}
 
+	// check script file
+	pwd, err := os.Getwd()
+	if err != nil {
+		return nil, errors.ErrReadDir
+	}
+
+	scriptpath := filepath.Join(pwd, "scripts", script+".lua")
 	if _, err := os.Stat(scriptpath); err != nil {
 		if os.IsNotExist(err) == false {
-			return nil, err
+			return nil, errors.ErrScriptNotExists
 		}
 	}
 

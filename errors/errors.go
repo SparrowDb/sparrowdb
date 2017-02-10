@@ -75,4 +75,7 @@ var (
 
 	// ErrInvalidToken error message when username inputs invalid or expired token
 	ErrInvalidToken = errors.New("Invalid or expired token")
+
+	// ErrNotSupportedFileType error message when file type not supported by script interpreter
+	ErrNotSupportedFileType = errors.New("File type not supported by script interpreter")
 )
