@@ -77,17 +77,15 @@ All SparrowDB scripts must be in 'scripts' folder.
 Example of script that converts image to grayscale:
 
 ```lua
--- loads sparrowdb module
-local s = require("sparrowdb")
+-- If image name contains gray, use grayscale effect
+if string.match(imageCtx:name(), "gray") then
+    imageCtx:grayscale()
+end
 
--- get image data
-image = s.getInputImage()
-
--- convert image to grayscale
-out = s.grayscale(image)
-
--- set new output for image
-s.setOutputImage(out)
+-- If image name contains blue, use gaussian blur effect
+if string.match(imageCtx:name(), "blur") then
+    imageCtx:gaussianBlur(3.0)
+end
 ```
 
 

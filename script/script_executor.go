@@ -3,7 +3,6 @@ package script
 import (
 	"bytes"
 	"image"
-	"image/draw"
 	_ "image/gif"
 	_ "image/jpeg"
 	"image/png"
@@ -11,7 +10,7 @@ import (
 	"path/filepath"
 
 	"github.com/SparrowDb/sparrowdb/errors"
-	"github.com/yuin/gopher-lua"
+	lua "github.com/yuin/gopher-lua"
 )
 
 const (
@@ -19,7 +18,7 @@ const (
 )
 
 // Execute executes script that is in scripts folder
-func Execute(script string, b []byte) ([]byte, error) {
+func Execute(script, key string, b []byte) ([]byte, error) {
 	// check if image is supported
 	if IsSupportedFileType(b) == false {
 		return nil, errors.ErrNotSupportedFileType
@@ -48,18 +47,14 @@ func Execute(script string, b []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	buf := image.NewRGBA(img.Bounds())
-	draw.Draw(buf, buf.Bounds(), img, image.Point{0, 0}, draw.Src)
-
-	// load lua modules
-	sc := newScriptCtx(buf)
-	L.PreloadModule(luaSparrowModuleName, sc.load)
+	si := &SparrowImage{key, "png", img}
+	si.registerType(L)
 
 	if err := L.DoFile(scriptpath); err != nil {
 		return nil, err
 	}
 
 	nb := new(bytes.Buffer)
-	png.Encode(nb, sc.rgba)
+	png.Encode(nb, si.Img)
 	return nb.Bytes(), nil
 }
