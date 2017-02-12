@@ -39,6 +39,8 @@ func (s *SparrowImage) registerType(L *lua.LState) {
 		"rotate":        s.imgRotate,
 		"resize":        s.imgResize,
 		"crop":          s.imgCrop,
+		"bounds":        s.imgBounds,
+		"setOutput":     s.imgSetOutput,
 	}))
 
 	// put an instance of SparrowImage with filled attrs in context
@@ -172,6 +174,28 @@ func (s *SparrowImage) imgCrop(L *lua.LState) int {
 		x2 := int(L.Get(4).(lua.LNumber))
 		y2 := int(L.Get(5).(lua.LNumber))
 		s.Img = transform.Crop(s.Img, image.Rect(x1, y1, x2, y2))
+		L.Push(lua.LBool(true))
+		return 1
+	}
+	L.Push(lua.LBool(false))
+	return 0
+}
+
+func (s *SparrowImage) imgBounds(L *lua.LState) int {
+	b := s.Img.Bounds().Size()
+	tbl := L.NewTable()
+	tbl.RawSetH(lua.LString("width"), lua.LNumber(b.X))
+	tbl.RawSetH(lua.LString("height"), lua.LNumber(b.Y))
+	L.Push(tbl)
+	L.Push(lua.LBool(false))
+	return 1
+}
+
+func (s *SparrowImage) imgSetOutput(L *lua.LState) int {
+	if L.GetTop() == 2 {
+		data := L.Get(2).(*lua.LUserData)
+		rgba := data.Value.(*SparrowRGBA)
+		s.Img = rgba.RGBA.SubImage(rgba.RGBA.Rect)
 		L.Push(lua.LBool(true))
 		return 1
 	}

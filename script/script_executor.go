@@ -47,6 +47,10 @@ func Execute(script, key string, b []byte) ([]byte, error) {
 		return nil, err
 	}
 
+	// register pixel editor
+	registerRGBAType(L)
+
+	// register sparrowdb image effect
 	si := &SparrowImage{key, "png", img}
 	si.registerType(L)
 
