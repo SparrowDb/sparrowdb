@@ -74,7 +74,7 @@ SparrowDB uses [bild](https://github.com/anthonynsimon/bild) to allow image proc
 
 All SparrowDB scripts must be in 'scripts' folder.
 
-Example of script that converts image to grayscale:
+Example of script with image effect:
 
 ```lua
 -- If image name contains gray, use grayscale effect
@@ -86,6 +86,30 @@ end
 if string.match(imageCtx:name(), "blur") then
     imageCtx:gaussianBlur(3.0)
 end
+```
+
+Example of script with pixel iteration:
+
+```lua
+-- get image bounds
+b = imageCtx:bounds()
+
+-- create an editable image
+p = sparrowRGBA.new(imageCtx)
+
+-- iterate over pixels
+for i = 0, b['width'] do
+    for j = 0, b['height'] do
+        -- get current pixel color: red, green, blue, alpha
+        v = p:getPixel(i, j)
+
+        -- set current pixel color: red, green, blue, alpha
+        p:setPixel(i, j, v['red'], v['green'], v['blue'], v['alpha'])
+    end
+end
+
+-- set processed image as outputsss
+imageCtx:setOutput(p)
 ```
 
 
