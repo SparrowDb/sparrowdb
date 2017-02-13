@@ -91,11 +91,11 @@ end
 Example of script with pixel iteration:
 
 ```lua
--- get image bounds
-b = imageCtx:bounds()
-
 -- create an editable image
 p = sparrowRGBA.new(imageCtx)
+
+-- get image bounds
+b = p:bounds()
 
 -- iterate over pixels
 for i = 0, b['width'] do
