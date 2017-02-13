@@ -14,7 +14,7 @@ const (
 
 // SparrowRGBA editable instance of an image
 type SparrowRGBA struct {
-	RGBA image.RGBA
+	Img image.RGBA
 }
 
 func newRGBA(L *lua.LState) int {
@@ -50,7 +50,7 @@ func imgGetPixel(L *lua.LState) int {
 	if L.GetTop() == 3 {
 		x := int(L.Get(2).(lua.LNumber))
 		y := int(L.Get(3).(lua.LNumber))
-		r, g, b, a := rgba.RGBA.At(x, y).RGBA()
+		r, g, b, a := rgba.Img.At(x, y).RGBA()
 		tbl := L.NewTable()
 		tbl.RawSetH(lua.LString("red"), lua.LNumber(r))
 		tbl.RawSetH(lua.LString("green"), lua.LNumber(g))
@@ -72,7 +72,7 @@ func imgSetPixel(L *lua.LState) int {
 		g := uint8(L.Get(5).(lua.LNumber))
 		b := uint8(L.Get(6).(lua.LNumber))
 		a := uint8(L.Get(7).(lua.LNumber))
-		rgba.RGBA.SetRGBA(x, y, color.RGBA{r, g, b, a})
+		rgba.Img.SetRGBA(x, y, color.RGBA{r, g, b, a})
 		L.Push(lua.LBool(true))
 		return 1
 	}
@@ -82,7 +82,7 @@ func imgSetPixel(L *lua.LState) int {
 
 func imgBounds(L *lua.LState) int {
 	rgba := checkRGBA(L)
-	b := rgba.RGBA.Bounds().Size()
+	b := rgba.Img.Bounds().Size()
 	tbl := L.NewTable()
 	tbl.RawSetH(lua.LString("width"), lua.LNumber(b.X))
 	tbl.RawSetH(lua.LString("height"), lua.LNumber(b.Y))

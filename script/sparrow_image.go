@@ -184,7 +184,7 @@ func (s *SparrowImage) imgSetOutput(L *lua.LState) int {
 	if L.GetTop() == 2 {
 		data := L.Get(2).(*lua.LUserData)
 		rgba := data.Value.(*SparrowRGBA)
-		s.Img = rgba.RGBA.SubImage(rgba.RGBA.Rect)
+		s.Img = rgba.Img.SubImage(rgba.Img.Rect)
 		L.Push(lua.LBool(true))
 		return 1
 	}
