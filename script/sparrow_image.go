@@ -39,7 +39,6 @@ func (s *SparrowImage) registerType(L *lua.LState) {
 		"rotate":        s.imgRotate,
 		"resize":        s.imgResize,
 		"crop":          s.imgCrop,
-		"bounds":        s.imgBounds,
 		"setOutput":     s.imgSetOutput,
 	}))
 
@@ -179,16 +178,6 @@ func (s *SparrowImage) imgCrop(L *lua.LState) int {
 	}
 	L.Push(lua.LBool(false))
 	return 0
-}
-
-func (s *SparrowImage) imgBounds(L *lua.LState) int {
-	b := s.Img.Bounds().Size()
-	tbl := L.NewTable()
-	tbl.RawSetH(lua.LString("width"), lua.LNumber(b.X))
-	tbl.RawSetH(lua.LString("height"), lua.LNumber(b.Y))
-	L.Push(tbl)
-	L.Push(lua.LBool(false))
-	return 1
 }
 
 func (s *SparrowImage) imgSetOutput(L *lua.LState) int {

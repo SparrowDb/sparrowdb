@@ -80,6 +80,16 @@ func imgSetPixel(L *lua.LState) int {
 	return 0
 }
 
+func imgBounds(L *lua.LState) int {
+	rgba := checkRGBA(L)
+	b := rgba.RGBA.Bounds().Size()
+	tbl := L.NewTable()
+	tbl.RawSetH(lua.LString("width"), lua.LNumber(b.X))
+	tbl.RawSetH(lua.LString("height"), lua.LNumber(b.Y))
+	L.Push(tbl)
+	return 1
+}
+
 func registerRGBAType(L *lua.LState) {
 	mt := L.NewTypeMetatable(luaImageRGBATypeName)
 	L.SetGlobal(luaImageRGBATypeName, mt)
@@ -87,5 +97,6 @@ func registerRGBAType(L *lua.LState) {
 	L.SetField(mt, "__index", L.SetFuncs(L.NewTable(), map[string]lua.LGFunction{
 		"getPixel": imgGetPixel,
 		"setPixel": imgSetPixel,
+		"bounds":   imgBounds,
 	}))
 }
