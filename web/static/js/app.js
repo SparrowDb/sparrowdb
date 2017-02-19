@@ -1,3 +1,7 @@
+var isEmpty = function(str) {
+    return (typeof(str) === 'undefined' || str.length === 0 || !str.trim());
+};
+
 var Storage = {
     set: function(key, value) {
         localStorage.setItem(key, value);
@@ -129,7 +133,7 @@ app.controller('mainController', function($scope, $location, sparrow, $rootScope
     };
 
     $scope.createDb = function() {
-        if ($scope.dbData.name == '') {
+        if (isEmpty($scope.dbData.name)) {
             bootbox.alert('Insert a valid database name')
             return;
         };
@@ -207,6 +211,11 @@ app.controller('dbController', function($scope, $location, sparrow, $rootScope) 
         options.script = $scope.uploadData.script || '';
         options.upsert = $scope.uploadData.upsert || false;
 
+        if (isEmpty($scope.uploadData.key)) {
+            bootbox.alert('Invalid image name');
+            return;
+        }
+
         sparrow.getClient().uploadImage(
                 sparrow.currentDb,
                 $scope.uploadData.key,
@@ -239,7 +248,7 @@ app.controller('dbController', function($scope, $location, sparrow, $rootScope) 
     }
 
     $scope.imageInfo = function() {
-        if ($scope.searchData.key == '') {
+        if (isEmpty($scope.searchData.key)) {
             bootbox.alert('Insert a key');
             return;
         }
