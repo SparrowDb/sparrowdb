@@ -51,9 +51,13 @@ func (httpServer *HTTPServer) Start() {
 		// image insert/delete
 		authorized.PUT("/api/:dbname/:key", handler.uploadData)
 		authorized.DELETE("/api/:dbname/:key", handler.deleteData)
+
+		// register script route
+		// if :name is "_all" it will retrieve all scripts
+		authorized.GET("/script/:name", getScriptList)
 	}
 
-	// If :dbname is "_all" it will retrieve all databases or dbname
+	// if :dbname is "_all" it will retrieve all databases or dbname
 	// is a valid database name, it will retrive database information
 	authorized.GET("/api/:dbname", handler.infoDatabase)
 

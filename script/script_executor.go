@@ -17,6 +17,15 @@ const (
 	luaSparrowModuleName = "sparrowdb"
 )
 
+// GetScriptPath returns script absolute path
+func GetScriptPath() (string, error) {
+	pwd, err := os.Getwd()
+	if err != nil {
+		return "", errors.ErrReadDir
+	}
+	return filepath.Join(pwd, "scripts"), nil
+}
+
 // Execute executes script that is in scripts folder
 func Execute(script, key string, b []byte) ([]byte, error) {
 	// check if image is supported
@@ -25,12 +34,12 @@ func Execute(script, key string, b []byte) ([]byte, error) {
 	}
 
 	// check script file
-	pwd, err := os.Getwd()
+	sp, err := GetScriptPath()
 	if err != nil {
-		return nil, errors.ErrReadDir
+		return nil, err
 	}
 
-	scriptpath := filepath.Join(pwd, "scripts", script+".lua")
+	scriptpath := filepath.Join(sp, script+".lua")
 	if _, err := os.Stat(scriptpath); err != nil {
 		if os.IsNotExist(err) == false {
 			return nil, errors.ErrScriptNotExists

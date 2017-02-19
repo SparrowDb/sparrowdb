@@ -124,7 +124,7 @@ func (db *Database) GetDataByKey(key string) (*model.DataDefinition, bool) {
 	return nil, false
 }
 
-// GetDataIndexByKey search key in index, retuns the index entry,
+// GetDataIndexByKey search key in index, returns the index entry,
 // data holder index or -1 if the key is in commitlog and bool if found.
 func (db *Database) GetDataIndexByKey(hkey uint32) (*index.Entry, int, bool) {
 	strKey := strconv.Itoa(int(hkey))
