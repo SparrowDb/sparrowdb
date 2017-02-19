@@ -181,6 +181,7 @@ app.controller('mainController', function($scope, $location, sparrow, $rootScope
 });
 
 
+
 app.controller('dbController', function($scope, $location, sparrow, $rootScope) {
     $scope.currentDb = sparrow.currentDb;
     $scope.uploadData = {};
@@ -195,6 +196,17 @@ app.controller('dbController', function($scope, $location, sparrow, $rootScope) 
             }).error(function(xhr) {
                 sparrow.checkError(xhr, function() {
                     $location.path("/");
+                });
+            });
+
+        sparrow.getClient().scriptList()
+            .success(function(r) {
+                $scope.$apply(function() {
+                    $scope.scripts = r.content.scripts;
+                });
+            }).error(function(xhr) {
+                sparrow.checkError(xhr, function() {
+                    bootbox.alert('Could not get script list.\n' + xhr.responseJSON.error.join("\n"));
                 });
             });
     }

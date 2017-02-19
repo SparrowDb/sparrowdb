@@ -87,4 +87,8 @@
      this.keys = function(dbname) {
          return this.doRequest('api/' + dbname + '/_keys', 'GET');
      };
+
+     this.scriptList = function() {
+         return this.doRequest('script/_all', 'GET');
+     };
  };

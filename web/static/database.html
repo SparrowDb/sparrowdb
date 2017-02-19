@@ -79,7 +79,10 @@
                     </div>
                     <div class="form-group">
                         <label for="frmScript">Script</label>
-                        <input type="text" class="form-control" id="frmScript" placeholder="Script" ng-model="uploadData.script">
+                        <select class="form-control" id="frmScript" ng-model="uploadData.script">
+                            <option value="" selected>None</option>
+                            <option ng-repeat="script in scripts" class="form-control" value="{{script}}">{{script}}</option>
+                        </select>
                     </div>
                     <button type="button" class="btn btn-default" ng-click="uploadImage()">Send</button>
                 </form>
