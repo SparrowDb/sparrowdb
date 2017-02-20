@@ -91,4 +91,8 @@
      this.scriptList = function() {
          return this.doRequest('script/_all', 'GET');
      };
+
+     this.scriptInfo = function(name) {
+         return this.doRequest('script/' + name, 'GET');
+     };
  };

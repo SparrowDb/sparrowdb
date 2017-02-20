@@ -29,6 +29,10 @@ app.config(function($routeProvider, $locationProvider) {
             templateUrl: "database.html",
             controller: 'dbController'
         })
+        .when("/script", {
+            templateUrl: "/script.html",
+            controller: 'scriptController'
+        })
         .when("/logout", {
             controller: 'logoutController',
             templateUrl: "main.html" ,
@@ -307,4 +311,43 @@ applogin.controller('loginController', function($scope, $location, $rootScope) {
                 });
             });
     };
+});
+
+app.controller('scriptController', function($scope, $location, sparrow, $rootScope) {
+    $scope.scripts = [];
+    $scope.currentScript = '';
+
+    var editor = ace.edit("editor");
+    editor.getSession().setMode("ace/mode/lua");
+    editor.setOptions({
+        readOnly: true
+    })
+
+    function updateInfo() {
+        sparrow.getClient().scriptList()
+            .success(function(r) {
+                $scope.$apply(function() {
+                    $scope.scripts = r.content.scripts;
+                });
+            }).error(function(xhr) {
+                sparrow.checkError(xhr, function() {
+                    bootbox.alert('Could not get script list.\n' + xhr.responseJSON.error.join("\n"));
+                });
+            });
+    }
+    updateInfo();
+
+    $scope.getScript = function(name) {
+        $scope.currentScript = name;
+        sparrow.getClient().scriptInfo(name)
+            .success(function(r) {
+                $scope.$apply(function() {
+                    editor.getSession().setValue(r.content.script);
+                });
+            }).error(function(xhr) {
+                sparrow.checkError(xhr, function() {
+                    bootbox.alert('Could not get script info.\n' + xhr.responseJSON.error.join("\n"));
+                });
+            });
+    }
 });
