@@ -55,6 +55,8 @@ func (httpServer *HTTPServer) Start() {
 		// register script route
 		// if :name is "_all" it will retrieve all scripts
 		authorized.GET("/script/:name", getScriptList)
+		authorized.POST("/script/:name", saveScript)
+		authorized.DELETE("/script/:name", deleteScript)
 	}
 
 	// if :dbname is "_all" it will retrieve all databases or dbname

@@ -95,4 +95,12 @@
      this.scriptInfo = function(name) {
          return this.doRequest('script/' + name, 'GET');
      };
+
+     this.saveScript = function(name, script) {
+         return this.doRequest('script/' + name, 'POST', { content: script });
+     };
+
+     this.deleteScript = function(name) {
+         return this.doRequest('script/' + name, 'DELETE');
+     };
  };

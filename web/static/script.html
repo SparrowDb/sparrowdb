@@ -1,6 +1,10 @@
 <h3>Script</h3>
 
 
+<div class="row">
+    <button type="button" class="btn btn-primary" ng-click="newScript()">New Script</button>
+</div>
+
 <div class="row" style="margin-top:20px">
     <div class="table-responsive">
         <table class="table table-striped table-bordered table-hover">
@@ -23,13 +27,36 @@
     </div>
 </div>
 
-<div class="x_panel" ng-show="currentScript.length > 0">
-    <div class="x_title">
-        <h2>Script: {{currentScript}}</h2>
-        <div class="clearfix"></div>
-    </div>
+<div class="modal fade" id="modalScriptEditor" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document" style="min-width: 450px">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="modalInfoDbLabel">
+                    <span ng-if="isNewScript == true">
+                        New Script
+                    </span>
+                    <span ng-if="isNewScript == false">
+                        Script: {{currentScript}}
+                    </span>
+                </h4>
+            </div>
+            <div class="modal-body">
+                <div ng-show="isNewScript == true">
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="Script name" ng-model="currentScript">
+                    </div>
+                </div>
 
-    <div class="x_content" id="editor" style="min-height: 400px">
+                <div class="x_content" id="editor" style="min-height: 400px">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-danger" ng-show="isNewScript == false" ng-click="deleteScript()">Delete</button>
+                <button type="button" class="btn btn-primary" ng-click="saveScript()">Save</button>
+            </div>
+        </div>
     </div>
 </div>
 

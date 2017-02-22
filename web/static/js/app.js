@@ -316,12 +316,10 @@ applogin.controller('loginController', function($scope, $location, $rootScope) {
 app.controller('scriptController', function($scope, $location, sparrow, $rootScope) {
     $scope.scripts = [];
     $scope.currentScript = '';
+    $scope.isNewScript = true;
 
     var editor = ace.edit("editor");
     editor.getSession().setMode("ace/mode/lua");
-    editor.setOptions({
-        readOnly: true
-    })
 
     function updateInfo() {
         sparrow.getClient().scriptList()
@@ -338,7 +336,9 @@ app.controller('scriptController', function($scope, $location, sparrow, $rootSco
     updateInfo();
 
     $scope.getScript = function(name) {
+        $scope.isNewScript = false;
         $scope.currentScript = name;
+        angular.element('#modalScriptEditor').modal('show');
         sparrow.getClient().scriptInfo(name)
             .success(function(r) {
                 $scope.$apply(function() {
@@ -349,5 +349,39 @@ app.controller('scriptController', function($scope, $location, sparrow, $rootSco
                     bootbox.alert('Could not get script info.\n' + xhr.responseJSON.error.join("\n"));
                 });
             });
+    }
+
+    $scope.newScript = function() {
+        $scope.currentScript = '';
+        $scope.isNewScript = true;
+        angular.element('#modalScriptEditor').modal('show');
+        editor.getSession().setValue('');
+    }
+
+    $scope.saveScript = function() {
+        sparrow.getClient().saveScript($scope.currentScript, editor.getValue())
+            .success(function(r) {
+                updateInfo();
+            }).error(function(xhr) {
+                sparrow.checkError(xhr, function() {
+                    bootbox.alert('Could not save script.\n' + xhr.responseJSON.error.join("\n"));
+                });
+            });
+    }
+
+    $scope.deleteScript = function() {
+        bootbox.confirm('Delete ' + $scope.currentScript + ' ?', function(r) {
+            if (r == false) return;
+            sparrow.getClient().deleteScript($scope.currentScript)
+                .success(function(r) {
+                    angular.element('#modalScriptEditor').modal('hide');
+                    editor.getSession().setValue('');
+                    updateInfo();
+                }).error(function(xhr) {
+                    sparrow.checkError(xhr, function() {
+                        bootbox.alert('Could not delete script.\n' + xhr.responseJSON.error.join("\n"));
+                    });
+                });
+        });
     }
 });

@@ -8,7 +8,11 @@ import (
 	"path/filepath"
 	"strings"
 
+	govalidator "gopkg.in/asaskevich/govalidator.v4"
+
 	_error "errors"
+
+	"os"
 
 	"github.com/SparrowDb/sparrowdb/errors"
 	"github.com/SparrowDb/sparrowdb/script"
@@ -86,5 +90,71 @@ func getScriptList(c *gin.Context) {
 		return
 	}
 	resp.AddContent("script", content)
+	c.JSON(http.StatusOK, resp)
+}
+
+func saveScript(c *gin.Context) {
+	resp := NewResponse()
+	scriptName := c.Param("name")
+
+	if r := (govalidator.IsAlphanumeric(scriptName) && govalidator.IsByteLength(scriptName, 3, 50)); r == false {
+		resp.AddError(errors.ErrScriptInvalidName)
+		c.JSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	var scriptInfo struct {
+		Content string `json:"content"`
+	}
+
+	if err := c.BindJSON(&scriptInfo); err != nil {
+		resp.AddError(err)
+		c.JSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	scriptPath, err := script.GetScriptPath()
+	if err != nil {
+		resp.AddError(err)
+		c.JSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	fpath := filepath.Join(scriptPath, scriptName+".lua")
+	if err := ioutil.WriteFile(fpath, []byte(scriptInfo.Content), 0644); err != nil {
+		resp.AddError(err)
+		c.JSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	resp.AddContent("script", scriptName)
+	c.JSON(http.StatusOK, resp)
+}
+
+func deleteScript(c *gin.Context) {
+	resp := NewResponse()
+	scriptName := c.Param("name")
+
+	if r := (govalidator.IsAlphanumeric(scriptName) && govalidator.IsByteLength(scriptName, 3, 50)); r == false {
+		resp.AddError(errors.ErrScriptInvalidName)
+		c.JSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	scriptPath, err := script.GetScriptPath()
+	if err != nil {
+		resp.AddError(err)
+		c.JSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	fpath := filepath.Join(scriptPath, scriptName+".lua")
+	if err := os.Remove(fpath); err != nil {
+		resp.AddError(err)
+		c.JSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	resp.AddContent("script", scriptName)
 	c.JSON(http.StatusOK, resp)
 }

@@ -43,6 +43,9 @@ var (
 	// ErrScriptNotExists error message when script not exits
 	ErrScriptNotExists = errors.New("Script %s does not exists")
 
+	// ErrScriptInvalidName error message when script name is invalid
+	ErrScriptInvalidName = errors.New("Invalid script name")
+
 	// ErrWrongRevision error message when can't insert image
 	ErrWrongRevision = errors.New("Could not insert image %s invalid revision %v")
 
