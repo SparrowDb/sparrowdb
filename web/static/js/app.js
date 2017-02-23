@@ -319,6 +319,7 @@ app.controller('scriptController', function($scope, $location, sparrow, $rootSco
     $scope.isNewScript = true;
 
     var editor = ace.edit("editor");
+    editor.$blockScrolling = Infinity;
     editor.getSession().setMode("ace/mode/lua");
 
     function updateInfo() {
@@ -359,6 +360,11 @@ app.controller('scriptController', function($scope, $location, sparrow, $rootSco
     }
 
     $scope.saveScript = function() {
+        if (isEmpty($scope.currentScript)) {
+            bootbox.alert('Insert a valid script name')
+            return;
+        }
+
         sparrow.getClient().saveScript($scope.currentScript, editor.getValue())
             .success(function(r) {
                 updateInfo();
