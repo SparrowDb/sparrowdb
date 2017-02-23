@@ -14,7 +14,7 @@ var Storage = {
     }
 }
 
-var app = angular.module("sparrowUI", ["ngRoute"]);
+var app = angular.module("sparrowUI", ["ngRoute", "toaster", "ngAnimate"]);
 app.config(function($routeProvider, $locationProvider) {
     $routeProvider
         .when("/", {
@@ -186,38 +186,40 @@ app.controller('mainController', function($scope, $location, sparrow, $rootScope
 
 
 
-app.controller('dbController', function($scope, $location, sparrow, $rootScope) {
+app.controller('dbController', function($scope, $location, sparrow, $rootScope, toaster) {
     $scope.currentDb = sparrow.currentDb;
     $scope.uploadData = {};
     $scope.searchData = { key: '' };
 
-    var updateInfo = function() {
+    var updateInfo = function(cb) {
         sparrow.getClient().infoDatabase(sparrow.currentDb)
-            .success(function(r) {
-                $scope.$apply(function() {
-                    $scope.info = r.content;
-                });
+            .success(function(info) {
+                sparrow.getClient().scriptList()
+                    .success(function(infoScript) {
+                        if (cb !== undefined) {
+                            cb();
+                        }
+                        $scope.$apply(function() {
+                            $scope.scripts = infoScript.content.scripts;
+                            $scope.info = info.content;
+                        });
+                    }).error(function(xhr) {
+                        sparrow.checkError(xhr, function() {
+                            toaster.pop('error', 'Script', 'Could not get script list');
+                        });
+                    });
             }).error(function(xhr) {
                 sparrow.checkError(xhr, function() {
-                    $location.path("/");
-                });
-            });
-
-        sparrow.getClient().scriptList()
-            .success(function(r) {
-                $scope.$apply(function() {
-                    $scope.scripts = r.content.scripts;
-                });
-            }).error(function(xhr) {
-                sparrow.checkError(xhr, function() {
-                    bootbox.alert('Could not get script list.\n' + xhr.responseJSON.error.join("\n"));
+                    toaster.pop('error', 'Information', 'Could not refresh database information');
                 });
             });
     }
     updateInfo();
 
     $scope.refresh = function() {
-        updateInfo();
+        updateInfo(function() {
+            toaster.pop('info', 'Success', 'Information refreshed');
+        });
     }
 
     $scope.uploadImage = function() {
@@ -313,7 +315,7 @@ applogin.controller('loginController', function($scope, $location, $rootScope) {
     };
 });
 
-app.controller('scriptController', function($scope, $location, sparrow, $rootScope) {
+app.controller('scriptController', function($scope, $location, sparrow, $rootScope, toaster) {
     $scope.scripts = [];
     $scope.currentScript = '';
     $scope.isNewScript = true;
@@ -330,7 +332,7 @@ app.controller('scriptController', function($scope, $location, sparrow, $rootSco
                 });
             }).error(function(xhr) {
                 sparrow.checkError(xhr, function() {
-                    bootbox.alert('Could not get script list.\n' + xhr.responseJSON.error.join("\n"));
+                    toaster.pop('error', 'Script', 'Could not get script list');
                 });
             });
     }
@@ -368,9 +370,10 @@ app.controller('scriptController', function($scope, $location, sparrow, $rootSco
         sparrow.getClient().saveScript($scope.currentScript, editor.getValue())
             .success(function(r) {
                 updateInfo();
+                toaster.pop('info', 'Script', 'Script saved !');
             }).error(function(xhr) {
                 sparrow.checkError(xhr, function() {
-                    bootbox.alert('Could not save script.\n' + xhr.responseJSON.error.join("\n"));
+                    toaster.pop('error', 'Script', 'Could not saved script');
                 });
             });
     }
@@ -381,11 +384,12 @@ app.controller('scriptController', function($scope, $location, sparrow, $rootSco
             sparrow.getClient().deleteScript($scope.currentScript)
                 .success(function(r) {
                     angular.element('#modalScriptEditor').modal('hide');
+                    toaster.pop('info', 'Script', 'Script ' + $scope.currentScript + ' removed');
                     editor.getSession().setValue('');
                     updateInfo();
                 }).error(function(xhr) {
                     sparrow.checkError(xhr, function() {
-                        bootbox.alert('Could not delete script.\n' + xhr.responseJSON.error.join("\n"));
+                        toaster.pop('error', 'Script', 'Could not delete script ' + $scope.currentScript);
                     });
                 });
         });
