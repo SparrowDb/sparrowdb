@@ -253,7 +253,6 @@ app.controller('dbController', function($scope, $location, sparrow, $rootScope, 
         sparrow.getClient().keys(sparrow.currentDb)
             .success(function(r) {
                 $scope.$apply(function() {
-                    console.log(r)
                     $scope.keys = r.content.keys;
                 });
             }).error(function(xhr) {
@@ -293,7 +292,11 @@ app.controller('dbController', function($scope, $location, sparrow, $rootScope, 
 
 var applogin = angular.module("sparrowLogin", []);
 applogin.controller('loginController', function($scope, $location, $rootScope) {
-    $scope.loginData = { host: '127.0.0.1:8081', username: 'sparrow', password: 'sparrow' };
+    $scope.loginData = {
+        host: window.location.hostname + ':8081',
+        username: 'sparrow',
+        password: 'sparrow'
+    };
     $scope.error = '';
 
     if (Storage.get('sparrow-lgn') != null) {
