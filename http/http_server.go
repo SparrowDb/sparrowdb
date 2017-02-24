@@ -64,7 +64,7 @@ func (httpServer *HTTPServer) Start() {
 	authorized.GET("/api/:dbname", handler.infoDatabase)
 
 	// get image information by database/image_key
-	httpServer.router.GET("/api/:dbname/:key", handler.getDataInfo)
+	authorized.GET("/api/:dbname/:key", handler.getDataInfo)
 
 	// get image by database/image_key
 	httpServer.router.GET("/g/:dbname/:key", handler.get)

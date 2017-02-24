@@ -253,7 +253,8 @@ app.controller('dbController', function($scope, $location, sparrow, $rootScope, 
         sparrow.getClient().keys(sparrow.currentDb)
             .success(function(r) {
                 $scope.$apply(function() {
-                    $scope.keys = r;
+                    console.log(r)
+                    $scope.keys = r.content.keys;
                 });
             }).error(function(xhr) {
                 sparrow.checkError(xhr, function() {

@@ -334,8 +334,8 @@ func (sh *ServeHandler) getDataInfo(c *gin.Context) {
 			return
 		}
 
-		c.JSON(http.StatusOK, sto.Keys())
-
+		resp.AddContent("keys", sto.Keys())
+		c.JSON(http.StatusOK, resp)
 		return
 	}
 
