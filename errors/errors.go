@@ -81,4 +81,7 @@ var (
 
 	// ErrNotSupportedFileType error message when file type not supported by script interpreter
 	ErrNotSupportedFileType = errors.New("File type not supported by script interpreter")
+
+	// ErrNoPrivilege when user does not have privileges for an action
+	ErrNoPrivilege = errors.New("Insufficient privileges")
 )

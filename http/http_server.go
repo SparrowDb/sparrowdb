@@ -53,8 +53,6 @@ func (httpServer *HTTPServer) Start() {
 		authorized.DELETE("/api/:dbname/:key", handler.deleteData)
 
 		// register script route
-		// if :name is "_all" it will retrieve all scripts
-		authorized.GET("/script/:name", getScriptList)
 		authorized.POST("/script/:name", saveScript)
 		authorized.DELETE("/script/:name", deleteScript)
 	}
@@ -65,6 +63,9 @@ func (httpServer *HTTPServer) Start() {
 
 	// get image information by database/image_key
 	authorized.GET("/api/:dbname/:key", handler.getDataInfo)
+
+	// if :name is "_all" it will retrieve all scripts
+	authorized.GET("/script/:name", getScriptList)
 
 	// get image by database/image_key
 	httpServer.router.GET("/g/:dbname/:key", handler.get)

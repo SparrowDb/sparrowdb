@@ -1,6 +1,10 @@
-<users>
-    <user>
-        <username>sparrow</username>
-        <password>sparrow</password>
-    </user>
-</users>
+  <users>
+      <user username="sparrow" password="sparrow">
+          <roles>
+              <database-manager>true</database-manager>
+              <image-manager>true</image-manager>
+              <script-manager>true</script-manager>
+              <user-manager>true</user-manager>
+          </roles>
+      </user>
+  </users>

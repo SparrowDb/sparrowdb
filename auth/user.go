@@ -23,6 +23,7 @@ const (
 
 var (
 	userList map[string]*User
+	userCfg  UsersConfig
 	secret   string
 	letters  = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 )
@@ -48,13 +49,15 @@ type UsersConfig struct {
 
 // User holds user info
 type User struct {
-	Username string `xml:"username" json:"username"`
-	Password string `xml:"password" json:"password"`
+	Username string `xml:"username,attr" json:"username"`
+	Password string `xml:"password,attr" json:"password"`
+	Roles    Roles  `xml:"roles" json:"roles"`
 }
 
 // UserClaim authorization claim
 type UserClaim struct {
 	Username string `json:"username"`
+	Roles    Roles
 	jwt.StandardClaims
 }
 
@@ -71,10 +74,10 @@ func LoadUserConfig(filePath string, dbConfig *db.SparrowConfig) {
 
 	data, _ := ioutil.ReadAll(xmlFile)
 
-	users := UsersConfig{}
-	xml.Unmarshal(data, &users)
+	userCfg = UsersConfig{}
+	xml.Unmarshal(data, &userCfg)
 
-	for _, u := range users.Users {
+	for _, u := range userCfg.Users {
 		userList[u.Username] = &u
 	}
 }
@@ -82,6 +85,7 @@ func LoadUserConfig(filePath string, dbConfig *db.SparrowConfig) {
 func createToken(user User, expire int) (string, error) {
 	claims := UserClaim{
 		user.Username,
+		user.Roles,
 		jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Duration(expire) * time.Millisecond).Unix(),
 		},
@@ -97,21 +101,19 @@ func keyLookupFn(token *jwt.Token) (interface{}, error) {
 	return []byte(secret), nil
 }
 
-// ValidateToken checks if token is valid
-func ValidateToken(token string) (*jwt.Token, error) {
-	return jwt.Parse(token, keyLookupFn)
-}
-
-// ParseFromRequest parses token from request
-func ParseFromRequest(req *http.Request) (*jwt.Token, error) {
+// ParseClaimFromRequest parse claims from user request
+func ParseClaimFromRequest(req *http.Request) (*jwt.Token, UserClaim, error) {
 	_tok := req.Header.Get("Authorization")
-	var token string
-
 	if len(_tok) > 6 && strings.ToUpper(_tok[0:7]) == "BEARER " {
-		token = _tok[7:]
+		_tok = _tok[7:]
 	}
 
-	return ValidateToken(token)
+	usercm := UserClaim{}
+	token, err := jwt.ParseWithClaims(_tok, &usercm, keyLookupFn)
+	if err != nil {
+		return nil, usercm, err
+	}
+	return token, usercm, nil
 }
 
 // Authenticate authenticates user and returns token
@@ -121,7 +123,7 @@ func Authenticate(reqUser User, expire int) (string, bool) {
 		return "", false
 	}
 
-	tokenString, err := createToken(reqUser, expire)
+	tokenString, err := createToken(*user, expire)
 	if err != nil {
 		return "", false
 	}

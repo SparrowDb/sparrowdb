@@ -14,6 +14,7 @@ import (
 
 	"os"
 
+	"github.com/SparrowDb/sparrowdb/auth"
 	"github.com/SparrowDb/sparrowdb/errors"
 	"github.com/SparrowDb/sparrowdb/script"
 	"github.com/SparrowDb/sparrowdb/util"
@@ -83,6 +84,12 @@ func getScriptList(c *gin.Context) {
 		return
 	}
 
+	if hasPermission(c, auth.RoleScriptManager) == false {
+		resp.AddError(errors.ErrNoPrivilege)
+		c.JSON(http.StatusUnauthorized, resp)
+		return
+	}
+
 	content, err := readScriptFile(pname)
 	if err != nil {
 		resp.AddError(err)
@@ -95,6 +102,13 @@ func getScriptList(c *gin.Context) {
 
 func saveScript(c *gin.Context) {
 	resp := NewResponse()
+
+	if hasPermission(c, auth.RoleScriptManager) == false {
+		resp.AddError(errors.ErrNoPrivilege)
+		c.JSON(http.StatusUnauthorized, resp)
+		return
+	}
+
 	scriptName := c.Param("name")
 
 	if r := (govalidator.IsAlphanumeric(scriptName) && govalidator.IsByteLength(scriptName, 3, 50)); r == false {

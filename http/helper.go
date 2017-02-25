@@ -24,7 +24,7 @@ func BasicMiddleware() gin.HandlerFunc {
 // AuthMiddleware middleware to check auth token
 func AuthMiddleware(onerr func(c *gin.Context)) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		token, err := auth.ParseFromRequest(c.Request)
+		token, _, err := auth.ParseClaimFromRequest(c.Request)
 
 		if err != nil || !token.Valid {
 			onerr(c)
@@ -32,4 +32,12 @@ func AuthMiddleware(onerr func(c *gin.Context)) gin.HandlerFunc {
 
 		c.Next()
 	}
+}
+
+func hasPermission(c *gin.Context, role int) bool {
+	_, u, err := auth.ParseClaimFromRequest(c.Request)
+	if err != nil {
+		return false
+	}
+	return auth.CheckUserPermission(u, role)
 }

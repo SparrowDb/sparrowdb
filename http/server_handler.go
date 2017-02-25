@@ -49,6 +49,12 @@ func (sh *ServeHandler) createDatabase(c *gin.Context) {
 	resp := NewResponse()
 	resp.Database = c.Param("dbname")
 
+	if hasPermission(c, auth.RoleDatabaseManager) == false {
+		resp.AddError(errors.ErrNoPrivilege)
+		c.JSON(http.StatusUnauthorized, resp)
+		return
+	}
+
 	var req model.CreateDatabase
 	c.BindJSON(&req)
 
@@ -81,6 +87,12 @@ func (sh *ServeHandler) createDatabase(c *gin.Context) {
 func (sh *ServeHandler) dropDatabase(c *gin.Context) {
 	resp := NewResponse()
 	resp.Database = c.Param("dbname")
+
+	if hasPermission(c, auth.RoleDatabaseManager) == false {
+		resp.AddError(errors.ErrNoPrivilege)
+		c.JSON(http.StatusUnauthorized, resp)
+		return
+	}
 
 	if govalidator.IsAlphanumeric(resp.Database) && govalidator.IsByteLength(resp.Database, 3, 50) {
 		if err := sh.dbManager.DropDatabase(resp.Database); err != nil {
@@ -144,6 +156,12 @@ func (sh *ServeHandler) infoDatabase(c *gin.Context) {
 func (sh *ServeHandler) uploadData(c *gin.Context) {
 	resp := NewResponse()
 	resp.Database = c.Param("dbname")
+
+	if hasPermission(c, auth.RoleImageManager) == false {
+		resp.AddError(errors.ErrNoPrivilege)
+		c.JSON(http.StatusUnauthorized, resp)
+		return
+	}
 
 	if r := (govalidator.IsAlphanumeric(resp.Database) && govalidator.IsByteLength(resp.Database, 3, 50)); r == false {
 		resp.AddError(errors.ErrInvalidName)
@@ -230,9 +248,15 @@ func (sh *ServeHandler) uploadData(c *gin.Context) {
 
 func (sh *ServeHandler) deleteData(c *gin.Context) {
 	resp := NewResponse()
-	status := http.StatusBadRequest
 	resp.Database = c.Param("dbname")
 
+	if hasPermission(c, auth.RoleImageManager) == false {
+		resp.AddError(errors.ErrNoPrivilege)
+		c.JSON(http.StatusUnauthorized, resp)
+		return
+	}
+
+	status := http.StatusBadRequest
 	if r := (govalidator.IsAlphanumeric(resp.Database) && govalidator.IsByteLength(resp.Database, 3, 50)); r == false {
 		resp.AddError(errors.ErrInvalidName)
 		c.JSON(http.StatusBadRequest, resp)
@@ -321,6 +345,13 @@ func (sh *ServeHandler) get(c *gin.Context) {
 func (sh *ServeHandler) getDataInfo(c *gin.Context) {
 	resp := NewResponse()
 	resp.Database = c.Param("dbname")
+
+	if hasPermission(c, auth.RoleImageManager) == false {
+		resp.AddError(errors.ErrNoPrivilege)
+		c.JSON(http.StatusUnauthorized, resp)
+		return
+	}
+
 	key := c.Param("key")
 	token := c.Param("token")
 
