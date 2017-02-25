@@ -67,15 +67,21 @@ func LoadUserConfig(filePath string, dbConfig *db.SparrowConfig) {
 
 	xmlFile, err := os.Open(path)
 	if err != nil {
-		slog.Fatalf("Could not load users definition file")
+		slog.Fatalf(err.Error())
 	}
 
 	defer xmlFile.Close()
 
-	data, _ := ioutil.ReadAll(xmlFile)
+	data, err := ioutil.ReadAll(xmlFile)
+	if err != nil {
+		slog.Fatalf(err.Error())
+	}
 
 	userCfg = UsersConfig{}
-	xml.Unmarshal(data, &userCfg)
+
+	if err := xml.Unmarshal(data, &userCfg); err != nil {
+		slog.Fatalf(err.Error())
+	}
 
 	for _, u := range userCfg.Users {
 		userList[u.Username] = &u

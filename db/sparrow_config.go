@@ -45,7 +45,10 @@ func NewSparrowConfig(filePath string) *SparrowConfig {
 
 	defer xmlFile.Close()
 
-	data, _ := ioutil.ReadAll(xmlFile)
+	data, err := ioutil.ReadAll(xmlFile)
+	if err != nil {
+		slog.Fatalf(err.Error())
+	}
 
 	cfg := SparrowConfig{}
 

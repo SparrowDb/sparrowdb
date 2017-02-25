@@ -17,7 +17,11 @@ import (
 
 func buildTemplate(files ...string) *template.Template {
 	var pfiles []string
-	pwd, _ := os.Getwd()
+	pwd, err := os.Getwd()
+	if err != nil {
+		slog.Fatalf(err.Error())
+	}
+
 	for _, file := range files {
 		pfiles = append(pfiles, filepath.Join(pwd, "web", "templates", file))
 	}
@@ -41,7 +45,11 @@ func (s *UIServer) Start() {
 
 	s.router.Use(http.BasicMiddleware())
 
-	pwd, _ := os.Getwd()
+	pwd, err := os.Getwd()
+	if err != nil {
+		slog.Fatalf(err.Error())
+	}
+
 	s.router.StaticFS("/", _http.Dir(filepath.Join(pwd, "web", "static")))
 	s.router.OPTIONS("/*cors", func(c *gin.Context) {})
 

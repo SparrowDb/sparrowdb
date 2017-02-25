@@ -42,7 +42,12 @@ func (cfg *DatabaseConfig) DropDatabase(dbname string) {
 
 func (cfg *DatabaseConfig) saveXMLFile() {
 	filePath := filepath.Join(cfg.filepath, DefaultDatabaseConfigFile)
-	file, _ := os.Create(filePath)
+
+	file, err := os.Create(filePath)
+	if err != nil {
+		slog.Fatalf(err.Error())
+	}
+
 	xmlWriter := io.Writer(file)
 
 	enc := xml.NewEncoder(xmlWriter)
@@ -63,7 +68,10 @@ func (cfg *DatabaseConfig) LoadDatabases() []DatabaseDescriptor {
 
 	defer xmlFile.Close()
 
-	data, _ := ioutil.ReadAll(xmlFile)
+	data, err := ioutil.ReadAll(xmlFile)
+	if err != nil {
+		slog.Fatalf(err.Error())
+	}
 
 	descriptor := XMLDatabaseList{}
 	if err := xml.Unmarshal(data, &descriptor); err != nil {

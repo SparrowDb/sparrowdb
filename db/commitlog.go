@@ -37,7 +37,11 @@ func (c *Commitlog) Get(key string) *util.ByteStream {
 func (c *Commitlog) GetByHash(hKey uint32) *util.ByteStream {
 	// Search in index if found, get from data file
 	if idx, ok := c.summary.LookUp(hKey); ok == true {
-		freader, _ := c.sto.Open(c.desc)
+		freader, err := c.sto.Open(c.desc)
+		if err != nil {
+			slog.Warnf(err.Error())
+		}
+
 		r := newReader(freader.(io.ReaderAt))
 
 		// If found key but can't load it from file, it will return nil to avoid

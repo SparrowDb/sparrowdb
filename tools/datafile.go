@@ -32,7 +32,10 @@ func processDataHolder(path string) {
 	dfs := make([]*model.DataDefinition, 0)
 
 	for _, entry := range summary.GetTable() {
-		bs, _ := dataFile.Get(entry.Offset)
+		bs, err := dataFile.Get(entry.Offset)
+		if err != nil {
+			slog.Warnf(err.Error())
+		}
 		df := model.NewDataDefinitionFromByteStream(bs)
 		dfs = append(dfs, df)
 	}
@@ -59,7 +62,11 @@ func printTable(dfs []*model.DataDefinition) {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 1, tabSpaceSep, tabwriter.AlignRight|tabwriter.Debug)
 	fmt.Fprintln(w, fmt.Sprintf("%s\t%s\t%v\t%s\t%s\t%s", "Key", "Ext", "Size", "Status", "Revision", "Timestamp"))
 	for _, df := range dfs {
-		uuid, _ := uuid.ParseUUID(df.Token)
+		uuid, err := uuid.ParseUUID(df.Token)
+		if err != nil {
+			slog.Warnf(err.Error())
+			continue
+		}
 		fmt.Fprintln(w, fmt.Sprintf("%s\t%s\t%v\t%v\t%v\t%s", df.Key, df.Ext, df.Size, df.Status, df.Revision, uuid.Time().String()))
 	}
 	w.Flush()
@@ -79,7 +86,11 @@ func main() {
 		slog.Fatalf(err.Error())
 	}
 
-	abspath, _ := filepath.Abs(*flagDataFilePath)
+	abspath, err := filepath.Abs(*flagDataFilePath)
+	if err != nil {
+		slog.Fatalf(err.Error())
+	}
+
 	slog.Infof("Data file: %s", abspath)
 
 	if dirInfo.Name() == "commitlog" {
