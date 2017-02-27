@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"path"
 	"path/filepath"
 	"strings"
 
@@ -35,7 +34,7 @@ func scriptList() ([]string, error) {
 	scriptName := []string{}
 
 	for _, scriptDir := range files {
-		sname := path.Base(scriptDir)
+		sname := filepath.Base(scriptDir)
 		n := strings.LastIndexByte(sname, '.')
 		if n > 0 {
 			sname = sname[:n]
