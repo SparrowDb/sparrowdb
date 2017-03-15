@@ -7,7 +7,7 @@
   <max_cache_size>31457280</max_cache_size>
   <data_file_directory>data</data_file_directory>
   <snapshot_path>snapshot</snapshot_path>
-  <max_datalog_size>52428800</max_datalog_size>
+  <max_datalog_size>64000000</max_datalog_size>
   <bloomfilter_fpp>0.001</bloomfilter_fpp>
   <dataholder_cron_compaction>0 0 1 ? * TUE,FRI</dataholder_cron_compaction>
   <generate_token>false</generate_token>
