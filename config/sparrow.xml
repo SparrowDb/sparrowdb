@@ -4,10 +4,10 @@
   <http_host>0.0.0.0</http_host>
   <admin_port>8082</admin_port>
   <admin_host>0.0.0.0</admin_host>
-  <max_cache_size>31457280</max_cache_size>
+  <max_cache_size>33554432</max_cache_size>
   <data_file_directory>data</data_file_directory>
   <snapshot_path>snapshot</snapshot_path>
-  <max_datalog_size>64000000</max_datalog_size>
+  <max_datalog_size>67108864</max_datalog_size>
   <bloomfilter_fpp>0.001</bloomfilter_fpp>
   <dataholder_cron_compaction>0 0 1 ? * TUE,FRI</dataholder_cron_compaction>
   <generate_token>false</generate_token>
