@@ -64,6 +64,7 @@ app.factory('sparrow', function($location) {
     self.checkError = function(xhr, cb) {
         var message = 'Could not retrieve information';
         if (xhr.status == 401) {
+            Storage.remove('sparrow-lgn');
             message = 'Not authorized';
         } else if (xhr.status == 0) {
             message = 'Connection lost';
@@ -242,6 +243,7 @@ app.controller('dbController', function($scope, $location, sparrow, $rootScope, 
             )
             .success(function(r) {
                 bootbox.alert('Image ' + $scope.uploadData.key + ' sent to ' + sparrow.currentDb);
+                angular.element('#modalUpload').modal('hide');
             }).error(function(xhr) {
                 sparrow.checkError(xhr, function() {
                     bootbox.alert('Could not send image.\n' + xhr.responseJSON.error.join("\n"));
