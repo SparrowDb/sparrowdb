@@ -69,6 +69,7 @@ func (httpServer *HTTPServer) Start() {
 
 	// get image by database/image_key
 	httpServer.router.GET("/g/:dbname/:key", handler.get)
+	httpServer.router.GET("/g/:dbname/:key/:token", handler.get)
 
 	httpServer.router.GET("/ping", handler.ping)
 	httpServer.router.OPTIONS("/*cors", func(c *gin.Context) {})
