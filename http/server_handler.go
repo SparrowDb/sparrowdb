@@ -49,10 +49,12 @@ func (sh *ServeHandler) createDatabase(c *gin.Context) {
 	resp := NewResponse()
 	resp.Database = c.Param("dbname")
 
-	if hasPermission(c, auth.RoleDatabaseManager) == false {
-		resp.AddError(errors.ErrNoPrivilege)
-		c.JSON(http.StatusUnauthorized, resp)
-		return
+	if sh.dbManager.Config.AuthenticationActive {
+		if hasPermission(c, auth.RoleDatabaseManager) == false {
+			resp.AddError(errors.ErrNoPrivilege)
+			c.JSON(http.StatusUnauthorized, resp)
+			return
+		}
 	}
 
 	var req model.CreateDatabase
@@ -88,10 +90,12 @@ func (sh *ServeHandler) dropDatabase(c *gin.Context) {
 	resp := NewResponse()
 	resp.Database = c.Param("dbname")
 
-	if hasPermission(c, auth.RoleDatabaseManager) == false {
-		resp.AddError(errors.ErrNoPrivilege)
-		c.JSON(http.StatusUnauthorized, resp)
-		return
+	if sh.dbManager.Config.AuthenticationActive {
+		if hasPermission(c, auth.RoleDatabaseManager) == false {
+			resp.AddError(errors.ErrNoPrivilege)
+			c.JSON(http.StatusUnauthorized, resp)
+			return
+		}
 	}
 
 	if govalidator.IsAlphanumeric(resp.Database) && govalidator.IsByteLength(resp.Database, 3, 50) {
@@ -157,10 +161,12 @@ func (sh *ServeHandler) uploadData(c *gin.Context) {
 	resp := NewResponse()
 	resp.Database = c.Param("dbname")
 
-	if hasPermission(c, auth.RoleImageManager) == false {
-		resp.AddError(errors.ErrNoPrivilege)
-		c.JSON(http.StatusUnauthorized, resp)
-		return
+	if sh.dbManager.Config.AuthenticationActive {
+		if hasPermission(c, auth.RoleImageManager) == false {
+			resp.AddError(errors.ErrNoPrivilege)
+			c.JSON(http.StatusUnauthorized, resp)
+			return
+		}
 	}
 
 	if r := (govalidator.IsAlphanumeric(resp.Database) && govalidator.IsByteLength(resp.Database, 3, 50)); r == false {
@@ -250,10 +256,12 @@ func (sh *ServeHandler) deleteData(c *gin.Context) {
 	resp := NewResponse()
 	resp.Database = c.Param("dbname")
 
-	if hasPermission(c, auth.RoleImageManager) == false {
-		resp.AddError(errors.ErrNoPrivilege)
-		c.JSON(http.StatusUnauthorized, resp)
-		return
+	if sh.dbManager.Config.AuthenticationActive {
+		if hasPermission(c, auth.RoleImageManager) == false {
+			resp.AddError(errors.ErrNoPrivilege)
+			c.JSON(http.StatusUnauthorized, resp)
+			return
+		}
 	}
 
 	status := http.StatusBadRequest
@@ -346,10 +354,12 @@ func (sh *ServeHandler) getDataInfo(c *gin.Context) {
 	resp := NewResponse()
 	resp.Database = c.Param("dbname")
 
-	if hasPermission(c, auth.RoleImageManager) == false {
-		resp.AddError(errors.ErrNoPrivilege)
-		c.JSON(http.StatusUnauthorized, resp)
-		return
+	if sh.dbManager.Config.AuthenticationActive {
+		if hasPermission(c, auth.RoleImageManager) == false {
+			resp.AddError(errors.ErrNoPrivilege)
+			c.JSON(http.StatusUnauthorized, resp)
+			return
+		}
 	}
 
 	key := c.Param("key")
