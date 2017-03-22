@@ -27,7 +27,7 @@ var (
 	flagImagePath    = flag.String("ipath", "", "Image path")
 	flagImageScript  = flag.String("iscript", "", "Image script")
 	flagImageUpsert  = flag.Bool("upsert", false, "Image path")
-	address          = fmt.Sprintf("%s://%s:%v", "http", *flagHost, *flagPort)
+	address          string
 )
 
 const (
@@ -204,6 +204,8 @@ func printResponse(resp, status string) {
 
 func main() {
 	flag.Parse()
+	address = fmt.Sprintf("%s://%s:%v", "http", *flagHost, *flagPort)
+
 	slog.Infof("SparrowDb Commander %s - commander tool", version)
 
 	switch strings.ToLower(*flagCommand) {
