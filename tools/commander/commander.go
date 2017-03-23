@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"encoding/json"
 
@@ -110,7 +111,6 @@ func cmdSend(dbname, imgName, imgPath string) {
 	if dbname == "" || imgName == "" {
 		slog.Fatalf("Invalid SEND params [db:%s, image:/%s]", dbname, imgName)
 	}
-	fmt.Printf("%s - %s\n", dbname, imgName)
 
 	w, b, err := createFormWriter(dbname, imgName, imgPath)
 	if err != nil {
@@ -138,12 +138,20 @@ func cmdSendFolder(dbname, path string) {
 		slog.Fatalf(err.Error())
 	}
 
+	var wg sync.WaitGroup
+
 	for _, f := range files {
 		ext := filepath.Ext(f.Name())
 		if _, ok := allowedImages[ext]; ok {
-			cmdSend(dbname, strings.Replace(f.Name(), ext, "", 1), filepath.Join(path, f.Name()))
+			wg.Add(1)
+			go func(dbname, imgName, path, ext string) {
+				cmdSend(dbname, strings.Replace(imgName, ext, "", 1), filepath.Join(path, imgName))
+				wg.Done()
+			}(dbname, f.Name(), path, ext)
 		}
 	}
+
+	wg.Wait()
 }
 
 func cmdDelete() {
