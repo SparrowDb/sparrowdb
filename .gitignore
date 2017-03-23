@@ -8,6 +8,7 @@ vendor/
 scritps/
 snapshot/
 log/
+dist/
 
 # Compiled Object files, Static and Dynamic libs (Shared Objects)
 *.o
