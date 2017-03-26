@@ -20,7 +20,9 @@ Features
 ====================
 1. Built-in HTTP API so you don't have to write any server side code to get up and running.
 2. Optimizations for image storing.
-3. Websocket server to provide real time information about the server.
+3. Web Admin Panel.
+4. Create scripts with Lua for image processing.
+
 
 
 Getting started
