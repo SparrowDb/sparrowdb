@@ -1,15 +1,6 @@
 @ECHO off
-IF "%GOROOT%"=="" (
-	ECHO GOHOME not defined
-	GOTO exit
-)
 
-IF NOT EXIST "%GOROOT%bin\go.exe" (
-	ECHO GO not found
-	GOTO exit
-) 
-
-SET GO="%GOROOT%bin\go.exe"
+SET GO="go"
 
 ECHO Generating SparrowDb binaries
 IF EXIST "dist" (
@@ -27,6 +18,8 @@ ROBOCOPY scripts dist/scripts
 ROBOCOPY config dist/config
 XCOPY /f README.md dist/
 XCOPY /f LICENCE dist/
+MKDIR dist/web
+ROBOCOPY web/static dist/web/static /e
 
 :exit
 	ECHO Done

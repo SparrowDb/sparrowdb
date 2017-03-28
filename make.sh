@@ -17,5 +17,7 @@ go build -o dist/datafile tools/datafile/datafile.go
 echo "Copying ..."
 cp -r scripts dist/scripts
 cp -r config dist/config
+mkdir dist/web
+cp -r web/static dist/web/static
 
 echo "Done !"
