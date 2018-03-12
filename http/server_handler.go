@@ -176,7 +176,7 @@ func (sh *ServeHandler) uploadData(c *gin.Context) {
 	}
 
 	dataKey := c.Param("key")
-	if r := (govalidator.IsAlphanumeric(dataKey) && govalidator.IsByteLength(dataKey, 1, 50)); r == false {
+	if govalidator.IsByteLength(dataKey, 1, 150) == false {
 		resp.AddError(errors.ErrImageInvalidKey)
 		c.JSON(http.StatusBadRequest, resp)
 		return
